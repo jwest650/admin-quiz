@@ -1300,6 +1300,7 @@ if (isset($_POST['name']) && isset($_POST['add_contest'])) {
     $end_date = $db->escapeString($_POST['end_date']);
     $description = $db->escapeString($_POST['description']);
     $entry = $db->escapeString($_POST['entry']);
+    $contest_type = $db->escapeString($_POST['contest_type']);
     $status = 0;
 
     $file = explode(".", strtolower($_FILES["image"]["name"]));
@@ -1320,8 +1321,8 @@ if (isset($_POST['name']) && isset($_POST['add_contest'])) {
         return false;
     }
 
-    $sql = "INSERT INTO `contest` (`name`, `start_date`, `end_date`, `description`, `image`, `entry`,`prize_status`, `date_created`,`status`) VALUES
-	('" . $name . "','" . $start_date . "','" . $end_date . "','" . $description . "','" . $filename . "','" . $entry . "','0','" . $toDateTime . "','" . $status . "')";
+    $sql = "INSERT INTO `contest` (`name`, `start_date`, `end_date`, `description`, `image`, `entry`,`prize_status`, `date_created`,`status`,`contest_type`) VALUES
+	('" . $name . "','" . $start_date . "','" . $end_date . "','" . $description . "','" . $filename . "','" . $entry . "','0','" . $toDateTime . "','" . $status . "','". $contest_type ."')";
 
     $db->sql($sql);
     $insert_id = $db->insert_id();
