@@ -2359,14 +2359,16 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
         print_r(json_encode($response));
         return false;
     }
-    if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+    if (isset($_POST['user_id']) && !empty($_POST['user_id'])&&!empty($_POST['contest_type'])) {
         $user_id = $db->escapeString($_POST['user_id']);
+        $contest_type = $db->escapeString($_POST['contest_type']);
+
 
         /* selecting live quiz ids */
-        $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME)";
+        $sql = "SELECT id FROM `contest` where `contest_type` ='$contest_type' and ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) ";
         $db->sql($sql);
         $result = $db->getResult();
-        // print_r($result);
+       
         $live_type_ids = $past_type_ids = '';
         if (!empty($result)) {
             foreach ($result as $type_id) {
@@ -2483,7 +2485,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
         }
 
         /* selecting upcoming quiz ids */
-        $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate')";
+        $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='$contest_type'";
         $db->sql($sql);
         $result = $db->getResult();
         $upcoming_type_ids = '';
