@@ -541,6 +541,7 @@ if (isset($_GET['delete_subcategory']) && $_GET['delete_subcategory'] != '') {
 //8. add_question
 if (isset($_POST['question']) && isset($_POST['add_question'])) {
     $question = $db->escapeString($_POST['question']);
+    echo "<script>console.log(" . json_encode($question) . ");</script>";
     $category = $db->escapeString($_POST['category']);
     $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
     $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;

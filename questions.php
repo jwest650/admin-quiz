@@ -84,7 +84,9 @@ $type = 1;
                                             <div class="form-group">
                                                 <label class="control-label col-md-1 col-sm-3 col-xs-12" for="question">Question</label>
                                                 <div class="col-md-10 col-sm-6 col-xs-12">
-                                                    <textarea id="question" name="question" class="form-control" required></textarea>
+                                                
+    
+                                                <textarea id="question" name="question" class="form-control" required></textarea>
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -113,22 +115,24 @@ $type = 1;
                                             <div class="form-group">
                                                 <label for="a" class="control-label col-md-1 col-sm-3 col-xs-12">A</label>
                                                 <div class="col-md-4 col-sm-6 col-xs-12">
-                                                    <input id="a" class="form-control" type="text" value="" name="a">
+                                                <textarea id="a" name="a" class="form-control" required></textarea>
+                                                   
                                                 </div>
                                                 <label for="b" class="control-label col-md-1 col-sm-3 col-xs-12">B</label>
                                                 <div class="col-md-5 col-sm-6 col-xs-12">
-                                                    <input id="b" class="form-control" type="text" name="b">
+                                                <textarea id="b" name="b" class="form-control" required></textarea>
+                                                   
                                                 </div>
                                             </div>
                                             <div id="tf">
                                                 <div class="form-group" >
                                                     <label for="c" class="control-label col-md-1 col-sm-3 col-xs-12">C</label>
                                                     <div class="col-md-4 col-sm-6 col-xs-12">
-                                                        <input id="c" class="form-control" type="text" name="c">
+                                                    <textarea id="c" name="c" class="form-control" required></textarea>
                                                     </div>
                                                     <label for="d" class="control-label col-md-1 col-sm-3 col-xs-12">D</label>
                                                     <div class="col-md-5 col-sm-6 col-xs-12">
-                                                        <input id="d" class="form-control" type="text" name="d">
+                                                    <textarea id="d" name="d" class="form-control" required></textarea>
                                                     </div>
                                                 </div>
                                                 <?php if ($fn->is_option_e_mode_enabled()) { ?>
@@ -438,6 +442,94 @@ $type = 1;
         <!-- jQuery -->
 
         <script>
+              const customToolbar = [
+           'alignment',
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'link',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'outdent',
+                'indent',
+                '|',
+                'imageUpload',
+                'blockQuote',
+                'insertTable',
+                'mediaEmbed',
+                'undo',
+                'redo'
+        ];
+
+        let question;
+
+     ClassicEditor.create( document.querySelector( '#question' ),{
+             toolbar:{
+                items:customToolbar
+             }
+        } ).then( newEditor => {
+        question = newEditor;
+    } ).catch( error => {
+            console.error( error );
+        } );
+
+             ClassicEditor.create( document.querySelector( '#a' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
+
+             ClassicEditor.create( document.querySelector( '#b' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
+
+             ClassicEditor.create( document.querySelector( '#c' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
+
+        ClassicEditor.create( document.querySelector( '#d' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
+
+             ClassicEditor.create( document.querySelector( '#e' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
+
+
+
+
+        document.getElementById('register_form').addEventListener('submit', function(event) {
+            // Ensure the textarea is updated with the editor's content
+            if(!question.getData().trim()){
+            console.log(question)
+            }
+           console.log()
+        });
             var type =<?= $type ?>;
 <?php if ($fn->is_language_mode_enabled()) { ?>
                 $('#language_id').on('change', function (e) {
@@ -645,8 +737,10 @@ $type = 1;
         </script>        
 
         <script>
+     
             $('#register_form').validate({
                 rules: {
+                   
                     question: "required",
                     category: "required",
                     a: "required",
