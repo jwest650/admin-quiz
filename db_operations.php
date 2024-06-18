@@ -554,6 +554,7 @@ if (isset($_POST['question']) && isset($_POST['add_question'])) {
     $level = $db->escapeString($_POST['level']);
     $answer = $db->escapeString($_POST['answer']);
     $note = $db->escapeString($_POST['note']);
+    $question_level = $db->escapeString($_POST['question_level']);
 
     $filename = $full_path = '';
     // common image file extensions
@@ -580,8 +581,8 @@ if (isset($_POST['question']) && isset($_POST['add_question'])) {
         }
     }
 
-    $sql = "INSERT INTO `question`(`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `level`, `answer`, `note`) VALUES 
-	('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $level . "','" . $answer . "','" . $note . "')";
+    $sql = "INSERT INTO `question`(`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `level`, `answer`, `note`,`question_level`) VALUES 
+	('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $level . "','" . $answer . "','" . $note . "','". $question_level ."  ')";
 
     $db->sql($sql);
     $res = $db->getResult();
@@ -628,6 +629,7 @@ if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
     $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
     $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
     $question_type = $db->escapeString($_POST['edit_question_type']);
+    $question_level = $db->escapeString($_POST['question_level']);
     $a = $db->escapeString($_POST['a']);
     $b = $db->escapeString($_POST['b']);
     $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
@@ -639,7 +641,7 @@ if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
     $answer = $db->escapeString($_POST['answer']);
     $note = $db->escapeString($_POST['note']);
 
-    $sql = "Update `question` set `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "' ,`level`='" . $level . "',`note`='" . $note . "'";
+    $sql = "Update `question` set `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "' ,`level`='" . $level . "',`note`='" . $note . "', `question_level`='" . $question_level . "'";
     $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
     $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
     $sql .= " where `id`=" . $id;

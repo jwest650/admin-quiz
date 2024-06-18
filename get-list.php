@@ -694,6 +694,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'question') {
         $tempRow['answer'] = $row['answer'];
         $tempRow['level'] = $row['level'];
         $tempRow['note'] = $row['note'];
+        $tempRow['question_level'] = $row['question_level'];
         $tempRow['operate'] = $operate;
         $rows[] = $tempRow;
     }
