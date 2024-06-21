@@ -79,8 +79,8 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                                     <label for="contest_type">Contest Type</label>
                                                     <br/>
                                                     <select name="contest_type" id="contest_type" placeholder="Contest Type">
-                                                        <option value="junior">Junior Contest</option>
-                                                        <option value="contest">Contest</option>
+                                                    <option value="junior">Junior Contest</option>
+                                                    <option value="general">general Contest</option>
                                                     </select>
                                                 </div>
                                             </div>
