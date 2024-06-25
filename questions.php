@@ -286,7 +286,7 @@ $type = 1;
                                                 <th scope="col" data-field="operate" data-events="actionEvents">Operate</th>
                                             </tr>
                                         </thead>
-                                    </table>
+                                    </table> 
                                 </div>
                             </div>
                         </div>
@@ -504,12 +504,15 @@ $.validator.setDefaults({
 });
 
 $.validator.addMethod('ckeditor', function(value, element) {
+    
     let editor = editors[`#${element.id}`];
     if (editor) {
         let content = editor.getData().replace(/<[^>]*>/g, '').trim();
         return content.length > 0;
     }
     return false;
+    
+    
 }, 'This field is required.');
 
 
@@ -517,10 +520,10 @@ $.validator.addMethod('ckeditor', function(value, element) {
 
 
 
-
-
+let question_el= $('input[name="question_type"]').val()
 $('#register_form').validate({
-    rules: {
+    ignore: ':input[type="image"], #c, #d',
+            rules: {
         question: {
             ckeditor: true
         },
@@ -531,12 +534,8 @@ $('#register_form').validate({
         b: {
             ckeditor: true
         },
-        c: {
-            ckeditor: true
-        },
-        d: {
-            ckeditor: true
-        },
+        // Do not use ckeditor method for c and d
+       
         level: "required",
         answer: "required"
     },
@@ -560,12 +559,13 @@ $('#register_form').validate({
    });
 
 
-            $('#register_form').on('submit', function (e) {
+     $('#register_form').on('submit', function (e) {
                 e.preventDefault();
                 var formData = new FormData(this);
+
                 if ($("#register_form").validate().form()) {
                 <?php if ($fn->is_language_mode_enabled()) { ?>
-                                        var language = $('#language_id').val();
+                    var language = $('#language_id').val();
                 <?php } ?>
                     var category = $('#category').val();
                     var subcategory = $('#subcategory').val();
@@ -592,7 +592,7 @@ $('#register_form').validate({
                         <?php } ?>  
                         
 
-                        resetEditors()
+                            resetEditors()
                        
                             $('#tf').show('fast');
                             $('.ntf').show('fast');
@@ -908,10 +908,14 @@ var type =<?= $type ?>;
         <script>
             $('input[name="question_type"]').on("click", function (e) {
                 var question_type = $(this).val();
+                question_el=question_type
+                
                 if (question_type == "2") {
                     $('#tf').hide('fast');
-                    $('#a').val("<?php echo $config['true_value'] ?>");
-                    $('#b').val("<?php echo $config['false_value'] ?>");
+                    editors["#a"].setData("<?php echo $config['true_value'] ?>")
+                    editors["#b"].setData("<?php echo $config['false_value'] ?>")
+                    // $('#a').val("<?php echo $config['true_value'] ?>");
+                    // $('#b').val("<?php echo $config['false_value'] ?>");
                     $('.ntf').hide('fast');
                 } else {
                     $('#a').val('');
@@ -922,10 +926,14 @@ var type =<?= $type ?>;
             });
             $('input[name="edit_question_type"]').on("click", function (e) {
                 var edit_question_type = $(this).val();
+                question_el=question_type
+
                 if (edit_question_type == "2") {
                     $('#edit_tf').hide('fast');
-                    $('#edit_a').val("<?php echo $config['true_value'] ?>");
-                    $('#edit_b').val("<?php echo $config['false_value'] ?>");
+                    editors["#a"].setData("<?php echo $config['true_value'] ?>")
+                    editors["#b"].setData("<?php echo $config['false_value'] ?>")
+                    // $('#edit_a').val("<?php echo $config['true_value'] ?>");
+                    // $('#edit_b').val("<?php echo $config['false_value'] ?>");
                     $('.edit_ntf').hide('fast');
                     $('#edit_answer').val('');
                 } else {

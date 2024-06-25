@@ -2394,6 +2394,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
         $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) ";
         
         if(!empty($_POST['contest_type'])){
+            $contest_type =$_POST['contest_type'];
             $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='$contest_type' ";
 			
         }
@@ -2522,6 +2523,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
         /* selecting upcoming quiz ids */
         $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate')";
         if(!empty($_POST['contest_type'])){
+            $contest_type =$_POST['contest_type'];
             $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='$contest_type'";
         }
     
