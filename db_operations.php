@@ -93,7 +93,7 @@ define('ALLOW_MODIFICATION', 1);
   48. update_learning_status
   49. delete_question
   50.update_category_status
-
+  51.add_junior_cateory
 
   functions
   ----------------
@@ -144,6 +144,35 @@ if (isset($_POST['get_subcategories_of_category']) && $_POST['get_subcategories_
     }
     echo $options;
 }
+//7. get_subcategories_of_category - ajax dropdown menu options 
+if (isset($_POST['get_junior_subcategories_of_category']) && $_POST['get_junior_subcategories_of_category'] != '') {
+    $id = $_POST['category_id'];
+    if (empty($id)) {
+        echo '<option value="">Select Sub Category</option>';
+        return false;
+    }
+    $sql = 'SELECT * FROM `junior_subcategory` WHERE `maincat_id`=' . $id . ' ORDER BY row_order + 0 ASC';
+
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (isset($_POST['sortable']) && $_POST['sortable'] == 'sortable') {
+        $options = '';
+        foreach ($res as $category) {
+            if (!empty($category["image"])) {
+                $options .= "<li id='" . $category["id"] . "'><big>" . $category["row_order"] . ".</big> &nbsp;<img src='images/subcategory/$category[image]' height=30 > " . $category["subcategory_name"] . "</li>";
+            } else {
+                $options .= "<li id='" . $category["id"] . "'><big>" . $category["row_order"] . ".</big> &nbsp;<img src='images/logo-half.png' height=30 > " . $category["subcategory_name"] . "</li>";
+            }
+        }
+    } else {
+        $options = '<option value="">Select Sub Category</option>';
+        foreach ($res as $option) {
+            $options .= "<option value='" . $option['id'] . "'>" . $option['subcategory_name'] . "</option>";
+        }
+    }
+    echo $options;
+}
 
 // 29. get_categories_of_language - ajax dropdown menu options 
 if (isset($_POST['get_categories_of_language']) && $_POST['get_categories_of_language'] != '') {
@@ -154,6 +183,37 @@ if (isset($_POST['get_categories_of_language']) && $_POST['get_categories_of_lan
         return false;
     }
     $sql = 'SELECT * FROM `category` WHERE `language_id`=' . $id . ' AND `type`=' . $type . ' ORDER BY row_order + 0 ASC';
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (isset($_POST['sortable']) && $_POST['sortable'] == 'sortable') {
+        $options = '';
+        foreach ($res as $category) {
+
+            if (!empty($category["image"])) {
+                $options .= "<li id='" . $category["id"] . "'><big>" . $category["row_order"] . ".</big> &nbsp;<img src='images/category/$category[image]' height=30 > " . $category["category_name"] . "</li>";
+            } else {
+                $options .= "<li id='" . $category["id"] . "'><big>" . $category["row_order"] . ".</big> &nbsp;<img src='images/logo-half.png' height=30 > " . $category["category_name"] . "</li>";
+            }
+        }
+    } else {
+        $options = '<option value="">Select Category</option>';
+        foreach ($res as $option) {
+            $options .= "<option value='" . $option['id'] . "'>" . $option['category_name'] . "</option>";
+        }
+    }
+    echo $options;
+}
+
+// 29 get_junior_categories_of_language 
+if (isset($_POST['get_junior_categories_of_language']) && $_POST['get_junior_categories_of_language'] !== '') {
+    $id = $_POST['language_id'];
+    $type = (isset($_POST['type'])) ? $_POST['type'] : 1;
+    if (empty($id)) {
+        echo '<option value="">Select Category</option>';
+        return false;
+    }
+    $sql = 'SELECT * FROM `junior_category` WHERE `language_id`=' . $id . ' AND `type`=' . $type . ' ORDER BY row_order + 0 ASC';
     $db->sql($sql);
     $res = $db->getResult();
 
@@ -214,7 +274,7 @@ if (ALLOW_MODIFICATION == 0 && !defined(ALLOW_MODIFICATION)) {
     echo '<label class="alert alert-danger">This operation is not allowed in demo panel!.</label>';
     return false;
 }
-
+// 1.add_category
 if (isset($_POST['name']) && isset($_POST['add_category'])) {
     $type = $db->escapeString($_POST['type']);
     $name = $db->escapeString($_POST['name']);
@@ -255,6 +315,52 @@ if (isset($_POST['name']) && isset($_POST['add_category'])) {
 
     echo '<label class="alert alert-success">Category created successfully!</label>';
 }
+
+//add_junior_cateory
+if (isset($_POST['name']) && isset($_POST['junior_category'])) {
+    $type = $db->escapeString($_POST['type']);
+    $name = $db->escapeString($_POST['name']);
+    $plan = isset($_POST['category_plan']) ? $db->escapeString($_POST['category_plan']) : NULL;
+    $amount = isset($_POST['category_amount']) ? $db->escapeString($_POST['category_amount']) : 0;
+    if ($plan === "Paid" && $amount <= 0) {
+        echo '<label class="alert alert-danger">Amount must be greater than 0</label>';
+        return false;
+    }
+
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $filename = '';
+    // common image file extensions
+    if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+        if (!is_dir('images/category')) {
+            mkdir('images/category', 0777, true);
+        }
+
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $target_path = 'images/category/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+    }
+    $sql = "INSERT INTO `junior_category` (`language_id`, `category_name`, `type`, `image`,`plan`,`amount`, `row_order`,`status`) VALUES ('" . $language_id . "','" . $name . "','" . $type . "','" . $filename . "','" . $plan . "','" . $amount . "','1',1)";
+    $db->sql($sql);
+
+    echo '<label class="alert alert-success">Category created successfully!</label>';
+}
+
+
+
+
 
 //2. update_category
 if (isset($_POST['category_id']) && isset($_POST['update_category'])) {
@@ -320,6 +426,72 @@ if (isset($_POST['category_id']) && isset($_POST['update_category'])) {
 
     echo "<p class='alert alert-success'>Category updated successfully!</p>";
 }
+
+//2. update_junior_category
+if (isset($_POST['category_id']) && isset($_POST['update_junior_category'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['category_id'];
+    $name = $db->escapeString($_POST['name']);
+    $amount = $_POST['update_category_amount'];
+    $plan = $_POST['update_category_plan'];
+    if ($plan === "Paid" && $amount <= 0) {
+        echo '<label class="alert alert-danger">Amount must be greater than 0</label>';
+        return false;
+    }
+
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    if ($_FILES['image']['size'] != 0 && $_FILES['image']['error'] == 0) {
+        if (!is_dir('images/category')) {
+            mkdir('images/category', 0777, true);
+        }
+        //image isn't empty and update the image
+        $image_url = $db->escapeString($_POST['image_url']);
+        // common image file extensions
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+        $target_path = 'images/category/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+
+        if ($image_url != "images/logo-half.png" && file_exists($image_url)) {
+            unlink($image_url);
+        }
+        $sql = "UPDATE junior_category SET `image`='" . $filename . "' WHERE `id`=" . $id;
+        $db->sql($sql);
+    }
+
+    $sql = "UPDATE `junior_category` SET `category_name`='" . $name . "' , `plan`='" . $plan . "',`amount`='" . $amount . "'";
+    $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id` = " . $language_id . " " : "";
+    $sql .= " WHERE `id`=" . $id;
+    $db->sql($sql);
+
+    if ($fn->is_language_mode_enabled()) {
+        $sql1 = "UPDATE junior_subcategory SET `language_id`='" . $language_id . "' WHERE `maincat_id`=" . $id;
+        $db->sql($sql1);
+
+        $sql2 = "UPDATE junior_question SET `language_id`='" . $language_id . "' WHERE `category`=" . $id;
+        $db->sql($sql2);
+
+        $sql3 = "UPDATE tbl_learning SET `language_id`='" . $language_id . "' WHERE `category`=" . $id;
+        $db->sql($sql3);
+
+        $sql4 = "UPDATE tbl_maths_question SET `language_id`='" . $language_id . "' WHERE `category`=" . $id;
+        $db->sql($sql4);
+    }
+
+    echo "<p class='alert alert-success'>Category updated successfully!</p>";
+}
+
 
 //3. delete_category
 if (isset($_GET['delete_category']) && $_GET['delete_category'] != '') {
@@ -392,6 +564,77 @@ if (isset($_GET['delete_category']) && $_GET['delete_category'] != '') {
     }
 }
 
+//3. delete_junior_category
+if (isset($_GET['delete_junior_category']) && $_GET['delete_junior_category'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+    $image = $_GET['image'];
+    $sql = 'DELETE FROM `junior_category` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        if (!empty($image) && file_exists($image)) {
+            unlink($image);
+        }
+
+        // select sub category images & delete it
+        $sql = 'SELECT `image` FROM `junior_subcategory` WHERE `maincat_id`=' . $id;
+        $db->sql($sql);
+        $sub_category_images = $db->getResult();
+        if (!empty($sub_category_images)) {
+            foreach ($sub_category_images as $image) {
+                if (!empty($image['image']) && file_exists('images/subcategory/' . $image['image'])) {
+                    unlink('images/subcategory/' . $image['image']);
+                }
+            }
+        }
+        $sql = 'DELETE FROM `junior_subcategory` WHERE `maincat_id`=' . $id;
+        $db->sql($sql);
+
+        $sql = 'SELECT `image` FROM `junior_question` WHERE `category`=' . $id;
+        $db->sql($sql);
+        $question_images = $db->getResult();
+        if (!empty($question_images)) {
+            foreach ($question_images as $image) {
+                if (!empty($image['image']) && file_exists('images/questions/' . $image['image'])) {
+                    unlink('images/questions/' . $image['image']);
+                }
+            }
+        }
+        $sql = 'DELETE FROM `junior_question` WHERE `category`=' . $id;
+        $db->sql($sql);
+
+        $sql2 = 'SELECT `id` FROM `tbl_learning` WHERE `category`=' . $id;
+        $db->sql($sql2);
+        $question_images2 = $db->getResult();
+        if (!empty($question_images2)) {
+            $learning_id = $question_images2[0]['id'];
+            $sql = 'DELETE FROM `tbl_learning_question` WHERE `learning_id`=' . $learning_id;
+            $db->sql($sql);
+        }
+        $sql2 = 'DELETE FROM `tbl_learning` WHERE `category`=' . $id;
+        $db->sql($sql2);
+
+        $sql3 = 'SELECT `image` FROM `tbl_maths_question` WHERE `category`=' . $id;
+        $db->sql($sql3);
+        $question_images3 = $db->getResult();
+        if (!empty($question_images3)) {
+            foreach ($question_images3 as $image3) {
+                if (!empty($image3['image']) && file_exists('images/maths-question/' . $image3['image'])) {
+                    unlink('images/maths-question/' . $image3['image']);
+                }
+            }
+        }
+        $sql3 = 'DELETE FROM `tbl_maths_question` WHERE `category`=' . $id;
+        $db->sql($sql3);
+
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
 //4. add_subcategory
 if (isset($_POST['name']) && isset($_POST['add_subcategory'])) {
     $name = $db->escapeString($_POST['name']);
@@ -423,6 +666,42 @@ if (isset($_POST['name']) && isset($_POST['add_subcategory'])) {
     }
 
     $sql = "INSERT INTO `subcategory` (`language_id`,`maincat_id`,`subcategory_name`, `image`,`row_order`) VALUES ('" . $language_id . "','" . $maincat_id . "','" . $name . "','" . $filename . "','0')";
+    $db->sql($sql);
+
+    echo '<label class="alert alert-success">Sub Category created successfully!</label>';
+}
+//4 junior-sub-category
+
+if (isset($_POST['name']) && isset($_POST['add_junior_subcategory'])) {
+    $name = $db->escapeString($_POST['name']);
+    $maincat_id = $db->escapeString($_POST['maincat_id']);
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+
+    $filename = '';
+    // common image file extensions
+    if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+        if (!is_dir('images/subcategory')) {
+            mkdir('images/subcategory', 0777, true);
+        }
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $target_path = 'images/subcategory/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+    }
+
+    $sql = "INSERT INTO `junior_subcategory` (`language_id`,`maincat_id`,`subcategory_name`, `image`,`row_order`) VALUES ('" . $language_id . "','" . $maincat_id . "','" . $name . "','" . $filename . "','0')";
     $db->sql($sql);
 
     echo '<label class="alert alert-success">Sub Category created successfully!</label>';
@@ -491,6 +770,69 @@ if (isset($_POST['subcategory_id']) && isset($_POST['update_subcategory'])) {
     echo "<p class='alert alert-success'>Sub category updated successfully!</p>";
 }
 
+//5. update_junior_subcategory
+if (isset($_POST['subcategory_id']) && isset($_POST['update_junior_subcategory'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['subcategory_id'];
+    $name = $db->escapeString($_POST['name']);
+    $maincat_id = $db->escapeString($_POST['maincat_id']);
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+
+    $status = $db->escapeString($_POST['status']);
+    if ($_FILES['image']['size'] != 0 && $_FILES['image']['error'] == 0) {
+        if (!is_dir('images/subcategory')) {
+            mkdir('images/subcategory', 0777, true);
+        }
+        //image isn't empty and update the image
+        $image_url = $db->escapeString($_POST['image_url']);
+
+        // common image file extensions
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+        $target_path = 'images/subcategory/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+        if ($image_url != "images/logo-half.png" && file_exists($image_url)) {
+            // if its not half logo image
+            unlink($image_url);
+        }
+        $sql = "UPDATE junior_subcategory SET `image`='" . $filename . "' WHERE `id`=" . $id;
+        $db->sql($sql);
+    }
+
+    $sql = "UPDATE junior_subcategory SET `maincat_id`='" . $maincat_id . "', `subcategory_name`='" . $name . "', `status`='" . $status . "' ";
+    $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id` = " . $language_id . " " : "";
+    $sql .= " WHERE `id`=" . $id;
+    $db->sql($sql);
+
+    $sql1 = "UPDATE junior_question SET `category`='" . $maincat_id . "' ";
+    $sql1 .= ($fn->is_language_mode_enabled()) ? ", `language_id` = " . $language_id . " " : "";
+    $sql1 .= " WHERE `subcategory` =" . $id;
+    $db->sql($sql1);
+
+    // $sql2 = "UPDATE tbl_learning SET `category`='" . $maincat_id . "' ";
+    // $sql2 .= ($fn->is_language_mode_enabled()) ? ", `language_id` = " . $language_id . " " : "";
+    // $sql2 .= " WHERE `subcategory` =" . $id;
+    // $db->sql($sql2);
+
+    $sql3 = "UPDATE tbl_maths_question SET `category`='" . $maincat_id . "' ";
+    $sql3 .= ($fn->is_language_mode_enabled()) ? ", `language_id` = " . $language_id . " " : "";
+    $sql3 .= " WHERE `subcategory` =" . $id;
+    $db->sql($sql3);
+
+    echo "<p class='alert alert-success'>Sub category updated successfully!</p>";
+}
+
 //6. delete_subcategory
 if (isset($_GET['delete_subcategory']) && $_GET['delete_subcategory'] != '') {
     if (!checkadmin($auth_username)) {
@@ -538,6 +880,53 @@ if (isset($_GET['delete_subcategory']) && $_GET['delete_subcategory'] != '') {
     }
 }
 
+//6. delete_junior_subcategory
+if (isset($_GET['delete_junior_subcategory']) && $_GET['delete_junior_subcategory'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+    $image = $_GET['image'];
+
+    $sql = 'DELETE FROM `junior_subcategory` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        if (!empty($image) && file_exists($image)) {
+            unlink($image);
+        }
+
+        $sql = 'SELECT `image` FROM `junior_question` WHERE `subcategory`=' . $id;
+        $db->sql($sql);
+        $question_images = $db->getResult();
+        if (!empty($question_images)) {
+            foreach ($question_images as $image) {
+                if (!empty($image['image']) && file_exists('images/questions/' . $image['image'])) {
+                    unlink('images/questions/' . $image['image']);
+                }
+            }
+        }
+        $sql = 'DELETE FROM `junior_question` WHERE `subcategory`=' . $id;
+        $db->sql($sql);
+
+        $sql2 = 'SELECT `image` FROM `tbl_maths_question` WHERE `subcategory`=' . $id;
+        $db->sql($sql2);
+        $question_images2 = $db->getResult();
+        if (!empty($question_images2)) {
+            foreach ($question_images2 as $image2) {
+                if (!empty($image2['image']) && file_exists('images/maths-question/' . $image2['image'])) {
+                    unlink('images/maths-question/' . $image2['image']);
+                }
+            }
+        }
+        $sql2 = 'DELETE FROM `tbl_maths_question` WHERE `subcategory`=' . $id;
+        $db->sql($sql2);
+
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
 //8. add_question
 if (isset($_POST['question']) && isset($_POST['add_question'])) {
     $question = $db->escapeString($_POST['question']);
@@ -554,7 +943,6 @@ if (isset($_POST['question']) && isset($_POST['add_question'])) {
     $level = $db->escapeString($_POST['level']);
     $answer = $db->escapeString($_POST['answer']);
     $note = $db->escapeString($_POST['note']);
-    $question_level = $db->escapeString($_POST['question_level']);
 
     $filename = $full_path = '';
     // common image file extensions
@@ -581,13 +969,65 @@ if (isset($_POST['question']) && isset($_POST['add_question'])) {
         }
     }
 
-    $sql = "INSERT INTO `question`(`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `level`, `answer`, `note`,`question_level`) VALUES 
-	('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $level . "','" . $answer . "','" . $note . "','". $question_level ."  ')";
+    $sql = "INSERT INTO `question`(`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `level`, `answer`, `note`) VALUES 
+	('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $level . "','" . $answer . "','" . $note . "')";
 
     $db->sql($sql);
     $res = $db->getResult();
     echo '<label class="alert alert-success">Question created successfully!</label>';
 }
+
+//8. add_junior_question
+
+if (isset($_POST['question']) && isset($_POST['add_junior_question'])) {
+    $question = $db->escapeString($_POST['question']);
+    echo "<script>console.log(" . json_encode($question) . ");</script>";
+    $category = $db->escapeString($_POST['category']);
+    $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $question_type = $db->escapeString($_POST['question_type']);
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
+    $d = ($question_type == 1) ? $db->escapeString($_POST['d']) : "";
+    $e = ($fn->is_option_e_mode_enabled()) ? (($question_type == 1) ? $db->escapeString($_POST['e']) : "") : "";
+    $level = $db->escapeString($_POST['level']);
+    $answer = $db->escapeString($_POST['answer']);
+    $note = $db->escapeString($_POST['note']);
+
+    $filename = $full_path = '';
+    // common image file extensions
+    if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+        if (!is_dir('images/questions')) {
+            mkdir('images/questions', 0777, true);
+        }
+
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $target_path = 'images/questions/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+    }
+
+    $sql = "INSERT INTO `junior_question`(`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `level`, `answer`, `note`) VALUES 
+	('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $level . "','" . $answer . "','" . $note . "')";
+
+    $db->sql($sql);
+    $res = $db->getResult();
+    echo '<label class="alert alert-success">Question created successfully!</label>';
+}
+
 
 //9. update_question
 if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
@@ -629,7 +1069,6 @@ if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
     $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
     $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
     $question_type = $db->escapeString($_POST['edit_question_type']);
-    $question_level = $db->escapeString($_POST['question_level']);
     $a = $db->escapeString($_POST['a']);
     $b = $db->escapeString($_POST['b']);
     $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
@@ -641,7 +1080,7 @@ if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
     $answer = $db->escapeString($_POST['answer']);
     $note = $db->escapeString($_POST['note']);
 
-    $sql = "Update `question` set `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "' ,`level`='" . $level . "',`note`='" . $note . "', `question_level`='" . $question_level . "'";
+    $sql = "Update `question` set `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "' ,`level`='" . $level . "',`note`='" . $note . "'";
     $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
     $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
     $sql .= " where `id`=" . $id;
@@ -649,6 +1088,67 @@ if (isset($_POST['question_id']) && isset($_POST['update_question'])) {
 
     echo "<p class='alert alert-success'>Question updated successfully!</p>";
 }
+
+//9. update_junior_question
+if (isset($_POST['question_id']) && isset($_POST['update_junior_question'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['question_id'];
+
+    if ($_FILES['image']['size'] != 0 && $_FILES['image']['error'] == 0) {
+        //image isn't empty and update the image
+        $image_url = $db->escapeString($_POST['image_url']);
+
+        // common image file extensions
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+        if (!is_dir('images/questions')) {
+            mkdir('images/questions', 0777, true);
+        }
+        $target_path = 'images/questions/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            echo '<p class="alert alert-danger">Image type is invalid</p>';
+            return false;
+        }
+        if (!empty($image_url) && file_exists($image_url)) {
+            unlink($image_url);
+        }
+        $sql = "UPDATE `junior_question` SET `image`='" . $filename . "' where `id`=" . $id;
+        $db->sql($sql);
+    }
+
+    $question = $db->escapeString($_POST['question']);
+    $category = $db->escapeString($_POST['category']);
+    $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $question_type = $db->escapeString($_POST['edit_question_type']);
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
+    $d = ($question_type == 1) ? $db->escapeString($_POST['d']) : "";
+    if ($fn->is_option_e_mode_enabled()) {
+        $e = ($question_type == 1) ? $db->escapeString($_POST['e']) : "";
+    }
+    $level = $db->escapeString($_POST['level']);
+    $answer = $db->escapeString($_POST['answer']);
+    $note = $db->escapeString($_POST['note']);
+
+    $sql = "Update `junior_question` set `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "' ,`level`='" . $level . "',`note`='" . $note . "'";
+    $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
+    $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
+    $sql .= " where `id`=" . $id;
+    $db->sql($sql);
+
+    echo "<p class='alert alert-success'>Question updated successfully!</p>";
+}
+
 
 //10. delete_question
 if (isset($_GET['delete_question']) && $_GET['delete_question'] != '') {
@@ -660,6 +1160,25 @@ if (isset($_GET['delete_question']) && $_GET['delete_question'] != '') {
     $image = $_GET['image'];
 
     $sql = 'DELETE FROM `question` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        if (!empty($image) && file_exists($image)) {
+            unlink($image);
+        }
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+//10. delete_junior_question
+if (isset($_GET['delete_junior_question']) && $_GET['delete_junior_question'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+    $image = $_GET['image'];
+
+    $sql = 'DELETE FROM `junior_question` WHERE `id`=' . $id;
     if ($db->sql($sql)) {
         if (!empty($image) && file_exists($image)) {
             unlink($image);
@@ -978,6 +1497,97 @@ if (isset($_POST['import_questions']) && $_POST['import_questions'] == 1) {
     }
 }
 
+// 15. import_junior_questions - import questions to database from a CSV file
+if (isset($_POST['import_junior_questions']) && $_POST['import_junior_questions'] == 1) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $count = $count1 = 0;
+    $filename = $_FILES["questions_file"]["tmp_name"];
+    $file_extension = pathinfo($_FILES["questions_file"]["name"], PATHINFO_EXTENSION);
+    if ($_FILES["questions_file"]["size"] > 0 && $file_extension == "csv") {
+        $file = fopen($filename, "r");
+
+        while (($emapData = fgetcsv($file, 10000, ",")) !== FALSE) {
+            if (count($emapData) > 2) {
+                $emapData[0] = $db->escapeString($emapData[0]); //category
+                $emapData[1] = (empty($db->escapeString($emapData[1]))) ? "0" : $db->escapeString($db->escapeString($emapData[1])); //subcategory
+                $emapData[2] = ($fn->is_language_mode_enabled()) ? $db->escapeString($emapData[2]) : "0";   //language_id
+                $emapData[3] = $db->escapeString(trim($emapData[3]));   //question_type
+                $emapData[4] = $db->escapeString($emapData[4]);     //question
+                $emapData[5] = $db->escapeString($emapData[5]);    // optiona
+                $emapData[6] = $db->escapeString($emapData[6]);    // optionb
+                $emapData[7] = $db->escapeString($emapData[7]);    // optionc
+                $emapData[8] = $db->escapeString($emapData[8]);    // optiond
+                $emapData[9] = (empty($db->escapeString($emapData[9]))) ? "" : $db->escapeString($emapData[9]);  // optione
+                $emapData[10] = $db->escapeString(trim($emapData[10]));  //answer
+                $emapData[11] = $db->escapeString($emapData[11]);       //level
+                $emapData[12] = $db->escapeString($emapData[12]);      // note
+                $count++;
+                if ($count > 1) {
+                    if ($emapData[3] == '1') {
+                        if ($emapData[0] != '' && $emapData[1] != '' && $emapData[2] != '' && !empty($emapData[3]) && $emapData[4] != '' && $emapData[5] != '' && $emapData[6] != '' && $emapData[7] != '' && $emapData[8] != '' && !empty($emapData[10]) && $emapData[11] != '') {
+                            $empty_value_found = true;
+                        } else {
+                            $empty_value_found = false;
+                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            break;
+                        }
+                    } else if ($emapData[3] == '2') {
+                        if ($emapData[0] != '' && $emapData[1] != '' && $emapData[2] != '' && !empty($emapData[3]) && $emapData[4] != '' && $emapData[5] != '' && $emapData[6] != '' && !empty($emapData[10]) && $emapData[11] != '') {
+                            $empty_value_found = true;
+                        } else {
+                            $empty_value_found = false;
+                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            break;
+                        }
+                    } else {
+                        $empty_value_found = false;
+                        break;
+                    }
+                }
+            }
+        }
+        fclose($file);
+        if ($empty_value_found == TRUE) {
+            $file = fopen($filename, "r");
+            while (($emapData1 = fgetcsv($file, 10000, ",")) !== FALSE) {
+                if (count($emapData1) > 2) {
+                    $emapData1[0] = $db->escapeString($emapData1[0]);
+                    $emapData1[1] = (empty($db->escapeString($emapData1[1]))) ? "0" : $db->escapeString($db->escapeString($emapData1[1]));
+                    $emapData1[2] = ($fn->is_language_mode_enabled()) ? $db->escapeString($emapData1[2]) : "0";
+                    $emapData1[3] = $db->escapeString($emapData1[3]);
+                    $emapData1[4] = $db->escapeString($emapData1[4]);
+                    $emapData1[5] = $db->escapeString($emapData1[5]);
+                    $emapData1[6] = $db->escapeString($emapData1[6]);
+                    $emapData1[7] = $db->escapeString($emapData1[7]);
+                    $emapData1[8] = $db->escapeString($emapData1[8]);
+                    $emapData1[9] = (empty($db->escapeString($emapData1[9]))) ? "" : $db->escapeString($emapData1[9]);
+                    $emapData1[10] = $db->escapeString(trim($emapData1[10]));
+                    $emapData1[11] = $db->escapeString($emapData1[11]);
+                    $emapData1[12] = $db->escapeString($emapData1[12]);
+                    $count1++;
+                    if ($count1 > 1) {
+                        if (count($emapData1) > 2) {
+                            $sql = "INSERT INTO `junior_question`(`category`, `subcategory`, `language_id`, `image`, `question_type`, `question`,`optiona`, `optionb`, `optionc`, `optiond`,  `optione`, `answer`, `level`, `note`) VALUES 
+						('$emapData1[0]','$emapData1[1]','$emapData1[2]','','$emapData1[3]','$emapData1[4]','$emapData1[5]','$emapData1[6]','$emapData1[7]','$emapData1[8]','$emapData1[9]','$emapData1[10]','$emapData1[11]','$emapData1[12]')";
+                            $db->sql($sql);
+                        }
+                    }
+                }
+            }
+            fclose($file);
+            echo "<p class='alert alert-success'>CSV file is successfully imported!</p>";
+        } else {
+            echo "<p class='alert alert-danger'>Please fill all the data in CSV file!</p>";
+        }
+    } else {
+        echo "<p class='alert alert-danger'>Invalid file format! Please upload data in CSV file!</p>";
+    }
+}
+
+
 // 16. update_category_order
 if (isset($_POST['update_category_order']) && $_POST['update_category_order'] == 1) {
     if (!checkadmin($auth_username)) {
@@ -993,6 +1603,22 @@ if (isset($_POST['update_category_order']) && $_POST['update_category_order'] ==
     echo "<p class='alert alert-success'>Category order updated!</p>";
 }
 
+// 16. update_junior_category_order
+if (isset($_POST['update_junior_category_order']) && $_POST['update_junior_category_order'] == 1) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id_ary = explode(",", $_POST["row_order"]);
+    for ($i = 0; $i < count($id_ary); $i++) {
+        $sql = "UPDATE junior_category SET row_order='" . $i . "' WHERE id=" . $id_ary[$i];
+        $db->sql($sql);
+        $res = $db->getResult();
+    }
+    echo "<p class='alert alert-success'>Category order updated!</p>";
+}
+
+
 // 17. update_subcategory_order
 if (isset($_POST['update_subcategory_order']) && $_POST['update_subcategory_order'] == 1) {
     if (!checkadmin($auth_username)) {
@@ -1007,6 +1633,22 @@ if (isset($_POST['update_subcategory_order']) && $_POST['update_subcategory_orde
     }
     echo "<p class='alert alert-success'>Subcategory order updated!</p>";
 }
+
+// 17. update_junior_subcategory_order
+if (isset($_POST['update_junior_subcategory_order']) && $_POST['update_junior_subcategory_order'] == 1) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id_ary = explode(",", $_POST["row_order_2"]);
+    for ($i = 0; $i < count($id_ary); $i++) {
+        $sql = "UPDATE junior_subcategory SET row_order='" . $i . "' WHERE id=" . $id_ary[$i];
+        $db->sql($sql);
+        $res = $db->getResult();
+    }
+    echo "<p class='alert alert-success'>Subcategory order updated!</p>";
+}
+
 
 // 18. update_policy()
 if (isset($_POST['update_policy'])) {
@@ -1156,6 +1798,45 @@ if (isset($_GET['delete_multiple']) && $_GET['delete_multiple'] != '') {
             'category' => 'images/category/',
             'subcategory' => 'images/subcategory/',
             'question' => 'images/questions/',
+            'notifications' => 'images/notifications/',
+            'contest' => 'images/contest/',
+            'contest_questions' => 'images/contest-question/',
+            'tbl_maths_question' => 'images/maths-question/',
+        );
+
+        $sql = "select `image` from " . $table . " where id in ( " . $ids . " )";
+        $db->sql($sql);
+        $res = $db->getResult();
+        foreach ($res as $image) {
+            if (!empty($image['image']) && file_exists($path[$table] . $image['image'])) {
+                unlink($path[$table] . $image['image']);
+            }
+        }
+    }
+
+    $sql = "DELETE FROM `" . $table . "` WHERE `id` in ( " . $ids . " ) ";
+    if ($db->sql($sql)) {
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
+// 25. delete_junior_multiple
+if (isset($_GET['delete_junior_multiple']) && $_GET['delete_junior_multiple'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $ids = $db->escapeString($_GET['ids']);
+    $table = $db->escapeString($_GET['sec']);
+    $is_image = $_GET['is_image'];
+
+    if ($is_image) {
+        $path = array(
+            'junior_category' => 'images/category/',
+            'junior_subcategory' => 'images/subcategory/',
+            'junior_question' => 'images/questions/',
             'notifications' => 'images/notifications/',
             'contest' => 'images/contest/',
             'contest_questions' => 'images/contest-question/',
@@ -2257,6 +2938,19 @@ if (isset($_POST['category_status_id']) && isset($_POST['update_category_status'
     $status = $db->escapeString($_POST['status']);
 
     $sql = "Update `category` set `status`='" . $status . "' where `id`=" . $id;
+    $db->sql($sql);
+    echo "<p class='alert alert-success'>Category status updated successfully!</p>";
+}
+// 50. update_junior_category_status
+if (isset($_POST['category_status_id']) && isset($_POST['update_junior_category_status'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['category_status_id'];
+    $status = $db->escapeString($_POST['status']);
+
+    $sql = "Update `junior_category` set `status`='" . $status . "' where `id`=" . $id;
     $db->sql($sql);
     echo "<p class='alert alert-success'>Category status updated successfully!</p>";
 }

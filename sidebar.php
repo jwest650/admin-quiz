@@ -103,6 +103,15 @@
                                     <li><a href="questions.php">Questions</a></li>
                                 </ul>
                             </li>
+                            <li>
+                                <a><em class="fas fa-book"></em> Junior Quiz Zone<span class="fas fa-caret-down"></span></a>
+                                <ul class="nav child_menu">
+                                    <li><a href="junior-main-category.php">Main Category</a></li>
+                                    <li><a href="junior-sub-category.php">Sub Category</a></li>
+                                    <li><a href="junior-category-order.php">Category Order</a></li>
+                                    <li><a href="junior-questions.php">Questions</a></li>
+                                </ul>
+                            </li>
                             <li><a href="daily-quiz.php"><em class="fas fa-question"></em> Daily Quiz</a></li>                          
                             <li>
                                 <a><em class="fas fa-book"></em> Learning Zone<span class="fas fa-caret-down"></span></a>

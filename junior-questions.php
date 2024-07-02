@@ -37,7 +37,7 @@ $type = 1;
                                     <div class="row">
                                         <form id="register_form" method="POST" action="db_operations.php" data-parsley-validate="" class="form-horizontal form-label-left" novalidate="novalidate">
                                             <h4 class="col-md-offset-1"><strong>Create a Question</strong></h4>
-                                            <input type="hidden" id="add_question" name="add_question" required="" value="1" aria-required="true">
+                                            <input type="hidden" id="add_question" name="add_junior_question" required="" value="1" aria-required="true">
                                             <?php
                                             $db->sql("SET NAMES 'utf8'");
                                             if ($fn->is_language_mode_enabled()) {
@@ -63,7 +63,7 @@ $type = 1;
                                                 <label class="control-label col-md-1 col-sm-3 col-xs-12" for="category">Category</label>
                                                 <div class="col-md-4 col-sm-6 col-xs-12">
                                                     <?php
-                                                    $sql = "SELECT id, category_name FROM category WHERE type=" . $type . " ORDER BY id DESC";
+                                                    $sql = "SELECT id, category_name FROM junior_category WHERE type=" . $type . " ORDER BY id DESC";
                                                     $db->sql($sql);
                                                     $categories = $db->getResult();
                                                     ?>
@@ -168,7 +168,7 @@ $type = 1;
                                                     </select>
                                                 </div>
                                             </div>
-                                            
+                                           
                                             <div class="form-group">
                                                 <label class="control-label col-md-1 col-sm-3 col-xs-12" for="note">Note</label>
                                                 <div class="col-md-10 col-sm-6 col-xs-12">
@@ -236,7 +236,7 @@ $type = 1;
                                         </div>
                                     </div>
                                     <table aria-describedby="mydesc" class='table-striped' id='questions'
-                                           data-toggle="table" data-url="get-list.php?table=question"
+                                           data-toggle="table" data-url="get-list.php?table=junior_question"
                                            data-sort-name="id" data-sort-order="desc"
                                            data-click-to-select="true" data-side-pagination="server"                                           
                                            data-search="true" data-show-columns="true"
@@ -294,7 +294,7 @@ $type = 1;
                         <div class="modal-body">
                             <form id="update_form"  method="POST" action ="db_operations.php" data-parsley-validate class="form-horizontal form-label-left">
                                 <input type='hidden' name="question_id" id="question_id" value=''/>
-                                <input type='hidden' name="update_question" id="update_question" value='1'/>
+                                <input type='hidden' name="update_junior_question" id="update_question" value='1'/>
                                 <input type='hidden' name="image_url" id="image_url" value=''/>
                                 <?php
                                 $db->sql("SET NAMES 'utf8'");
@@ -422,16 +422,7 @@ $type = 1;
                                         <textarea name="note" id="edit_note" class="form-control"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="control-label col-md-1 col-sm-3 col-xs-12" for="note">Question Level</label>
-                                    <div class="col-md-10 col-sm-6 col-xs-12">
-                                        <select name="question_level" id="question_level" class="form-control">
-                                           
-                                            <option value="general">General</option>
-                                            <option value="junior">Junior</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                
 
                                 <div class="ln_solid"></div>
                                 <div class="form-group">
@@ -611,11 +602,12 @@ var type =<?= $type ?>;
                     $.ajax({
                         type: 'POST',
                         url: "db_operations.php",
-                        data: 'get_categories_of_language=1&language_id=' + language_id + '&type=' + type,
+                        data: 'get_junior_categories_of_language=1&language_id=' + language_id + '&type=' + type,
                         beforeSend: function () {
                             $('#category').html('Please wait..');
                         },
                         success: function (result) {
+                            console.log(result)
                             $('#category').html(result);
                         }
                     });
@@ -625,7 +617,7 @@ var type =<?= $type ?>;
                     $.ajax({
                         type: 'POST',
                         url: "db_operations.php",
-                        data: 'get_categories_of_language=1&language_id=' + language_id + '&type=' + type,
+                        data: 'get_junior_categories_of_language=1&language_id=' + language_id + '&type=' + type,
                         beforeSend: function () {
                             $('#edit_category').html('Please wait..');
                         },
@@ -641,7 +633,7 @@ var type =<?= $type ?>;
                     $.ajax({
                         type: 'POST',
                         url: "db_operations.php",
-                        data: 'get_categories_of_language=1&language_id=' + language_id + '&type=' + type,
+                        data: 'get_junior_categories_of_language=1&language_id=' + language_id + '&type=' + type,
                         beforeSend: function () {
                             $('#filter_category').html('<option>Please wait..</option>');
                         },
@@ -668,7 +660,7 @@ var type =<?= $type ?>;
                 $.ajax({
                     type: 'POST',
                     url: "db_operations.php",
-                    data: 'get_subcategories_of_category=1&category_id=' + category_id,
+                    data: 'get_junior_subcategories_of_category=1&category_id=' + category_id,
                     beforeSend: function () {
                         $('#subcategory').html('Please wait..');
                     },
@@ -682,7 +674,7 @@ var type =<?= $type ?>;
                 $.ajax({
                     type: 'POST',
                     url: "db_operations.php",
-                    data: 'get_subcategories_of_category=1&category_id=' + category_id,
+                    data: 'get_junior_subcategories_of_category=1&category_id=' + category_id,
                     beforeSend: function () {
                         $('#edit_subcategory').html('Please wait..');
                     },
@@ -699,7 +691,7 @@ var type =<?= $type ?>;
                 $.ajax({
                     type: 'POST',
                     url: "db_operations.php",
-                    data: 'get_subcategories_of_category=1&category_id=' + category_id,
+                    data: 'get_junior_subcategories_of_category=1&category_id=' + category_id,
                     beforeSend: function () {
                         $('#filter_subcategory').html('<option>Please wait..</option>');
                     },
@@ -776,7 +768,7 @@ var type =<?= $type ?>;
                     $.ajax({
                         url: 'db_operations.php',
                         type: "get",
-                        data: 'id=' + id + '&image=' + image + '&delete_question=1',
+                        data: 'id=' + id + '&image=' + image + '&delete_junior_question=1',
                         success: function (result) {
                             if (result == 1) {
                                 $('#questions').bootstrapTable('refresh');
@@ -860,7 +852,7 @@ var type =<?= $type ?>;
                 $('#questions').bootstrapTable('refresh');
             });
             $('#delete_multiple_questions').on('click', function (e) {
-                sec = 'question';
+                sec = 'junior_question';
                 is_image = 1;
                 table = $('#questions');
                 delete_button = $('#delete_multiple_questions');
@@ -877,7 +869,7 @@ var type =<?= $type ?>;
                         $.ajax({
                             type: 'GET',
                             url: "db_operations.php",
-                            data: 'delete_multiple=1&ids=' + ids + '&sec=' + sec + '&is_image=' + is_image,
+                            data: 'delete_junior_multiple=1&ids=' + ids + '&sec=' + sec + '&is_image=' + is_image,
                             beforeSend: function () {
                                 delete_button.html('<i class="fa fa-spinner fa-pulse"></i>');
                             },
