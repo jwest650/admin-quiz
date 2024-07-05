@@ -422,16 +422,7 @@ $type = 1;
                                         <textarea name="note" id="edit_note" class="form-control"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="control-label col-md-1 col-sm-3 col-xs-12" for="note">Question Level</label>
-                                    <div class="col-md-10 col-sm-6 col-xs-12">
-                                        <select name="question_level" id="question_level" class="form-control">
-                                           
-                                            <option value="general">General</option>
-                                            <option value="junior">Junior</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                
 
                                 <div class="ln_solid"></div>
                                 <div class="form-group">
@@ -789,6 +780,7 @@ var type =<?= $type ?>;
         </script>    
         <script>
             function queryParams_1(p) {
+
                 return {
                     "language": $('#filter_language').val(),
                     "category": $('#filter_category').val(),

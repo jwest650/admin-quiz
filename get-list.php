@@ -885,6 +885,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'question') {
 }
 
 // 8 junior_question
+
 if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     $offset = 0;
     $limit = 10;
@@ -910,15 +911,15 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     if (isset($_GET['language']) && !empty($_GET['language'])) {
         $where = 'where `language_id` = ' . $_GET['language'];
         if (isset($_GET['category']) && !empty($_GET['category'])) {
-            $where .= ' and `junior_category`=' . $_GET['category'];
+            $where .= ' and `category`=' . $_GET['category'];
             if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
             }
         }
     } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
-        $where = 'where `junior_category` = ' . $_GET['category'];
+        $where = 'where `category` = ' . $_GET['category'];
         if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-            $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+            $where .= ' and `subcategory`=' . $_GET['subcategory'];
         }
     }
 
@@ -928,15 +929,15 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
         if (isset($_GET['language']) && !empty($_GET['language'])) {
             $where .= ' and `language_id` = ' . $_GET['language'];
             if (isset($_GET['category']) && !empty($_GET['category'])) {
-                $where .= ' and `junior_category`=' . $_GET['category'];
+                $where .= ' and `category`=' . $_GET['category'];
                 if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                    $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                    $where .= ' and `subcategory`=' . $_GET['subcategory'];
                 }
             }
         } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
-            $where .= ' and `junior_category` = ' . $_GET['category'];
+            $where .= ' and `category` = ' . $_GET['category'];
             if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
             }
         }
     }
@@ -954,6 +955,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
 
     $db->sql($sql);
     $res = $db->getResult();
+
     $bulkData = array();
     $bulkData['total'] = $total;
     $rows = array();
@@ -985,6 +987,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     }
 
     $bulkData['rows'] = $rows;
+
     print_r(json_encode($bulkData));
 }
 

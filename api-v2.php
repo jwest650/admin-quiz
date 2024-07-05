@@ -173,6 +173,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         print_r(json_encode($response));
         return false;
     }
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['language_id']) && !empty($_POST['language_id'])) {
         $language_id = $db->escapeString($_POST['language_id']);
 
@@ -184,11 +189,19 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         }
 
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
+           if($question_level){
+		    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que,
+            (SELECT @no_of_subcategories := count(*) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
+			(select `language` from `languages` l where l.id = c.language_id ) as language,
+			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from junior_question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
+			FROM `junior_category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+		   }else{
+		    $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
             (SELECT @no_of_subcategories := count(*) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
 			(select `language` from `languages` l where l.id = c.language_id ) as language,
 			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
 			FROM `category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+		   }
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of,
@@ -267,11 +280,13 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         print_r(json_encode($response));
         return false;
     }
-	if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
+	
     if (isset($_POST['type'])) {
         $type = $db->escapeString($_POST['type']);
     } else {
@@ -282,7 +297,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         $id = $db->escapeString($_POST['id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id and question.question_level='$question_level' ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category and q.question_level='$question_level' ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			if($question_level ){
+			    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			}else{
+				  $sql = "SELECT *,(select count(id) from question where question.category=c.id  ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			}
+          
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.id = $id AND c.status='1'AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -314,7 +334,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         }
     } else {
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id and question.question_level='$question_level') as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category and q.question_level='$question_level' ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			if($question_level ){
+			 $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			}else{
+			 $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			}
+           
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -366,18 +391,20 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         print_r(json_encode($response));
         return false;
     }
+	
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['main_id'])) {
         $id = $db->escapeString($_POST['main_id']);
-        $sql = "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
+        $sql = $question_level ?"SELECT * FROM `junior_category` WHERE `id`=" . $id . " AND status='1'" : "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
         $db->sql($sql);
         $res = $db->getResult();
         
     //   echo   $res[0]['status'] ;
-       if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
-	}else{
-	$question_level="general";
-	}
+     
        
         if (!empty($res)) {
             $type = $res[0]['type'];
@@ -386,7 +413,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         }
 
         if ($type == 1 || $type == '1') {
-            $no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as no_of";
+            if($question_level){
+			$no_of = ", (SELECT max(`level` + 0) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as maxlevel,(select count(id) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as no_of";
+			}else{
+			$no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id  ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id  ) as no_of";
+			}
         }
         // if ($type == 2 || $type == '2') {
         //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
@@ -395,7 +426,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
             $no_of = ", (SELECT count(id) FROM tbl_maths_question WHERE tbl_maths_question.subcategory = subcategory.id ) as no_of";
         }
 
-        $sql = "SELECT * " . $no_of . " FROM `subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
+        $sql = $question_level ? "SELECT * " . $no_of . " FROM `junior_subcategory` WHERE `maincat_id`='$id' AND `status`= 1 ORDER BY CAST(row_order as unsigned) ASC" : "SELECT * " . $no_of . " FROM `subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
         $db->sql($sql);
         $result = $db->getResult();
 
@@ -438,14 +469,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_category'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['category'])) {
         $id = $db->escapeString($_POST['category']);
-        $sql = "SELECT * FROM `question` WHERE category=" . $id . " and question.question_level='$question_level'  ORDER BY id DESC";
+        $sql = $question_level ?"SELECT * FROM `junior_question` WHERE category=" . $id . "   ORDER BY id DESC" : "SELECT * FROM 			`question` WHERE category=" . $id . "   ORDER BY id DESC";
 
         $db->sql($sql);
         $result = $db->getResult();
@@ -488,14 +519,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_subcategory'])
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['subcategory'])) {
         $id = $db->escapeString($_POST['subcategory']);
-        $sql = "SELECT * FROM `question` where subcategory=" . $id . "and question.question_level='$question_level' ORDER by RAND()";
+        $sql = $question_level?"SELECT * FROM `junior_question` where subcategory=" . $id . " ORDER by RAND()": "SELECT * FROM `question` where subcategory=" . $id . " ORDER by RAND()";
         $db->sql($sql);
         $result = $db->getResult();
 
@@ -540,10 +571,10 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['level']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $level = $db->escapeString($_POST['level']);
@@ -551,7 +582,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         $id = (isset($_POST['category'])) ? $db->escapeString($_POST['category']) : $db->escapeString($_POST['subcategory']);
         $limit = $config['total_question'];
 
-        $sql = "SELECT * FROM `question` WHERE question.question_level='$question_level' and level=" . $level;
+        $sql = $question_level ? "SELECT * FROM `junior_question` WHERE level=" . $level : "SELECT * FROM `question` WHERE level=" . $level;
         $sql .= (isset($_POST['category'])) ? " and `category`=" . $id : " and `subcategory`=" . $id;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
@@ -601,16 +632,16 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_type'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['type']) && !empty($_POST['type']) && isset($_POST['limit']) && !empty($_POST['limit'])) {
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $type = $db->escapeString($_POST['type']);
         $limit = $db->escapeString($_POST['limit']);
-        $sql = "SELECT * FROM `question` where question_level = '$question_level' and question_type=" . $type;
+        $sql = $question_level ?"SELECT * FROM `junior_question` where  question_type=" . $type : "SELECT * FROM `question` where  question_type=" . $type;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
         $sql .= " LIMIT 0, " . $limit . "";
@@ -658,13 +689,18 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_for_self_challeng
         print_r(json_encode($response));
         return false;
     }
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['limit']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $limit = $db->escapeString($_POST['limit']);
 
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $id = (isset($_POST['category'])) ? $db->escapeString($_POST['category']) : $db->escapeString($_POST['subcategory']);
 
-        $sql = "SELECT * FROM `question` ";
+        $sql =$question_level ? "SELECT * FROM `junior_question` ": "SELECT * FROM `question` ";
         $sql .= (isset($_POST['category'])) ? " WHERE `category`=" . $id : " WHERE `subcategory`=" . $id;
         $sql .= (!empty($language_id)) ? " AND `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC LIMIT 0, $limit";
@@ -739,8 +775,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions'])) {
     }
     if (!checkBattleExists($match_id)) {
         /* if match does not exist read and store the questions */
-
-        $sql = "SELECT * FROM `question` ";
+		
+        $sql = $question_level ?"SELECT * FROM `junior_question` ":"SELECT * FROM `question` ";
         $sql .= (!empty($language_id)) ? " WHERE `language_id` = $language_id " : "";
         $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
         $sql .= " ORDER BY RAND() LIMIT 0,10";
@@ -812,9 +848,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions_for_comput
         $category = $db->escapeString($_POST['category']);
     } else {
         $category = '';
-    }
+    } 
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+	  $sql = "SELECT * FROM `junior_question` " ;
+	}else{
+	  $sql = "SELECT * FROM `question` " ;
+	}
 
-    $sql = "SELECT * FROM `question` ";
+  
     $sql .= (!empty($language_id)) ? " where `language_id` = $language_id " : "";
     $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
     $sql .= " ORDER BY RAND() LIMIT 0,10";
