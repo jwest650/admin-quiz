@@ -248,7 +248,7 @@ $type = 1;
                                            "fileName": "questions-list-<?= date('d-m-y') ?>",
                                            "ignoreColumn": ["state"]	
                                            }'
-                                           data-query-params="queryParams_2"
+                                           data-query-params="queryParams_1"
                                            >
                                         <thead>
                                             <tr>
@@ -780,7 +780,7 @@ var type =<?= $type ?>;
             });
         </script>    
         <script>
-            function queryParams_2(p) {
+            function queryParams_1(p) {
                 return {
                     "language": $('#filter_language').val(),
                     "category": $('#filter_category').val(),

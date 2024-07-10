@@ -75,14 +75,6 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                             
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                 <div class="tile-stats">
-                                    <div class="icon"><em class="far fa-question-circle"></em>
-                                    </div>
-                                    <div class="count"><?= get_count('id', 'junior_question', ''); ?></div>
-                                    <h3>Total Junior Questions</h3>
-                                </div>
-                            </div>
-                            <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                <div class="tile-stats">
                                     <div class="icon"><em class="fas fa-recycle"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'users', ''); ?></div>
