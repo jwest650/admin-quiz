@@ -87,7 +87,17 @@
                                         <li><a href="monthly-leaderboard.php">Monthly</a></li>
                                         <li><a href="daily-leaderboard.php">Daily</a></li>                                       
                                     </ul>
-                                </li>                                   
+                                </li> 
+                                <li>
+                                    <a><em class="fas fa-th"></em> Junior Leaderboard<span class="fas fa-caret-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="global-junior-leaderboard.php">All</a></li>
+                                        <li><a href="monthly-junior-leaderboard.php">Monthly</a></li>
+                                        <li><a href="daily-junior-leaderboard.php">Daily</a></li>                                       
+                                    </ul>
+                                </li>    
+                                <li><a href ="users.php"><em class="fas fa-users"></em> Users</a></li>
+                                                                 
                                 <?php if ($fn->is_language_mode_enabled()) { ?>
                                     <li><a href="languages.php"><em class="fas fa-language"></em> Languages</a></li>
                                     <?php

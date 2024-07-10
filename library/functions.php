@@ -89,6 +89,7 @@ class Functions {
         $sql = "SELECT COUNT(" . $field . ") as total FROM " . $table . " " . $where;
         $this->db->sql($sql);
         $res = $this->db->getResult();
+        echo"<script><?= $res?></script>";
         if (!empty($res)) {
             return $res[0]['total'];
         } else {

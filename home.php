@@ -28,14 +28,22 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                     <div class="row">
                         <div role="main">
                             <!-- top tiles -->
-                            <h1 style="color:black;font-size:29px;text-align:center;">Welcome to <?= ucwords($_SESSION['company_name']) ?> - Admin Panel</h1>
+                            <!-- <h1 style="color:black;font-size:29px;text-align:center;">Welcome to <?= ucwords($_SESSION['company_name']) ?> - Admin Panel</h1> -->
                             <hr>
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                 <div class="tile-stats">
                                     <div class="icon"><em class="fas fa-user-friends"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'category', ''); ?></div>
-                                    <h3>Total Categories</h3>
+                                    <h3>Total General Categories</h3>
+                                </div>
+                            </div>
+                            <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                <div class="tile-stats">
+                                    <div class="icon"><em class="fas fa-user-friends"></em>
+                                    </div>
+                                    <div class="count"><?= get_count('id', 'junior_category', ''); ?></div>
+                                    <h3>Total Junior Categories</h3>
                                 </div>
                             </div>
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
@@ -43,7 +51,15 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                     <div class="icon"><em class="fas fa-users"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'subcategory'); ?></div>
-                                    <h3>Total Sub Categories</h3>
+                                    <h3>Total General Sub Categories</h3>
+                                </div>
+                            </div>
+                            <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                                <div class="tile-stats">
+                                    <div class="icon"><em class="fas fa-users"></em>
+                                    </div>
+                                    <div class="count"><?= get_count('id', 'junior_subcategory'); ?></div>
+                                    <h3>Total Junior Sub Categories</h3>
                                 </div>
                             </div>
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
@@ -51,9 +67,12 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                     <div class="icon"><em class="far fa-question-circle"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'question', ''); ?></div>
-                                    <h3>Total Questions</h3>
+                                    <h3>Total General Questions</h3>
                                 </div>
                             </div>
+                           
+                            
+                            
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                 <div class="tile-stats">
                                     <div class="icon"><em class="far fa-question-circle"></em>
