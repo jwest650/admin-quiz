@@ -573,6 +573,121 @@ if (isset($_GET['table']) && $_GET['table'] == 'global_leaderboard') {
     print_r(json_encode($bulkData));
 }
 
+// 4. global_leaderboard
+if (isset($_GET['table']) && $_GET['table'] == 'global_leaderboard') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'r.user_rank';
+    $order = 'ASC';
+    $where = $where_sub = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " WHERE (r.id like '%" . $search . "%' OR u.name like '%" . $search . "%' OR u.email like '%" . $search . "%' )";
+    }
+
+    $sql1 = "SELECT count(r.user_id) as total FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id, sum(score) score FROM monthly_leaderboard m join users u on u.id = m.user_id GROUP BY user_id) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . "";
+    $db->sql($sql1);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+    //  
+    $sql = "SELECT r.*, u.email,u.name FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id, sum(score) score FROM monthly_leaderboard m join users u on u.id = m.user_id GROUP BY user_id ORDER BY score DESC ) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    $count = 1;
+    foreach ($res as $row) {
+        $tempRow['id'] = $row['id'];
+        $tempRow['name'] = $row['name'];
+        $tempRow['email'] = $row['email'];
+        $tempRow['user_id'] = $row['user_id'];
+        $tempRow['score'] = $row['score'];
+        $tempRow['user_rank'] = $row['user_rank'];
+        $rows[] = $tempRow;
+        $count++;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+// global_junior_laederboard
+if (isset($_GET['table']) && $_GET['table'] == 'global_junior_leaderboard') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'r.user_rank';
+    $order = 'ASC';
+    $where = $where_sub = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " WHERE (r.id like '%" . $search . "%' OR u.name like '%" . $search . "%' OR u.email like '%" . $search . "%' )";
+    }
+
+    $sql1 = "SELECT count(r.user_id) as total FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id GROUP BY user_id) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . "";
+    $db->sql($sql1);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+    //  
+    $sql = "SELECT r.*, u.email,u.name FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id GROUP BY user_id ORDER BY score DESC ) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    $count = 1;
+    foreach ($res as $row) {
+        $tempRow['id'] = $row['id'];
+        $tempRow['name'] = $row['name'];
+        $tempRow['email'] = $row['email'];
+        $tempRow['user_id'] = $row['user_id'];
+        $tempRow['score'] = $row['score'];
+        $tempRow['user_rank'] = $row['user_rank'];
+        $rows[] = $tempRow;
+        $count++;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
+
+
 // 5. monthly_leaderboard
 if (isset($_GET['table']) && $_GET['table'] == 'monthly_leaderboard') {
     $offset = 0;
@@ -659,6 +774,94 @@ if (isset($_GET['table']) && $_GET['table'] == 'monthly_leaderboard') {
     print_r(json_encode($bulkData));
 }
 
+
+// 5. monthly_junior_leaderboard
+if (isset($_GET['table']) && $_GET['table'] == 'monthly_junior_leaderboard') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'r.user_rank';
+    $order = 'ASC';
+    $where = $where1 = $where_sub = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+    if (isset($_GET['user_id'])) {
+        $user_id = $_GET['user_id'];
+        if ($_GET['user_id'] != '')
+            $where1 = " WHERE user_id=" . $user_id;
+        $where = " WHERE user_id=" . $user_id;
+    }
+
+    if (isset($_GET['year']) && $_GET['year'] != '') {
+        $year = $_GET['year'];
+        $where1 = " WHERE (YEAR(m.date_created) = '" . $year . "') ";
+        $where_sub = " WHERE (YEAR(m.date_created) = '" . $year . "') ";
+        if (isset($_GET['month']) && $_GET['month'] != '') {
+            $month = $_GET['month'];
+            $where1 .= " AND (MONTH(m.date_created) = '" . $month . "') ";
+            $where_sub .= " AND (MONTH(m.date_created) = '" . $month . "') ";
+        }
+    } else if (isset($_GET['month']) && $_GET['month'] != '') {
+        $month = $_GET['month'];
+        $where1 = " WHERE ( MONTH(m.date_created) = '" . $month . "') ";
+        $where_sub = " WHERE ( MONTH(m.date_created) = '" . $month . "') ";
+    }
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where1 = " WHERE (u.name like '%" . $search . "%' OR u.email like '%" . $search . "%' )";
+        $where = " WHERE (u.name like '%" . $search . "%' OR u.email like '%" . $search . "%' )";
+    }
+
+    $sql = "SELECT COUNT(*) AS total FROM monthly_junior_leaderboard m INNER JOIN users u ON m.user_id=u.id " . $where1;
+
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+
+    $sql = "SELECT u.email,u.name,u.profile,r.* FROM (
+        SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM 
+        ( SELECT m.id, user_id, sum(score) score,last_updated,date_created FROM monthly_junior_leaderboard m join users u on u.id = m.user_id $where_sub GROUP BY user_id ORDER BY score DESC) s,
+        (SELECT @user_rank := 0) init ORDER BY score DESC ) r 
+    INNER join users u on u.id = r.user_id $where ORDER BY " . $sort . " " . $order . " LIMIT $offset,$limit";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    foreach ($res as $row) {
+        //$operate = "<a class='btn btn-xs btn-primary edit-users' data-id='".$row['id']."' data-toggle='modal' data-target='#editUserModal' title='Edit'><i class='far fa-edit'></i></a>";
+
+        $tempRow['id'] = $row['id'];
+        $tempRow['name'] = $row['name'];
+        $tempRow['email'] = $row['email'];
+        $tempRow['user_id'] = $row['user_id'];
+        $tempRow['score'] = $row['score'];
+        $tempRow['user_rank'] = $row['user_rank'];
+        $tempRow['last_updated'] = date("d-m-Y H:m:s", strtotime($row['last_updated']));
+        $tempRow['date_created'] = date("d-m-Y H:m:s", strtotime($row['date_created']));
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
+
 // 6. daily_leaderboard
 if (isset($_GET['table']) && $_GET['table'] == 'daily_leaderboard') {
     $offset = 0;
@@ -697,6 +900,68 @@ if (isset($_GET['table']) && $_GET['table'] == 'daily_leaderboard') {
     }
 
     $sql = "SELECT r.*,u.email,u.name,u.profile FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM (SELECT id,user_id, score, last_updated, date_created  FROM daily_leaderboard d WHERE ((DATE(d.date_created) BETWEEN DATE('" . date('Y-m-d') . "') and DATE('" . date('Y-m-d') . "'))) GROUP BY user_id ORDER BY score DESC) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT $offset,$limit";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    foreach ($res as $row) {
+        $tempRow['id'] = $row['id'];
+        $tempRow['name'] = $row['name'];
+        $tempRow['email'] = $row['email'];
+        $tempRow['user_id'] = $row['user_id'];
+        $tempRow['score'] = $row['score'];
+        $tempRow['user_rank'] = $row['user_rank'];
+        $tempRow['last_updated'] = date("d-m-Y H:m:s", strtotime($row['last_updated']));
+        $tempRow['date_created'] = date("d-m-Y H:m:s", strtotime($row['date_created']));
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
+// 6. daily_junior_leaderboard
+if (isset($_GET['table']) && $_GET['table'] == 'daily_junior_leaderboard') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'r.user_rank';
+    $order = 'ASC';
+    $where = $where_sub = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    $date = date('Y-m-d H:i:s');
+
+    //$where = " WHERE ( DAY(daily_leaderboard.date_created) = DAY('" . $date . "') ) ";
+    $where_sub = " WHERE ( DAY(daily_junior_leaderboard.date_created) = DAY('" . $date . "') ) ";
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " WHERE (r.id like '%" . $search . "%' OR u.name like '%" . $search . "%' OR u.email like '%" . $search . "%' )";
+    }
+
+    $sql = "SELECT COUNT(r.id) AS total FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM (SELECT id,user_id, score, last_updated, date_created  FROM daily_junior_leaderboard d WHERE ((DATE(d.date_created) BETWEEN DATE('" . date('Y-m-d') . "') and DATE('" . date('Y-m-d') . "')))) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . "";
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+
+    $sql = "SELECT r.*,u.email,u.name,u.profile FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM (SELECT id,user_id, score, last_updated, date_created  FROM daily_junior_leaderboard d WHERE ((DATE(d.date_created) BETWEEN DATE('" . date('Y-m-d') . "') and DATE('" . date('Y-m-d') . "'))) GROUP BY user_id ORDER BY score DESC) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT $offset,$limit";
     $db->sql($sql);
     $res = $db->getResult();
 
@@ -885,6 +1150,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'question') {
 }
 
 // 8 junior_question
+
 if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     $offset = 0;
     $limit = 10;
@@ -910,15 +1176,15 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     if (isset($_GET['language']) && !empty($_GET['language'])) {
         $where = 'where `language_id` = ' . $_GET['language'];
         if (isset($_GET['category']) && !empty($_GET['category'])) {
-            $where .= ' and `junior_category`=' . $_GET['category'];
+            $where .= ' and `category`=' . $_GET['category'];
             if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
             }
         }
     } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
-        $where = 'where `junior_category` = ' . $_GET['category'];
+        $where = 'where `category` = ' . $_GET['category'];
         if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-            $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+            $where .= ' and `subcategory`=' . $_GET['subcategory'];
         }
     }
 
@@ -928,15 +1194,15 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
         if (isset($_GET['language']) && !empty($_GET['language'])) {
             $where .= ' and `language_id` = ' . $_GET['language'];
             if (isset($_GET['category']) && !empty($_GET['category'])) {
-                $where .= ' and `junior_category`=' . $_GET['category'];
+                $where .= ' and `category`=' . $_GET['category'];
                 if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                    $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                    $where .= ' and `subcategory`=' . $_GET['subcategory'];
                 }
             }
         } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
-            $where .= ' and `junior_category` = ' . $_GET['category'];
+            $where .= ' and `category` = ' . $_GET['category'];
             if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
-                $where .= ' and `junior_subcategory`=' . $_GET['subcategory'];
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
             }
         }
     }
@@ -954,6 +1220,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
 
     $db->sql($sql);
     $res = $db->getResult();
+
     $bulkData = array();
     $bulkData['total'] = $total;
     $rows = array();
@@ -985,6 +1252,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
     }
 
     $bulkData['rows'] = $rows;
+
     print_r(json_encode($bulkData));
 }
 

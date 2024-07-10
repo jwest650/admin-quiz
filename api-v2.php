@@ -173,6 +173,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         print_r(json_encode($response));
         return false;
     }
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['language_id']) && !empty($_POST['language_id'])) {
         $language_id = $db->escapeString($_POST['language_id']);
 
@@ -184,11 +189,19 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         }
 
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
+           if($question_level){
+		    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que,
+            (SELECT @no_of_subcategories := count(*) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
+			(select `language` from `languages` l where l.id = c.language_id ) as language,
+			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from junior_question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
+			FROM `junior_category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+		   }else{
+		    $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
             (SELECT @no_of_subcategories := count(*) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
 			(select `language` from `languages` l where l.id = c.language_id ) as language,
 			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
 			FROM `category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+		   }
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of,
@@ -267,11 +280,13 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         print_r(json_encode($response));
         return false;
     }
-	if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
+	
     if (isset($_POST['type'])) {
         $type = $db->escapeString($_POST['type']);
     } else {
@@ -282,7 +297,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         $id = $db->escapeString($_POST['id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id and question.question_level='$question_level' ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category and q.question_level='$question_level' ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			if($question_level ){
+			    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			}else{
+				  $sql = "SELECT *,(select count(id) from question where question.category=c.id  ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			}
+          
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.id = $id AND c.status='1'AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -314,7 +334,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         }
     } else {
         if ($type == 1 || $type == '1') {
-            $sql = "SELECT *,(select count(id) from question where question.category=c.id and question.question_level='$question_level') as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category and q.question_level='$question_level' ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			if($question_level ){
+			 $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			}else{
+			 $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
+			}
+           
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -366,18 +391,20 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         print_r(json_encode($response));
         return false;
     }
+	
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['main_id'])) {
         $id = $db->escapeString($_POST['main_id']);
-        $sql = "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
+        $sql = $question_level ?"SELECT * FROM `junior_category` WHERE `id`=" . $id . " AND status='1'" : "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
         $db->sql($sql);
         $res = $db->getResult();
         
     //   echo   $res[0]['status'] ;
-       if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
-	}else{
-	$question_level="general";
-	}
+     
        
         if (!empty($res)) {
             $type = $res[0]['type'];
@@ -386,7 +413,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         }
 
         if ($type == 1 || $type == '1') {
-            $no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as no_of";
+            if($question_level){
+			$no_of = ", (SELECT max(`level` + 0) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as maxlevel,(select count(id) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as no_of";
+			}else{
+			$no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id  ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id  ) as no_of";
+			}
         }
         // if ($type == 2 || $type == '2') {
         //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
@@ -395,7 +426,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
             $no_of = ", (SELECT count(id) FROM tbl_maths_question WHERE tbl_maths_question.subcategory = subcategory.id ) as no_of";
         }
 
-        $sql = "SELECT * " . $no_of . " FROM `subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
+        $sql = $question_level ? "SELECT * " . $no_of . " FROM `junior_subcategory` WHERE `maincat_id`='$id' AND `status`= 1 ORDER BY CAST(row_order as unsigned) ASC" : "SELECT * " . $no_of . " FROM `subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
         $db->sql($sql);
         $result = $db->getResult();
 
@@ -438,14 +469,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_category'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['category'])) {
         $id = $db->escapeString($_POST['category']);
-        $sql = "SELECT * FROM `question` WHERE category=" . $id . " and question.question_level='$question_level'  ORDER BY id DESC";
+        $sql = $question_level ?"SELECT * FROM `junior_question` WHERE category=" . $id . "   ORDER BY id DESC" : "SELECT * FROM 			`question` WHERE category=" . $id . "   ORDER BY id DESC";
 
         $db->sql($sql);
         $result = $db->getResult();
@@ -488,14 +519,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_subcategory'])
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['subcategory'])) {
         $id = $db->escapeString($_POST['subcategory']);
-        $sql = "SELECT * FROM `question` where subcategory=" . $id . "and question.question_level='$question_level' ORDER by RAND()";
+        $sql = $question_level?"SELECT * FROM `junior_question` where subcategory=" . $id . " ORDER by RAND()": "SELECT * FROM `question` where subcategory=" . $id . " ORDER by RAND()";
         $db->sql($sql);
         $result = $db->getResult();
 
@@ -540,10 +571,10 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['level']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $level = $db->escapeString($_POST['level']);
@@ -551,7 +582,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         $id = (isset($_POST['category'])) ? $db->escapeString($_POST['category']) : $db->escapeString($_POST['subcategory']);
         $limit = $config['total_question'];
 
-        $sql = "SELECT * FROM `question` WHERE question.question_level='$question_level' and level=" . $level;
+        $sql = $question_level ? "SELECT * FROM `junior_question` WHERE level=" . $level : "SELECT * FROM `question` WHERE level=" . $level;
         $sql .= (isset($_POST['category'])) ? " and `category`=" . $id : " and `subcategory`=" . $id;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
@@ -601,16 +632,16 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_type'])) {
         print_r(json_encode($response));
         return false;
     }
-	 if(isset($_POST['questionLevel'])){
-		$question_level =$_POST['questionLevel'];
+	if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
 	}else{
-	$question_level="general";
+	$question_level=false;
 	}
     if (isset($_POST['type']) && !empty($_POST['type']) && isset($_POST['limit']) && !empty($_POST['limit'])) {
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $type = $db->escapeString($_POST['type']);
         $limit = $db->escapeString($_POST['limit']);
-        $sql = "SELECT * FROM `question` where question_level = '$question_level' and question_type=" . $type;
+        $sql = $question_level ?"SELECT * FROM `junior_question` where  question_type=" . $type : "SELECT * FROM `question` where  question_type=" . $type;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
         $sql .= " LIMIT 0, " . $limit . "";
@@ -658,13 +689,18 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_for_self_challeng
         print_r(json_encode($response));
         return false;
     }
+	  if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+		$question_level =true;
+	}else{
+	$question_level=false;
+	}
     if (isset($_POST['limit']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $limit = $db->escapeString($_POST['limit']);
 
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $id = (isset($_POST['category'])) ? $db->escapeString($_POST['category']) : $db->escapeString($_POST['subcategory']);
 
-        $sql = "SELECT * FROM `question` ";
+        $sql =$question_level ? "SELECT * FROM `junior_question` ": "SELECT * FROM `question` ";
         $sql .= (isset($_POST['category'])) ? " WHERE `category`=" . $id : " WHERE `subcategory`=" . $id;
         $sql .= (!empty($language_id)) ? " AND `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC LIMIT 0, $limit";
@@ -739,8 +775,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions'])) {
     }
     if (!checkBattleExists($match_id)) {
         /* if match does not exist read and store the questions */
-
-        $sql = "SELECT * FROM `question` ";
+		
+        $sql = $question_level ?"SELECT * FROM `junior_question` ":"SELECT * FROM `question` ";
         $sql .= (!empty($language_id)) ? " WHERE `language_id` = $language_id " : "";
         $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
         $sql .= " ORDER BY RAND() LIMIT 0,10";
@@ -812,9 +848,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions_for_comput
         $category = $db->escapeString($_POST['category']);
     } else {
         $category = '';
-    }
+    } 
+	 if(isset($_POST['questionLevel'])&&$_POST['questionLevel']=="junior"){
+	  $sql = "SELECT * FROM `junior_question` " ;
+	}else{
+	  $sql = "SELECT * FROM `question` " ;
+	}
 
-    $sql = "SELECT * FROM `question` ";
+  
     $sql .= (!empty($language_id)) ? " where `language_id` = $language_id " : "";
     $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
     $sql .= " ORDER BY RAND() LIMIT 0,10";
@@ -1040,8 +1081,11 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
     print_r(json_encode($response));
 }
 
+
+
+
 // 14. get_user_by_id()
-if (isset($_POST['access_key']) && isset($_POST['get_user_by_id'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_user_by_id']) && $_POST['get_user_by_id'] !== "junior") {
     /* Parameters to be passed
       access_key:6808
       get_user_by_id:1
@@ -1090,6 +1134,57 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_by_id'])) {
     print_r(json_encode($response));
 }
 
+// 14. get_user_by_id() for junior
+
+if (isset($_POST['access_key']) && isset($_POST['get_user_by_id'])&&$_POST['get_user_by_id']=="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_user_by_id:1
+      id:31
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['id'])) {
+        $id = $db->escapeString($_POST['id']);
+        $sql = "SELECT * FROM `users` WHERE id = $id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        $sql = "SELECT r.score,r.user_rank FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, sum(score) score  FROM monthly_junior_leaderboard m join users u on u.id = m.user_id GROUP BY user_id ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE r.user_id =" . $id;
+        $db->sql($sql);
+        $my_rank = $db->getResult();
+
+        if (!empty($result)) {
+            if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                // Not a valid URL. Its a image only or empty
+                $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
+            } else {
+                /* if it is a ur than just pass url as it is */
+                $result[0]['profile'] = $result[0]['profile'];
+            }
+            $result[0]['all_time_score'] = (isset($my_rank[0]['score'])) ? $my_rank[0]['score'] : "0";
+            $result[0]['all_time_rank'] = (isset($my_rank[0]['user_rank'])) ? $my_rank[0]['user_rank'] : "0";
+
+            $response['error'] = "false";
+            $response['data'] = $result[0];
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please Pass all the fields!";
+    }
+    print_r(json_encode($response));
+
+}
 // 15. update_fcm_id()
 if (isset($_POST['access_key']) && isset($_POST['update_fcm_id'])) {
     /* Parameters to be passed
@@ -1249,7 +1344,7 @@ if (isset($_POST['access_key']) && isset($_POST['update_profile'])) {
 }
 
 // 18. set_monthly_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['set_monthly_leaderboard'])) {
+if (isset($_POST['access_key']) && isset($_POST['set_monthly_leaderboard'])&& $_POST['set_monthly_leaderboard'] !=='junior') {
     /* Parameters to be passed
       access_key:6808
       set_monthly_leaderboard:1
@@ -1280,8 +1375,41 @@ if (isset($_POST['access_key']) && isset($_POST['set_monthly_leaderboard'])) {
     print_r(json_encode($response));
 }
 
+// 18. set_monthly_leaderboard() for junior
+if (isset($_POST['access_key']) && isset($_POST['set_monthly_leaderboard'])&&$_POST['set_monthly_leaderboard']=='junior') {
+    /* Parameters to be passed
+      access_key:6808
+      set_monthly_leaderboard:1
+      user_id:10
+      score:100
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (!empty($_POST['access_key']) && !empty($_POST['user_id']) && isset($_POST['score']) && $_POST['score'] != '') {
+        $user_id = $db->escapeString($_POST['user_id']);
+        $score = $db->escapeString($_POST['score']);
+
+        set_monthly_junior_leaderboard($user_id, $score);
+
+        $response['error'] = "false";
+        $response['message'] = "successfully update score";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 19. get_monthly_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard']) && $_POST['get_monthly_leaderboard'] !=="junior") {
     /* Parameters to be passed
       access_key:6808
       get_monthly_leaderboard:1
@@ -1376,8 +1504,105 @@ if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard'])) {
     print_r(json_encode($response));
 }
 
+// 19. get_monthly_leaderboard() for junior
+if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard']) && $_POST['get_monthly_leaderboard'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_monthly_leaderboard:1
+      date:2019-02-01		// use date format = YYYY-MM-DD
+      limit:10            // {optional} - Number of records per page
+      offset:0            // {optional} - starting position
+      user_id:54 			// for get current user rank (optional) (login user_id)
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (empty($_POST['date']) || !isset($_POST['date'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please fill all the data and submit!";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $offset = (isset($_POST['offset']) && !empty($_POST['offset']) && is_numeric($_POST['offset'])) ? $db->escapeString($_POST['offset']) : 0;
+    $limit = (isset($_POST['limit']) && !empty($_POST['limit']) && is_numeric($_POST['limit'])) ? $db->escapeString($_POST['limit']) : 25;
+
+    $date = $db->escapeString($_POST['date']);
+
+    /* get the total no of records */
+    $sql = "SELECT COUNT(m.id) as `total` FROM `monthly_junior_leaderboard` m JOIN users ON users.id = m.user_id WHERE ( MONTH( m.date_created ) = MONTH('" . $date . "') AND YEAR( m.date_created ) = YEAR('" . $date . "') ) ORDER BY m.score DESC";
+    $db->sql($sql);
+    $total = $db->getResult();
+
+    $sql = "SELECT r.*,u.email,u.name,u.profile FROM (
+        SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM 
+        ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id
+         WHERE ( MONTH( m.date_created ) = month('" . $date . "') AND YEAR( m.date_created ) = year('" . $date . "') )
+         GROUP BY user_id) s,
+        (SELECT @user_rank := 0) init ORDER BY score DESC
+    ) r 
+    INNER join users u on u.id = r.user_id ORDER BY r.user_rank ASC LIMIT $offset,$limit";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+        $sql = "SELECT r.*,u.email,u.name,u.profile FROM (
+        SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM 
+        ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id
+         WHERE ( MONTH( m.date_created ) = month('" . $date . "') AND YEAR( m.date_created ) = year('" . $date . "') )
+         GROUP BY user_id) s,
+        (SELECT @user_rank := 0) init ORDER BY score DESC
+    ) r 
+    INNER join users u on u.id = r.user_id WHERE user_id =" . $user_id . " ORDER BY r.user_rank ASC LIMIT $offset,$limit";
+        $db->sql($sql);
+        $my_rank = $db->getResult();
+        if (!empty($my_rank)) {
+            if (filter_var($my_rank[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                // Not a valid URL. Its a image only or empty
+                $my_rank[0]['profile'] = (!empty($my_rank[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $my_rank[0]['profile'] : '';
+            }
+            $user_rank['my_rank'] = $my_rank[0];
+            array_unshift($res, $user_rank);
+        } else {
+            $my_rank = array(
+                'id' => $user_id,
+                'user_rank' => 0
+            );
+            $user_rank['my_rank'] = $my_rank;
+            array_unshift($res, $user_rank);
+        }
+    }
+
+    if (!empty($res)) {
+        foreach ($res as $row) {
+            if (isset($row['profile'])) {
+                if (filter_var($row['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $row['profile'] = (!empty($row['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $row['profile'] : '';
+                }
+            }
+            $tempRow[] = $row;
+        }
+        $response['error'] = "false";
+        $response['total'] = $total[0]['total'];
+        $response['data'] = $tempRow;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Data not found";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 20. get_datewise_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['get_datewise_leaderboard'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_datewise_leaderboard'])&&$_POST['get_datewise_leaderboard'] !=='junior') {
     /* Parameters to be passed
       access_key:6808
       get_datewise_leaderboard:1
@@ -1462,8 +1687,95 @@ if (isset($_POST['access_key']) && isset($_POST['get_datewise_leaderboard'])) {
     print_r(json_encode($response));
 }
 
+// 20. get_datewise_leaderboard() for junior
+if (isset($_POST['access_key']) && isset($_POST['get_datewise_leaderboard']) && $_POST['get_datewise_leaderboard']=='junior') {
+    /* Parameters to be passed
+      access_key:6808
+      get_datewise_leaderboard:1
+      from:2019-06-01		// use date format = YYYY-MM-DD
+      to:2019-06-07		// use date format = YYYY-MM-DD
+      offset:0        // {optional} - Starting position
+      limit:20        // {optional} - number of records per page
+      user_id:25			// to get current user's rank (optional) ( login user_id )
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if ((empty($_POST['from']) || !isset($_POST['from'])) || (empty($_POST['to']) || !isset($_POST['to']))) {
+        $response['error'] = "true";
+        $response['message'] = "Please fill all the data and submit!";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $from = $db->escapeString($_POST['from']);
+    $to = $db->escapeString($_POST['to']);
+
+    $limit = (isset($_POST['limit']) && !empty($_POST['limit']) && is_numeric($_POST['limit'])) ? $db->escapeString($_POST['limit']) : 25;
+    $offset = (isset($_POST['offset']) && !empty($_POST['offset']) && is_numeric($_POST['offset'])) ? $db->escapeString($_POST['offset']) : 0;
+
+    /* get the total no of records */
+    $sql = "SELECT COUNT(d.id) as `total` FROM `daily_junior_leaderboard` d JOIN users ON users.id = d.user_id where (DATE(`date_created`) BETWEEN date('" . $from . "') and date('" . $to . "')) ORDER BY score DESC";
+    $db->sql($sql);
+    $total = $db->getResult();
+
+    $sql = "SELECT r.*,u.email,u.name,u.profile FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, score FROM daily_junior_leaderboard d join users u on u.id = d.user_id WHERE ((DATE(d.date_created) BETWEEN date('" . $from . "') and date('" . $to . "')))) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id ORDER BY r.user_rank ASC LIMIT $offset,$limit";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+
+        $sql = "SELECT r.*,u.email,u.name,u.profile FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, score FROM daily_junior_leaderboard d join users u on u.id = d.user_id WHERE ((DATE(d.date_created) BETWEEN date('" . $from . "') and date('" . $to . "')))) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE user_id =" . $user_id . "";
+        $db->sql($sql);
+        $my_rank = $db->getResult();
+        if (!empty($my_rank)) {
+            if (filter_var($my_rank[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                // Not a valid URL. Its a image only or empty
+                $my_rank[0]['profile'] = (!empty($my_rank[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $my_rank[0]['profile'] : '';
+            }
+            $user_rank['my_rank'] = $my_rank[0];
+            array_unshift($res, $user_rank);
+        } else {
+            $my_rank = array(
+                'id' => $user_id,
+                'user_rank' => 0
+            );
+            $user_rank['my_rank'] = $my_rank;
+            array_unshift($res, $user_rank);
+        }
+    }
+
+    if (!empty($res)) {
+        foreach ($res as $row) {
+            if (isset($row['profile'])) {
+                if (filter_var($row['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $row['profile'] = (!empty($row['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $row['profile'] : '';
+                }
+            }
+            $tempRow[] = $row;
+        }
+        $response['error'] = "false";
+        $response['total'] = $total[0]['total'];
+        $response['data'] = $tempRow;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Data not found";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 21. get_global_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard'])&&$_POST['get_global_leaderboard'] !=='junior') {
     /* Parameters to be passed
       access_key:6808
       get_global_leaderboard:1
@@ -1537,6 +1849,84 @@ if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard'])) {
     }
     print_r(json_encode($response));
 }
+
+
+// 21. get_global_leaderboard() for junior
+if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard']) &&$_POST['get_global_leaderboard'] == "junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_global_leaderboard:1
+      offset:0        // {optional} - Starting position
+      limit:20        // {optional} - number of records per page
+      user_id:25		// to get current user's rank (optional) ( login user_id )
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $limit = (isset($_POST['limit']) && !empty($_POST['limit']) && is_numeric($_POST['limit'])) ? $db->escapeString($_POST['limit']) : 25;
+    $offset = (isset($_POST['offset']) && !empty($_POST['offset']) && is_numeric($_POST['offset'])) ? $db->escapeString($_POST['offset']) : 0;
+
+    /* get the total no of records */
+    //$sql = "SELECT COUNT(m.id) as `total` FROM `monthly_leaderboard` m ";
+    $sql = "SELECT COUNT(DISTINCT m.user_id) as `total` FROM `monthly_junior_leaderboard` m JOIN users u ON u.id=m.user_id";
+    $db->sql($sql);
+    $total = $db->getResult();
+
+    $sql = "SELECT r.*,u.email,u.name,u.profile FROM ( SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id GROUP BY user_id) s, (SELECT @user_rank := 0) init ORDER BY score DESC) r INNER join users u on u.id = r.user_id ORDER BY r.user_rank ASC LIMIT $offset,$limit";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+
+        $sql = "SELECT r.*,u.email,u.name,u.profile FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m join users u on u.id = m.user_id GROUP BY user_id ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE r.user_id =" . $user_id;
+        $db->sql($sql);
+        $my_rank = $db->getResult();
+        if (!empty($my_rank)) {
+            if (filter_var($my_rank[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                // Not a valid URL. Its a image only or empty
+                $my_rank[0]['profile'] = (!empty($my_rank[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $my_rank[0]['profile'] : '';
+            }
+
+            $user_rank['my_rank'] = $my_rank[0];
+            array_unshift($res, $user_rank);
+        } else {
+            $my_rank = array(
+                'id' => $user_id,
+                'user_rank' => 0,
+            );
+            $user_rank['my_rank'] = $my_rank;
+            array_unshift($res, $user_rank);
+        }
+    }
+
+    if (!empty($res)) {
+        foreach ($res as $row) {
+            if (isset($row['profile'])) {
+                if (filter_var($row['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $row['profile'] = (!empty($row['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $row['profile'] : '';
+                }
+            }
+            $tempRow[] = $row;
+        }
+        $response['error'] = "false";
+        $response['total'] = $total[0]['total'];
+        $response['data'] = $tempRow;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Data not found";
+    }
+    print_r(json_encode($response));
+}
+
 
 // 22. get_system_configurations()
 if (isset($_POST['access_key']) && isset($_POST['get_system_configurations'])) {
@@ -1867,7 +2257,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_battle_statistics'])) {
 }
 
 // 30. set_users_statistics()
-if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])) {
+if (isset($_POST['access_key']) && isset($_POST['set_users_statistics']) && $_POST['set_users_statistics'] !=="junior") {
     /* Parameters to be passed
       access_key:6808
       set_users_statistics:1
@@ -1969,6 +2359,111 @@ if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])) {
         $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
+}
+    // 30. set_users_statistics() for junior
+if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])&&$_POST['set_users_statistics'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      set_users_statistics:1
+      user_id:10
+      questions_answered:100
+      correct_answers:10
+      category_id:1 //(id of category which user played)
+      ratio: 50 // (In percenatge)
+      coins:20 // {optional}
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (!empty($_POST['access_key']) && !empty($_POST['user_id']) && isset($_POST['category_id']) && isset($_POST['questions_answered']) && isset($_POST['correct_answers']) && $_POST['ratio'] != "") {
+
+        $user_id = $db->escapeString($_POST['user_id']);
+        $questions_answered = $db->escapeString($_POST['questions_answered']);
+        $correct_answers = $db->escapeString($_POST['correct_answers']);
+        $category_id = $db->escapeString($_POST['category_id']);
+        $ratio = $db->escapeString($_POST['ratio']);
+
+        // update users coins if set
+        if (isset($_POST['coins']) && $_POST['coins'] != '' && is_numeric($_POST['coins'])) {
+            $coins = $db->escapeString($_POST['coins']);
+            $sql = "UPDATE `users` SET `coins` = $coins  WHERE id = " . $user_id;
+            $db->sql($sql);
+        }
+
+        $sql = "SELECT * FROM `users_statistics` WHERE `user_id`=" . $user_id . "";
+        $db->sql($sql);
+        $result1 = $db->getResult();
+
+        if (!empty($result1)) {
+            $qa = $result1[0]['questions_answered'];
+            $ca = $result1[0]['correct_answers'];
+            $sc = $result1[0]['strong_category'];
+            $r1 = $result1[0]['ratio1'];
+            $wc = $result1[0]['weak_category'];
+            $r2 = $result1[0]['ratio2'];
+            $bp = $result1[0]['best_position'];
+
+            $sql1 = "SELECT r.* FROM "
+                . "(SELECT s.*, @user_rank := @user_rank + 1 user_rank  FROM "
+                . "(SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m GROUP BY user_id ) s, "
+                . "(SELECT @user_rank := 0) init ORDER BY score DESC ) r  "
+                . "INNER join users u on u.id = r.user_id WHERE r.user_id =" . $user_id;
+            $db->sql($sql1);
+            $my_rank = $db->getResult();
+            $rank1 = $my_rank[0]['user_rank'];
+            if ($rank1 < $bp || $bp == 0) {
+                $bp = $rank1;
+                $sql = "UPDATE `users_statistics` SET `best_position`= '" . $bp . "' WHERE user_id=" . $user_id;
+                $db->sql($sql);
+            }
+
+            if ($ratio > 50) {
+                /* update strong category */
+                /* when ratio is > 50 he is strong in this particular category */
+                $sql = "UPDATE `users_statistics` SET `questions_answered`= `questions_answered` + '" . $questions_answered . "', `correct_answers`= `correct_answers` + '" . $correct_answers . "',";
+                $sql .= ($ratio > $r1 || $sc == 0) ? "`strong_category`= '" . $category_id . "', `ratio1`= '" . $ratio . "', " : "";
+                $sql .= ($wc == $category_id) ? "`weak_category`= '0', " : "";
+                $sql .= "`best_position`= '" . $bp . "' WHERE user_id=" . $user_id;
+                $db->sql($sql);
+
+                $response['error'] = "false";
+                $response['message'] = "Strong Updated successfully";
+            } else {
+                /* update weak category */
+                /* when ratio is < 50 he is weak in this particular category */
+                $sql = "UPDATE `users_statistics` SET `questions_answered`= `questions_answered` + '" . $questions_answered . "', `correct_answers`= `correct_answers` + '" . $correct_answers . "',";
+                $sql .= ($ratio < $r2 || $wc == 0) ? "`weak_category`= '" . $category_id . "',`ratio2`= '" . $ratio . "'," : "";
+                $sql .= ($sc == $category_id) ? "`strong_category`= '0', " : "";
+                $sql .= " `best_position`= '" . $bp . "' WHERE user_id=" . $user_id;
+                $db->sql($sql);
+                $response['error'] = "false";
+                $response['message'] = "Weak Updated successfully";
+            }
+        } else {
+            if ($ratio > 50) {
+                $sql = "INSERT INTO `users_statistics` (`user_id`, `questions_answered`,`correct_answers`, `strong_category`, `ratio1`, `weak_category`, `ratio2`, `best_position`) VALUES ('" . $user_id . "','" . $questions_answered . "','" . $correct_answers . "','" . $category_id . "','" . $ratio . "','0','0','0')";
+                $db->sql($sql);
+                $response['error'] = "false";
+                $response['message'] = "Strong inserted successfully";
+            } else {
+                $sql = "INSERT INTO `users_statistics` (`user_id`, `questions_answered`,`correct_answers`, `strong_category`, `ratio1`, `weak_category`, `ratio2`, `best_position`) VALUES ('" . $user_id . "','" . $questions_answered . "','" . $correct_answers . "','0','0','" . $category_id . "','" . $ratio . "','0')";
+                $db->sql($sql);
+                $response['error'] = "false";
+                $response['message'] = "Weak inserted successfully";
+            }
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    }
+    print_r(json_encode($response));
+
 }
 
 // 31. get_users_statistics()
@@ -2273,7 +2768,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_daily_quiz'])) {
 }
 
 // 37. get_user_coin_score() - get user details
-if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score']) &&$_POST['get_user_coin_score'] !=="junior") {
     /* Parameters to be passed
       access_key:6808
       get_user_coin_score:1
@@ -2313,8 +2808,50 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score'])) {
     print_r(json_encode($response));
 }
 
+// 37. get_user_coin_score() - get user details for junior
+if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score']) &&$_POST['get_user_coin_score'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_user_coin_score:1
+      user_id:31
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+        $sql = "SELECT coins FROM `users` WHERE id = $user_id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        $sql1 = "SELECT r.score,r.user_rank FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m GROUP BY user_id ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE r.user_id =" . $user_id;
+        $db->sql($sql1);
+        $my_rank = $db->getResult();
+
+        if (!empty($result)) {
+            $result[0]['score'] = (isset($my_rank[0]['score'])) ? $my_rank[0]['score'] : 0;
+            $response['error'] = "false";
+            $response['data'] = $result[0];
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please Pass all the fields!";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 38. set_user_coin_score() - get user details
-if (isset($_POST['access_key']) && isset($_POST['set_user_coin_score'])) {
+if (isset($_POST['access_key']) && isset($_POST['set_user_coin_score'])&&$_POST['set_user_coin_score'] !== "junior") {
     /* Parameters to be passed
       access_key:6808
       set_user_coin_score:1
@@ -2372,8 +2909,69 @@ if (isset($_POST['access_key']) && isset($_POST['set_user_coin_score'])) {
     print_r(json_encode($response));
 }
 
+
+// 38. set_user_coin_score() - get user details for junior
+if (isset($_POST['access_key']) && isset($_POST['set_user_coin_score'])&& $_POST['set_user_coin_score']=='junior') {
+    /* Parameters to be passed
+      access_key:6808
+      set_user_coin_score:1
+      user_id:31
+      coin:10
+      score:2      //if deduct coin than set with minus sign -2
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['user_id']) && isset($_POST['coins']) && !empty($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+        $coins = $db->escapeString($_POST['coins']);
+
+        if (isset($_POST['score']) && !empty($_POST['score'])) {
+            $sql = "SELECT id, user_id FROM `monthly_junior_leaderboard` WHERE `user_id`=" . $user_id . " and month(monthly_junior_leaderboard.date_created) = month('" . $toDate . "') and year(monthly_junior_leaderboard.date_created) = year('" . $toDate . "') ";
+            $db->sql($sql);
+            $result = $db->getResult();
+            $score = $db->escapeString($_POST['score']);
+            set_monthly_junior_leaderboard($user_id, $score);
+        }
+
+        if (isset($_POST['coins']) && !empty($_POST['coins'])) {
+            $sql1 = "UPDATE `users` SET  `coins` = `coins` + " . $coins . "  WHERE id = " . $user_id;
+            $db->sql($sql1);
+        }
+
+        $sql = "SELECT coins FROM `users` WHERE id = $user_id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        $sql1 = "SELECT r.score,r.user_rank FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, sum(score) score FROM monthly_junior_leaderboard m GROUP BY user_id ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE r.user_id =" . $user_id;
+        $db->sql($sql1);
+        $my_rank = $db->getResult();
+
+        if (!empty($result)) {
+            $result[0]['score'] = (isset($my_rank[0]['score'])) ? $my_rank[0]['score'] : 0;
+            $response['error'] = "false";
+            $response['message'] = "successfully insert record";
+            $response['data'] = $result[0];
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please Pass all the fields!";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 39. get_contest()
-if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_contest']) &&$_POST['get_contest'] !="junior") {
     /* Parameters to be passed
       access_key:6808
       get_contest:1
@@ -2391,13 +2989,10 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
     if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
         $user_id = $db->escapeString($_POST['user_id']);
        
-        $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) ";
-        
-        if(!empty($_POST['contest_type'])){
-            $contest_type =$_POST['contest_type'];
-            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='$contest_type' ";
+      
+            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='general' ";
 			
-        }
+        
         
 
 
@@ -2521,11 +3116,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
         }
 
         /* selecting upcoming quiz ids */
-        $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate')";
-        if(!empty($_POST['contest_type'])){
-            $contest_type =$_POST['contest_type'];
-            $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='$contest_type'";
-        }
+        $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='general'";
+       
     
         $db->sql($sql);
         $result = $db->getResult();
@@ -2568,6 +3160,198 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
     }
     print_r(json_encode($response));
 }
+
+// 39. get_contest() for junior
+if (isset($_POST['access_key']) && isset($_POST['get_contest']) && $_POST['get_contest'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_contest:1
+      user_id:59
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+       
+      
+            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='junior' ";
+			
+        
+        
+
+
+        /* selecting live quiz ids */
+        $db->sql($sql);
+        $result = $db->getResult();
+       
+        $live_type_ids = $past_type_ids = '';
+        if (!empty($result)) {
+            foreach ($result as $type_id) {
+                $live_type_ids .= $type_id['id'] . ', ';
+            }
+            $live_type_ids = rtrim($live_type_ids, ', ');
+
+            /* getting past quiz ids & its data which user has played */
+            $sql = "SELECT `contest_id` FROM `contest_junior_leaderboard` WHERE `contest_id` in ($live_type_ids) and `user_id` = $user_id ORDER BY `id` DESC";
+            $db->sql($sql);
+            $result = $db->getResult();
+            // print_r($result);
+            if (!empty($result)) {
+                foreach ($result as $type_id) {
+                    $past_type_ids .= $type_id['contest_id'] . ', ';
+                }
+                $past_type_ids = rtrim($past_type_ids, ', ');
+
+                $sql = "SELECT *, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as top_users,(SELECT COUNT(*) from contest_junior_leaderboard where contest_junior_leaderboard.contest_id = contest.id ) as `participants` FROM `contest` WHERE `id` in ($past_type_ids) ORDER BY `id` DESC";
+                $db->sql($sql);
+                $past_result = $db->getResult();
+                unset($result);
+                foreach ($past_result as $quiz) {
+                    $quiz['image'] = (!empty($quiz['image'])) ? DOMAIN_URL . 'images/contest/' . $quiz['image'] : '';
+                    $quiz['start_date'] = date("d-M", strtotime($quiz['start_date']));
+                    $quiz['end_date'] = date("d-M", strtotime($quiz['end_date']));
+                    $s = "SELECT top_winner, points FROM `contest_prize` WHERE contest_id= " . $quiz['id'];
+                    $db->sql($s);
+                    $points = $db->getResult();
+                    $quiz['points'] = $points;
+                    $result[] = $quiz;
+                }
+                $past_result = $result;
+                $response['past_contest']['error'] = false;
+                $response['past_contest']['message'] = "Contest you have played";
+                $response['past_contest']['data'] = (!empty($past_result)) ? $past_result : '';
+            } else {
+                $sql = "SELECT q.*, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=q.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=q.id) as top_users,(SELECT COUNT(*) from contest_junior_leaderboard where l.contest_id = q.id )as `participants` FROM `contest_junior_leaderboard` as l, `contest` as q WHERE l.user_id = '$user_id' and l.contest_id = q.id ORDER BY q.`id`  DESC";
+                $db->sql($sql);
+                $past_result = $db->getResult();
+                if (!empty($past_result)) {
+                    foreach ($past_result as $quiz) {
+                        $quiz['image'] = (!empty($quiz['image'])) ? DOMAIN_URL . 'images/contest/' . $quiz['image'] : '';
+                        $quiz['start_date'] = date("d-M-Y H:m:s", strtotime($quiz['start_date']));
+                        $quiz['end_date'] = date("d-M-Y H:m:s", strtotime($quiz['end_date']));
+                        $s = "SELECT top_winner, points FROM `contest_prize` WHERE contest_id= " . $quiz['id'];
+                        $db->sql($s);
+                        $points = $db->getResult();
+                        $quiz['points'] = $points;
+                        $result[] = $quiz;
+                    }
+                    $past_result = $result;
+                    $response['past_contest']['error'] = false;
+                    $response['past_contest']['message'] = "Contest you have played";
+                    $response['past_contest']['data'] = (!empty($past_result)) ? $past_result : '';
+                } else {
+                    $response['past_contest']['error'] = true;
+                    $response['past_contest']['message'] = "You have not played any contest yet. Go and play the contest once there is a live contest";
+                }
+            }
+
+            /* getting all quiz details by ids retrieved */
+            $sql = (empty($past_type_ids)) ?
+                "SELECT *, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as top_users,(SELECT COUNT(*) from contest_junior_leaderboard where contest_junior_leaderboard.contest_id = contest.id )as `participants` FROM `contest` WHERE `id` in ($live_type_ids) AND status='1' ORDER BY `id` DESC" :
+                "SELECT *, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as top_users,(SELECT COUNT(*) from contest_junior_leaderboard where contest_junior_leaderboard.contest_id = contest.id )as `participants` FROM `contest` WHERE `id` in ($live_type_ids) and `id` not in ($past_type_ids) AND status='1' ORDER BY `id` DESC";
+
+            $db->sql($sql);
+            $live_result = $db->getResult();
+            $result = array();
+            if (!empty($live_result)) {
+                foreach ($live_result as $quiz) {
+                    $quiz['image'] = (!empty($quiz['image'])) ? DOMAIN_URL . 'images/contest/' . $quiz['image'] : '';
+                    $quiz['start_date'] = date("d-M", strtotime($quiz['start_date']));
+                    $quiz['end_date'] = date("d-M", strtotime($quiz['end_date']));
+                    $s = "SELECT top_winner, points FROM `contest_prize` WHERE contest_id= " . $quiz['id'];
+                    $db->sql($s);
+                    $points = $db->getResult();
+                    $quiz['points'] = $points;
+                    $result[] = $quiz;
+                }
+                $live_result = $result;
+                $response['live_contest']['error'] = false;
+                $response['live_contest']['message'] = "Play & Win exciting prizes";
+                $response['live_contest']['data'] = (!empty($live_result)) ? $live_result : '';
+            } else {
+                $response['live_contest']['error'] = true;
+                $response['live_contest']['message'] = "No contest is available to play right now. Come back again";
+            }
+        } else {
+            $sql = "SELECT q.*, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=q.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=q.id) as top_users,(SELECT COUNT(*) from contest_junior_leaderboard where l.contest_id = q.id )as `participants` FROM `contest_junior_leaderboard` as l, `contest` as q WHERE l.user_id = '$user_id' and l.contest_id = q.id ORDER BY q.`id`  DESC";
+            $db->sql($sql);
+            $past_result = $db->getResult();
+            if (!empty($past_result)) {
+                foreach ($past_result as $quiz) {
+                    $quiz['image'] = (!empty($quiz['image'])) ? DOMAIN_URL . 'images/contest/' . $quiz['image'] : '';
+                    $quiz['start_date'] = date("d-M", strtotime($quiz['start_date']));
+                    $quiz['end_date'] = date("d-M", strtotime($quiz['end_date']));
+                    $s = "SELECT top_winner, points FROM `contest_prize` WHERE contest_id= " . $quiz['id'];
+                    $db->sql($s);
+                    $points = $db->getResult();
+                    $quiz['points'] = $points;
+                    $result[] = $quiz;
+                }
+                $past_result = $result;
+                $response['past_contest']['error'] = false;
+                $response['past_contest']['message'] = "Contest you have played";
+                $response['past_contest']['data'] = (!empty($past_result)) ? $past_result : '';
+            } else {
+                $response['past_contest']['error'] = true;
+                $response['past_contest']['message'] = "You have not played any contest yet. Go and play the contest once there is a live contest";
+            }
+            $response['live_contest']['error'] = true;
+            $response['live_contest']['message'] = "No contest is available to play right now. Come back again";
+        }
+
+        /* selecting upcoming quiz ids */
+        $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='junior'";
+       
+    
+        $db->sql($sql);
+        $result = $db->getResult();
+        $upcoming_type_ids = '';
+        if (!empty($result)) {
+            foreach ($result as $type_id) {
+                $upcoming_type_ids .= $type_id['id'] . ', ';
+            }
+            $upcoming_type_ids = rtrim($upcoming_type_ids, ', ');
+
+            /* getting all quiz details by ids retrieved */
+            $sql = "SELECT *, (select SUM(points) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as points, (select count(contest_id) FROM contest_prize WHERE contest_prize.contest_id=contest.id) as top_users FROM `contest` WHERE `id` in ($upcoming_type_ids) ORDER BY `id` DESC";
+            $db->sql($sql);
+            $upcoming_result = $db->getResult();
+            $result = array();
+            if (!empty($upcoming_result)) {
+                foreach ($upcoming_result as $quiz) {
+                    $quiz['image'] = (!empty($quiz['image'])) ? DOMAIN_URL . 'images/contest/' . $quiz['image'] : '';
+                    $quiz['start_date'] = date("d-M", strtotime($quiz['start_date']));
+                    $quiz['end_date'] = date("d-M", strtotime($quiz['end_date']));
+                    $s = "SELECT top_winner, points FROM `contest_prize` WHERE contest_id= " . $quiz['id'];
+                    $db->sql($s);
+                    $points = $db->getResult();
+                    $quiz['points'] = $points;
+                    $quiz['participants'] = "";
+                    $result[] = $quiz;
+                }
+                $upcoming_result = $result;
+            }
+            $response['upcoming_contest']['error'] = false;
+            $response['upcoming_contest']['message'] = "Please stay tune to play & win exciting prizes.";
+            $response['upcoming_contest']['data'] = (!empty($upcoming_result)) ? $upcoming_result : '';
+        } else {
+            $response['upcoming_contest']['error'] = true;
+            $response['upcoming_contest']['message'] = "No upcoming contest to show. Soon we will be announcing the one.";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    }
+    print_r(json_encode($response));
+}
+
 
 // 40. get_questions_by_contest()
 if (isset($_POST['access_key']) && isset($_POST['get_questions_by_contest'])) {
@@ -2613,7 +3397,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_contest'])) {
 }
 
 // 41. contest_update_score() 
-if (isset($_POST['access_key']) && isset($_POST['contest_update_score'])) {
+if (isset($_POST['access_key']) && isset($_POST['contest_update_score']) && $_POST['contest_update_score'] !== "junior") {
     /* Parameters to be passed
       access_key:6808
       contest_update_score:1
@@ -2664,8 +3448,61 @@ if (isset($_POST['access_key']) && isset($_POST['contest_update_score'])) {
     print_r(json_encode($response));
 }
 
+// 41. junior_contest_update_score() 
+if (isset($_POST['access_key']) && isset($_POST['contest_update_score'])&& $_POST['contest_update_score'] == "junior") {
+    /* Parameters to be passed
+      access_key:6808
+      contest_update_score:1
+      user_id:33
+      contest_id:6
+      questions_attended:10
+      correct_answers:8
+      score:8
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['contest_id']) && isset($_POST['score']) && isset($_POST['correct_answers']) && isset($_POST['questions_attended'])) {
+        $user_id = $db->escapeString($_POST['user_id']);
+        $contest_id = $db->escapeString($_POST['contest_id']);
+        $questions_attended = $db->escapeString($_POST['questions_attended']);
+        $correct_answers = $db->escapeString($_POST['correct_answers']);
+        $score = $db->escapeString($_POST['score']);
+
+        $sql = "select * from `contest_junior_leaderboard` WHERE `user_id`='" . $user_id . "' and `contest_id`='" . $contest_id . "' ";
+        $db->sql($sql);
+        $res = $db->getResult();
+        if (empty($res)) {
+            $sql = "INSERT INTO `contest_junior_leaderboard`(`user_id`, `contest_id`, `questions_attended`, `correct_answers`, `score`,`last_modified`,`date_created`) VALUES 
+			(" . $user_id . "," . $contest_id . ", " . $questions_attended . "," . $correct_answers . "," . $score . ",'" . $toDateTime . "','" . $toDateTime . "')";
+            $db->sql($sql);  // Table name, column names and respective values
+            set_monthly_junior_leaderboard($user_id, $score);
+            $response['error'] = "false";
+            $response['message'] = "Score insert successfully";
+        } else {
+            $id = $res[0]['id'];
+            $sql = 'UPDATE `contest_junior_leaderboard` SET `questions_attended`="' . $questions_attended . '",`correct_answers`="' . $correct_answers . '",`score`="' . $score . '",`last_modified`="' . $toDateTime . '" WHERE `id`=' . $id;
+            $db->sql($sql);  // Table name, column names and respective values
+            set_monthly_junior_leaderboard($user_id, $score);
+            $response['error'] = "false";
+            $response['message'] = "Score updated successfully";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    }
+    print_r(json_encode($response));
+}
+
+
 // 42. get_contest_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['get_contest_leaderboard'])) {
+if (isset($_POST['access_key']) && isset($_POST['get_contest_leaderboard'])&&$_POST['get_contest_leaderboard'] !="junior") {
     /* Parameters to be passed
       access_key:6808
       get_contest_leaderboard:1
@@ -2726,6 +3563,70 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest_leaderboard'])) {
     }
     print_r(json_encode($response));
 }
+
+// 42. get_contest_leaderboard()
+if (isset($_POST['access_key']) && isset($_POST['get_contest_leaderboard'])&& $_POST['get_contest_leaderboard'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      get_contest_leaderboard:1
+      contest_id:6
+      user_id:54 // (when show my quiz rank) (optional)
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['contest_id']) && !empty($_POST['contest_id'])) {
+        $contest_id = $db->escapeString($_POST['contest_id']);
+
+        $offset = (isset($_POST['offset']) && !empty($_POST['offset']) && is_numeric($_POST['offset'])) ? $db->escapeString($_POST['offset']) : 0;
+        $limit = (isset($_POST['limit']) && !empty($_POST['limit']) && is_numeric($_POST['limit'])) ? $db->escapeString($_POST['limit']) : 25;
+
+        //        $sql = "SELECT @user_rank:= @user_rank + 1 as user_rank, s.* FROM ( SELECT contest_leaderboard.user_id, users.name, users.profile, contest_leaderboard.score FROM contest_leaderboard, users WHERE contest_id = " . $contest_id . " and users.id = contest_leaderboard.user_id ORDER BY score DESC LIMIT 15 ) s cross join (SELECT @user_rank := 0) r";
+        $sql = "SELECT r.*,u.name,u.profile FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, score FROM contest_junior_leaderboard c join users u on u.id = c.user_id  WHERE contest_id=" . $contest_id . " ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id ORDER BY r.user_rank ASC LIMIT $offset,$limit";
+        $db->sql($sql);
+        $res = $db->getResult();
+        for ($i = 0; $i < count($res); $i++) {
+            if (filter_var($res[$i]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                // Not a valid URL. Its a image only or empty
+                $res[$i]['profile'] = (!empty($res[$i]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $res[$i]['profile'] : '';
+            } else {
+                $res[$i]['profile'] = $res[$i]['profile'];
+            }
+        }
+        if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+            $user_id = $db->escapeString($_POST['user_id']);
+            //$sql = "SELECT id , user_id , contest_id , score , user_rank FROM ( SELECT * , (@user_rank := @user_rank + 1) AS user_rank FROM contest_leaderboard CROSS JOIN( SELECT @user_rank := 0 ) AS init_var_var where contest_id = '" . $contest_id . "' ORDER BY contest_leaderboard.score DESC ) AS logins_ordered_user_ranked WHERE user_id = '" . $user_id . "' and contest_id = '" . $contest_id . "' ";
+            $sql = "SELECT r.*,u.name,u.profile FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, score FROM contest_junior_leaderboard c join users u on u.id = c.user_id  WHERE contest_id=" . $contest_id . " ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join users u on u.id = r.user_id WHERE user_id = '" . $user_id . "' ORDER BY r.user_rank ASC";
+            $db->sql($sql);
+            $my_rank = $db->getResult();
+            if (!empty($my_rank)) {
+                if (filter_var($my_rank[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $my_rank[0]['profile'] = (!empty($my_rank[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $my_rank[0]['profile'] : '';
+                }
+                $response['my_rank'] = $my_rank[0];
+            }
+        }
+        if (empty($res)) {
+            $response['error'] = "true";
+            $response['message'] = "No contest played yet! No rankings found!";
+        } else {
+            $response['error'] = "false";
+            $response['data'] = $res;
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    }
+    print_r(json_encode($response));
+}
+
 
 // 43. create_room()
 if (isset($_POST['access_key']) && isset($_POST['create_room'])) {
@@ -3123,7 +4024,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_learning'])) {
 }
 
 // 51. delete_user_account()
-if (isset($_POST['access_key']) && isset($_POST['delete_user_account'])) {
+if (isset($_POST['access_key']) && isset($_POST['delete_user_account'])&&$_POST['delete_user_account'] !== "junior") {
     /* Parameters to be passed
       access_key:6808
       delete_user_account:1
@@ -3174,6 +4075,60 @@ if (isset($_POST['access_key']) && isset($_POST['delete_user_account'])) {
     }
     print_r(json_encode($response));
 }
+
+// 51. delete_user_account()
+if (isset($_POST['access_key']) && isset($_POST['delete_user_account']) && $_POST['delete_user_account'] =="junior") {
+    /* Parameters to be passed
+      access_key:6808
+      delete_user_account:1
+      user_id:1
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['user_id'])) {
+        $id = $db->escapeString($_POST['user_id']);
+
+        $tables = [
+            'contest_junior_leaderboard',
+            'daily_junior_leaderboard',
+            'daily_quiz_user',
+            'monthly_junior_leaderboard',
+            'question_reports',
+            'tbl_bookmark',
+            'tbl_level',
+            'tbl_tracker',
+            'users_statistics'
+        ];
+        foreach ($tables as $row) {
+            $sql = 'DELETE FROM ' . $row . ' WHERE `user_id`=' . $id;
+            $db->sql($sql);
+        }
+
+        $sql1 = 'DELETE FROM `battle_statistics` WHERE `user_id1`=' . $id;
+        $db->sql($sql1);
+
+        $sql2 = 'DELETE FROM `battle_statistics` WHERE `user_id2`=' . $id;
+        $db->sql($sql2);
+
+        $sql3 = 'DELETE FROM `users` WHERE `id`=' . $id;
+        $db->sql($sql3);
+
+        $response['error'] = "false";
+        $response['message'] = "data reset successfully!";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please Pass all the fields!";
+    }
+    print_r(json_encode($response));
+}
+
 
 // 52. get_maths_questions()
 if (isset($_POST['access_key']) && isset($_POST['get_maths_questions'])) {
@@ -3343,6 +4298,67 @@ function set_monthly_leaderboard($user_id, $score)
     }
 }
 				
+function set_monthly_junior_leaderboard($user_id, $score)
+{
+    if (isset($user_id) && isset($score) && !empty($user_id)) {
+        $db = new Database();
+        $db->connect();
+
+        $toDate = date('Y-m-d');
+        $toDateTime = date('Y-m-d H:i:s');
+
+        $sql = "SELECT id, user_id, score FROM `monthly_junior_leaderboard` WHERE `user_id`=" . $user_id . " and month(monthly_junior_leaderboard.date_created) = month('" . $toDate . "') 
+            and year(monthly_junior_leaderboard.date_created) = year('" . $toDate . "') ";
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        $sql1 = "SELECT id, user_id FROM `daily_junior_leaderboard` WHERE `user_id`=" . $user_id;
+        $db->sql($sql1);
+        $result1 = $db->getResult();
+
+        if (!empty($result) && !empty($result1)) {
+            $sql2 = "SELECT id, user_id, score FROM `daily_junior_leaderboard` WHERE `user_id`=" . $user_id . " and day(daily_junior_leaderboard.date_created) = day('" . $toDate . "') ";
+            $db->sql($sql2);
+            $result2 = $db->getResult();
+
+            if (!empty($result2)) {
+                $old = $result2[0]['score'];
+                $new = $old + $score;
+                $score1 = ($new <= 0) ? 0 : $score;
+                if ($new <= 0) {
+                    $sql1 = "UPDATE `daily_junior_leaderboard` SET `score`= '" . $score1 . "' WHERE id = " . $result2[0]['id'] . " and user_id=" . $user_id;
+                } else {
+                    $sql1 = "UPDATE `daily_junior_leaderboard` SET `score`= `score` + '" . $score1 . "' WHERE id = " . $result2[0]['id'] . " and user_id=" . $user_id;
+                }
+                $db->sql($sql1);
+            } else {
+                $score1 = ($score <= 0) ? 0 : $score;
+                $sql1 = "UPDATE `daily_junior_leaderboard` SET `date_created` = '" . $toDateTime . "', `score`= '" . $score1 . "' WHERE user_id=" . $user_id;
+                $db->sql($sql1);
+            }
+            $old1 = $result[0]['score'];
+            $new1 = $old1 + $score;
+            $score1 = ($new1 <= 0) ? 0 : $score;
+            if ($new1 <= 0) {
+                $sql = "UPDATE `monthly_junior_leaderboard` SET `score`= '" . $score1 . "' WHERE id = " . $result[0]['id'] . " and user_id=" . $user_id;
+            } else {
+                $sql = "UPDATE `monthly_junior_leaderboard` SET `score`= `score` + '" . $score1 . "' WHERE id = " . $result[0]['id'] . " and user_id=" . $user_id;
+            }
+            $db->sql($sql);
+        } else {
+            $score1 = ($score <= 0) ? 0 : $score;
+            if (!empty($result1[0]['user_id'])) {
+                $sql1 = "UPDATE `daily_junior_leaderboard` SET `date_created` = '" . $toDateTime . "', `score`= '" . $score1 . "' WHERE id = " . $result1[0]['id'] . " and user_id=" . $user_id;
+                $db->sql($sql1);
+            } else {
+                $sql1 = 'INSERT INTO `daily_junior_leaderboard` (`user_id`, `score`, `last_updated`) VALUES (' . $user_id . ',' . $score1 . ',"' . $toDateTime . '")';
+                $db->sql($sql1);
+            }
+            $sql = 'INSERT INTO `monthly_junior_leaderboard` (`user_id`, `score`, `last_updated`) VALUES (' . $user_id . ',' . $score1 . ',"' . $toDateTime . '")';
+            $db->sql($sql);
+        }
+    }
+}
 				
 				
 
@@ -3419,4 +4435,3 @@ $response['error']="false";
 print_r(json_encode($response));
 
 }
-
