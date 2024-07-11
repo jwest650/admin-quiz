@@ -19,10 +19,10 @@ class Database {
     private $db_user = 'forcopix_uquizadmin';  // Change as required
     private $db_pass = 'Jgqk_NROs25_98';  // Change as required 
     private $db_name = 'forcopix_uquizadmin'; // Change as required
-    // private $db_host = 'localhost:3306';  // Change as required
-    // private $db_user = 'root';  // Change as required
-    // private $db_pass = '';  // Change as required 
-    // private $db_name = 'admin'; // Change as required
+//   private $db_host = 'localhost';  // Change as required
+//     private $db_user = 'root';  // Change as required
+//     private $db_pass = '';  // Change as required 
+//     private $db_name = 'admin'; // Change as required
 
   
 

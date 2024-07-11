@@ -168,7 +168,6 @@ $type = 1;
                                                     </select>
                                                 </div>
                                             </div>
-                                            
                                             <div class="form-group">
                                                 <label class="control-label col-md-1 col-sm-3 col-xs-12" for="note">Note</label>
                                                 <div class="col-md-10 col-sm-6 col-xs-12">
@@ -422,16 +421,6 @@ $type = 1;
                                         <textarea name="note" id="edit_note" class="form-control"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="control-label col-md-1 col-sm-3 col-xs-12" for="note">Question Level</label>
-                                    <div class="col-md-10 col-sm-6 col-xs-12">
-                                        <select name="question_level" id="question_level" class="form-control">
-                                           
-                                            <option value="general">General</option>
-                                            <option value="junior">Junior</option>
-                                        </select>
-                                    </div>
-                                </div>
 
                                 <div class="ln_solid"></div>
                                 <div class="form-group">
@@ -452,159 +441,96 @@ $type = 1;
 
         <!-- jQuery -->
 
- <script>
-let customToolbar = ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote'];
-let editors = {};
+        <script>
+              const customToolbar = [
+           'alignment',
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'link',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'outdent',
+                'indent',
+                '|',
+                'imageUpload',
+                'blockQuote',
+                'insertTable',
+                'mediaEmbed',
+                'undo',
+                'redo'
+        ];
 
-function initializeEditor(selector) {
-    ClassicEditor.create(document.querySelector(selector), {
-        toolbar: {
-            items: customToolbar
-        }
-    }).then(editor => {
-        editors[selector] = editor;
-    }).catch(error => {
-        console.error(error);
-    });
-}
+        let question;
 
-initializeEditor('#question');
-initializeEditor('#a');
-initializeEditor('#b');
-initializeEditor('#c');
-initializeEditor('#d');
-initializeEditor('#e');
+     ClassicEditor.create( document.querySelector( '#question' ),{
+             toolbar:{
+                items:customToolbar
+             }
+        } ).then( newEditor => {
+        question = newEditor;
+    } ).catch( error => {
+            console.error( error );
+        } );
 
-function resetEditors() {
-    for (let id in editors) {
-        if (editors[id]) {
-            editors[id].setData('');
-        }
-    }
-}
+             ClassicEditor.create( document.querySelector( '#a' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
 
-$.validator.setDefaults({
-    ignore: [],
-    highlight: function(element) {
-        $(element).closest('.form-group').addClass('has-error');
-    },
-    unhighlight: function(element) {
-        $(element).closest('.form-group').removeClass('has-error');
-    }
-});
+             ClassicEditor.create( document.querySelector( '#b' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
 
-$.validator.addMethod('ckeditor', function(value, element) {
-    
-    let editor = editors[`#${element.id}`];
-    if (editor) {
-        let content = editor.getData().replace(/<[^>]*>/g, '').trim();
-        return content.length > 0;
-    }
-    return false;
-    
-    
-}, 'This field is required.');
+             ClassicEditor.create( document.querySelector( '#c' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
 
+        ClassicEditor.create( document.querySelector( '#d' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
 
-
-
-
-
-let question_el= $('input[name="question_type"]').val()
-$('#register_form').validate({
-    ignore: ':input[type="image"], #c, #d',
-            rules: {
-        question: {
-            ckeditor: true
-        },
-        category: "required",
-        a: {
-            ckeditor: true
-        },
-        b: {
-            ckeditor: true
-        },
-        // Do not use ckeditor method for c and d
-       
-        level: "required",
-        answer: "required"
-    },
-    messages: {
-        question: "This field is required.",
-        category: "This field is required.",
-        a: "This field is required.",
-        b: "This field is required.",
-        c: "This field is required.",
-        d: "This field is required.",
-        level: "This field is required.",
-        answer: "This field is required."
-    },
-    errorPlacement: function(error, element) {
-        if (element.attr('id') === 'question' || element.attr('id').startsWith('a') || element.attr('id').startsWith('b') || element.attr('id').startsWith('c') || element.attr('id').startsWith('d') || element.attr('id').startsWith('e')) {
-            error.insertAfter(element.next('.ck-editor'));
-        } else {
-            error.insertAfter(element);
-        }
-    },
-   });
-
-
-     $('#register_form').on('submit', function (e) {
-                e.preventDefault();
-                var formData = new FormData(this);
-
-                if ($("#register_form").validate().form()) {
-                <?php if ($fn->is_language_mode_enabled()) { ?>
-                    var language = $('#language_id').val();
-                <?php } ?>
-                    var category = $('#category').val();
-                    var subcategory = $('#subcategory').val();
-                    $.ajax({
-                        type: 'POST',
-                        url: $(this).attr('action'),
-                        data: formData,
-                        beforeSend: function () {
-                            $('#submit_btn').html('Please wait..');
-                            $('#submit_btn').prop('disabled', true);
-                        },
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function (result) {
-                            $('#submit_btn').html('Create Now');
-                            $('#result').html(result);
-                            $('#result').show().delay(4000).fadeOut();
-                            $('#register_form')[0].reset();
-                            $('#category').val(category);
-                            $('#subcategory').val(subcategory);
-                        <?php if ($fn->is_language_mode_enabled()) { ?>
-                        $('#language_id').val(language);
-                        <?php } ?>  
-                        
-
-                            resetEditors()
-                       
-                            $('#tf').show('fast');
-                            $('.ntf').show('fast');
-                            $('#submit_btn').prop('disabled', false);
-                            $('#questions').bootstrapTable('refresh');
-                          
-                        }
-                    });
-                }
-            });
+             ClassicEditor.create( document.querySelector( '#e' ),{
+                toolbar:{
+                items:customToolbar
+             }
+        } )
+        .catch( error => {
+            console.error( error );
+        } );
 
 
 
 
-
-
-
-
-
-
-
-var type =<?= $type ?>;
+        document.getElementById('register_form').addEventListener('submit', function(event) {
+            // Ensure the textarea is updated with the editor's content
+            if(!question.getData().trim()){
+            console.log(question)
+            }
+           console.log()
+        });
+            var type =<?= $type ?>;
 <?php if ($fn->is_language_mode_enabled()) { ?>
                 $('#language_id').on('change', function (e) {
                     var language_id = $('#language_id').val();
@@ -810,8 +736,62 @@ var type =<?= $type ?>;
             });
         </script>        
 
-       
-        
+        <script>
+     
+            $('#register_form').validate({
+                rules: {
+                   
+                    question: "required",
+                    category: "required",
+                    a: "required",
+                    b: "required",
+                    c: "required",
+                    d: "required",
+                    level: "required",
+                    answer: "required"
+                }
+            });
+        </script>
+        <script>
+            $('#register_form').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                if ($("#register_form").validate().form()) {
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                        var language = $('#language_id').val();
+<?php } ?>
+                    var category = $('#category').val();
+                    var subcategory = $('#subcategory').val();
+                    $.ajax({
+                        type: 'POST',
+                        url: $(this).attr('action'),
+                        data: formData,
+                        beforeSend: function () {
+                            $('#submit_btn').html('Please wait..');
+                            $('#submit_btn').prop('disabled', true);
+                        },
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (result) {
+                            $('#submit_btn').html('Create Now');
+                            $('#result').html(result);
+                            $('#result').show().delay(4000).fadeOut();
+                            $('#register_form')[0].reset();
+                            $('#category').val(category);
+                            $('#subcategory').val(subcategory);
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                                $('#language_id').val(language);
+<?php } ?>
+                            $('#tf').show('fast');
+                            $('.ntf').show('fast');
+                            $('#submit_btn').prop('disabled', false);
+                            $('#questions').bootstrapTable('refresh');
+                        }
+                    });
+                }
+            });
+        </script>
 
         <script>
             $('#update_form').validate({

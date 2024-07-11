@@ -2948,11 +2948,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest']) &&$_POST['get_co
     if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
         $user_id = $db->escapeString($_POST['user_id']);
        
-      
-            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='general' ";
-			
+        $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) ";
         
-        
+
+        if(!empty($_POST['contest_type'])){
+            $contest_type = $db->escapeString($_POST['contest_type']);
+            $sql = "SELECT id FROM `contest` where `contest_type` ='$contest_type' and ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) ";
+
+        }
 
 
         /* selecting live quiz ids */
