@@ -23,7 +23,7 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                 if (strcmp($result[0]["auth_username"], $username) == 0) {
                     foreach ($result as $row) {
                         $_SESSION['username'] = $row["auth_username"];
-                        $_SESSION['company_name'] = 'Quiz';
+                        $_SESSION['company_name'] = 'UQuiz';
                     }
                     echo "1";
                 } else {

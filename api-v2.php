@@ -368,6 +368,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
     }
     if (isset($_POST['main_id'])) {
         $id = $db->escapeString($_POST['main_id']);
+        $type = $db->escapeString($_POST['type']);
         $sql = "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
         $db->sql($sql);
         $res = $db->getResult();
@@ -388,9 +389,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         if ($type == 1 || $type == '1') {
             $no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id and question.question_level='$question_level' ) as no_of";
         }
-        // if ($type == 2 || $type == '2') {
-        //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
-        // }
+        if ($type == 2 || $type == '2') {
+            $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
+        }
         if ($type == 3 || $type == '3') {
             $no_of = ", (SELECT count(id) FROM tbl_maths_question WHERE tbl_maths_question.subcategory = subcategory.id ) as no_of";
         }

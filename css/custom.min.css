@@ -1707,8 +1707,8 @@ h4.graph_title{
     -moz-animation-fill-mode:forwards
 }
 .tile-stats .icon{
-    width:20px;
-    height:20px;
+    width:1px;
+    height:1px;
     color:#BAB8B8;
     position:absolute;
     right:53px;
@@ -1718,7 +1718,7 @@ h4.graph_title{
 .tile-stats .icon i,
 .tile-stats .icon em{
     margin:0;
-    font-size:60px;
+    font-size:40px;
     line-height:0;
     vertical-align:bottom;
     padding:0
@@ -1735,7 +1735,8 @@ h4.graph_title{
     padding:0
 }
 .tile-stats h3{
-    color:#BAB8B8
+    color:#BAB8B8;
+    padding:5px;
 }
 .tile-stats p{
     margin-top:5px;

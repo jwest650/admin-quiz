@@ -1147,6 +1147,112 @@ if (isset($_GET['table']) && $_GET['table'] == 'question') {
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
 }
+// 8. junior_question
+
+if (isset($_GET['table']) && $_GET['table'] == 'junior_question') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'q.id';
+    $order = 'DESC';
+    $where = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+
+    if (isset($_GET['sort'])) {
+        $sort = ($_GET['sort'] == 'id') ? "q." . $_GET['sort'] : $_GET['sort'];
+    }
+
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['language']) && !empty($_GET['language'])) {
+        $where = 'where `language_id` = ' . $_GET['language'];
+        if (isset($_GET['category']) && !empty($_GET['category'])) {
+            $where .= ' and `category`=' . $_GET['category'];
+            if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
+            }
+        }
+    } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
+        $where = 'where `category` = ' . $_GET['category'];
+        if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
+            $where .= ' and `subcategory`=' . $_GET['subcategory'];
+        }
+    }
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " where (q.`id` like '%" . $search . "%' OR `junior_question` like '%" . $search . "%' OR `optiona` like '%" . $search . "%' OR `optionb` like '%" . $search . "%' OR `optionc` like '%" . $search . "%' OR `optiond` like '%" . $search . "%' OR `answer` like '%" . $search . "%' )";
+        if (isset($_GET['language']) && !empty($_GET['language'])) {
+            $where .= ' and `language_id` = ' . $_GET['language'];
+            if (isset($_GET['category']) && !empty($_GET['category'])) {
+                $where .= ' and `category`=' . $_GET['category'];
+                if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
+                    $where .= ' and `subcategory`=' . $_GET['subcategory'];
+                }
+            }
+        } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
+            $where .= ' and `category` = ' . $_GET['category'];
+            if (isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
+                $where .= ' and `subcategory`=' . $_GET['subcategory'];
+            }
+        }
+    }
+
+    $left_join = " LEFT JOIN languages l on l.id = q.language_id ";
+
+    $sql = "SELECT COUNT(q.id) as total FROM `question` q " . $left_join . " " . $where;
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+
+    $sql = "SELECT q.*, l.language FROM `junior_question` q " . $left_join . " " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    foreach ($res as $row) {
+        $image = (!empty($row['image'])) ? 'images/questions/' . $row['image'] : '';
+        $operate = "<a class='btn btn-xs btn-primary edit-question' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editQuestionModal' title='Edit'><i class='fas fa-edit'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-danger delete-question' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
+
+        $tempRow['id'] = $row['id'];
+        $tempRow['category'] = $row['category'];
+        $tempRow['subcategory'] = $row['subcategory'];
+        $tempRow['language_id'] = $row['language_id'];
+        $tempRow['language'] = $row['language'];
+        $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="' . $image . '" data-caption="' . $row['question'] . '"><img src="' . $image . '" height=30 ></a>' : 'No image';
+        $tempRow['question'] = $row['question'];
+        $tempRow['question_type'] = $row['question_type'];
+        $tempRow['optiona'] = $row['optiona'];
+        $tempRow['optionb'] = $row['optionb'];
+        $tempRow['optionc'] = $row['optionc'];
+        $tempRow['optiond'] = $row['optiond'];
+        $tempRow['optione'] = $row['optione'];
+        $tempRow['answer'] = $row['answer'];
+        $tempRow['level'] = $row['level'];
+        $tempRow['note'] = $row['note'];
+        $tempRow['operate'] = $operate;
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
 
 // 9. question_reports
 if (isset($_GET['table']) && $_GET['table'] == 'question_reports') {
