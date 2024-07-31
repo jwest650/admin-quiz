@@ -1707,8 +1707,8 @@ h4.graph_title{
     -moz-animation-fill-mode:forwards
 }
 .tile-stats .icon{
-    width:1px;
-    height:1px;
+    width:15px;
+    height:15px;
     color:#BAB8B8;
     position:absolute;
     right:53px;

@@ -51,7 +51,7 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                     <div class="icon"><em class="fas fa-users"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'subcategory'); ?></div>
-                                    <h3>Total General Sub Categories </h3>
+                                    <h3>Total General Sub Category </h3>
                                 </div>
                             </div>
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
@@ -59,7 +59,7 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                     <div class="icon"><em class="fas fa-users"></em>
                                     </div>
                                     <div class="count"><?= get_count('id', 'junior_subcategory'); ?></div>
-                                    <h3>Total Junior Sub Categories</h3>
+                                    <h3>Total Junior Sub Category</h3>
                                 </div>
                             </div>
                             <div class="animated flipInY col-lg-3 col-md-3 col-sm-6 col-xs-12">
