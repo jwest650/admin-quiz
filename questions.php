@@ -365,29 +365,29 @@ $type = 1;
                                 <div class="form-group">
                                     <label for="a" class="control-label col-md-1 col-sm-3 col-xs-12">A</label>
                                     <div class="col-md-4 col-sm-6 col-xs-12">
-                                        <input id="edit_a" class="form-control col-md-7 col-xs-12" type="text" name="a">
+                                        <textarea id="edit_a" class="form-control col-md-7 col-xs-12"  name="a"></textarea>
                                     </div>
                                     <label for="b" class="control-label col-md-1 col-sm-3 col-xs-12">B</label>
                                     <div class="col-md-5 col-sm-6 col-xs-12">
-                                        <input id="edit_b" class="form-control col-md-7 col-xs-12" type="text" name="b">
+                                        <textarea id="edit_b" class="form-control col-md-7 col-xs-12"  name="b"></textarea>
                                     </div>
                                 </div>
                                 <div id="edit_tf">
                                     <div class="form-group" >
                                         <label for="c" class="control-label col-md-1 col-sm-3 col-xs-12">C</label>
                                         <div class="col-md-4 col-sm-6 col-xs-12">
-                                            <input id="edit_c" class="form-control col-md-7 col-xs-12" type="text" name="c">
+                                            <textarea id="edit_c" class="form-control col-md-7 col-xs-12"  name="c"></textarea>
                                         </div>
                                         <label for="d" class="control-label col-md-1 col-sm-3 col-xs-12">D</label>
                                         <div class="col-md-5 col-sm-6 col-xs-12">
-                                            <input id="edit_d" class="form-control col-md-7 col-xs-12" type="text" name="d">
+                                            <textarea id="edit_d" class="form-control col-md-7 col-xs-12"  name="d"></textarea>
                                         </div>
                                     </div>
                                     <?php if ($fn->is_option_e_mode_enabled()) { ?>
                                         <div class="form-group">
                                             <label for="e" class="control-label col-md-1 col-sm-3 col-xs-12">E</label>
                                             <div class="col-md-4 col-sm-6 col-xs-12">
-                                                <input id="edit_e" class="form-control col-md-7 col-xs-12" type="text" name="e">
+                                                <textarea id="edit_e" class="form-control col-md-7 col-xs-12" type="text" name="e"></textarea>
                                             </div>
                                             <label class="control-label col-md-1 col-sm-3 col-xs-12"></label>
                                             <div class="col-md-5 col-sm-6 col-xs-12"></div>
@@ -443,93 +443,94 @@ $type = 1;
 
         <script>
               const customToolbar = [
-           'alignment',
-                'heading',
-                '|',
-                'bold',
-                'italic',
-                'link',
-                'bulletedList',
-                'numberedList',
-                '|',
-                'outdent',
-                'indent',
-                '|',
-                'imageUpload',
-                'blockQuote',
-                'insertTable',
-                'mediaEmbed',
-                'undo',
-                'redo'
+                'heading','|','bold', 'italic', 'underline','|','bulletedList', 'numberedList','|',
+                'alignment','|','indent', 'outdent','|','link', 'insertTable', 'imageUpload','|','undo', 'redo'
         ];
-
-        let question;
-
-     ClassicEditor.create( document.querySelector( '#question' ),{
-             toolbar:{
-                items:customToolbar
-             }
-        } ).then( newEditor => {
-        question = newEditor;
-    } ).catch( error => {
-            console.error( error );
-        } );
-
-             ClassicEditor.create( document.querySelector( '#a' ),{
-                toolbar:{
-                items:customToolbar
-             }
-        } )
-        .catch( error => {
-            console.error( error );
-        } );
-
-             ClassicEditor.create( document.querySelector( '#b' ),{
-                toolbar:{
-                items:customToolbar
-             }
-        } )
-        .catch( error => {
-            console.error( error );
-        } );
-
-             ClassicEditor.create( document.querySelector( '#c' ),{
-                toolbar:{
-                items:customToolbar
-             }
-        } )
-        .catch( error => {
-            console.error( error );
-        } );
-
-        ClassicEditor.create( document.querySelector( '#d' ),{
-                toolbar:{
-                items:customToolbar
-             }
-        } )
-        .catch( error => {
-            console.error( error );
-        } );
-
-             ClassicEditor.create( document.querySelector( '#e' ),{
-                toolbar:{
-                items:customToolbar
-             }
-        } )
-        .catch( error => {
-            console.error( error );
-        } );
-
-
-
-
-        document.getElementById('register_form').addEventListener('submit', function(event) {
-            // Ensure the textarea is updated with the editor's content
-            if(!question.getData().trim()){
-            console.log(question)
-            }
-           console.log()
+        const editors = {};
+function createEditor(id) {
+    return ClassicEditor.create(document.querySelector(`#${id}`), {
+        toolbar: {
+            items: customToolbar
+        }
+    }).then(newEditor => {
+        editors[id] = newEditor;
+        // Add change event listener to update hidden field
+        newEditor.model.document.on('change:data', () => {
+            $(`#${id}-hidden`).val(newEditor.getData()).trigger('change');
         });
+    }).catch((error) => {
+        console.error(error);
+    });
+}
+console.log(editors)
+Promise.all([
+    createEditor('question'),
+    createEditor('a'),
+    createEditor('b'),
+    createEditor('c'),
+    createEditor('d'),
+    createEditor('e')
+]).then(() => {
+    // All editors are ready
+    setupValidation();
+});
+
+function setupValidation() {
+    $.validator.addMethod("ckeditorRequired", function(value, element) {
+        var editorId = element.id.replace('-hidden', '');
+        var editorContent = editors[editorId].getData().trim();
+        return editorContent !== "";
+    }, " This field is required.");
+
+    $('#register_form').validate({
+        ignore: [],
+        rules: {
+            "question-hidden": {
+                ckeditorRequired: true
+            },
+            category: "required",
+            "a-hidden": {
+                ckeditorRequired: true
+            },
+            "b-hidden": {
+                ckeditorRequired: true
+            },
+            "c-hidden": {
+                ckeditorRequired: true
+            },
+            "d-hidden": {
+                ckeditorRequired: true
+            },
+            level: "required",
+            answer: "required"
+        },
+        messages: {
+            "question-hidden": "Please enter the question",
+            category: "Please select a category",
+            "a-hidden": "Please enter option A ",
+            "b-hidden": "Please enter option B ",
+            "c-hidden": "Please enter option C ",
+            "d-hidden": "Please enter option D ",
+            level: "Please select a difficulty level",
+            answer: "Please select the correct answer"
+        },
+        errorPlacement: function(error, element) {
+            var editorId = element.attr('id').replace('-hidden', '');
+            if (editorId in editors) {
+                error.insertAfter(editors[editorId].ui.view.element);
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        
+    });
+
+   
+    // Remove the default submit event listener
+    document.getElementById('register_form').removeEventListener('submit', function(){});
+}
+
+      
             var type =<?= $type ?>;
 <?php if ($fn->is_language_mode_enabled()) { ?>
                 $('#language_id').on('change', function (e) {
@@ -647,7 +648,9 @@ $type = 1;
                         $('#image_url').val('');
                     }
                     $('#question_id').val(row.id);
-                    $('#edit_question').val(row.question);
+                    editors['edit_question'].setData(row.question);
+                     
+                    // $('#edit_question').val(row.question);
 <?php if ($fn->is_language_mode_enabled()) { ?>
                         if (row.language_id == 0) {
                             $('#update_language_id').val(row.language_id);
@@ -664,26 +667,36 @@ $type = 1;
                     if (question_type == "2") {
                         $("input[name=edit_question_type][value=2]").prop('checked', true);
                         $('#edit_tf').hide('fast');
-                        $('#edit_a').val(row.optiona);
-                        $('#edit_b').val(row.optionb);
+                        // $('#edit_a').val(row.optiona);
+                        // $('#edit_b').val(row.optionb);
+                        editors['edit_a'].setData(row.optiona);
+                        editors['edit_b'].setData(row.optionb);
+
                         $('.edit_ntf').hide('fast');
                     } else {
                         $("input[name=edit_question_type][value=1]").prop('checked', true);
-                        $('#edit_a').val(row.optiona);
-                        $('#edit_b').val(row.optionb);
-                        $('#edit_c').val(row.optionc);
-                        $('#edit_d').val(row.optiond);
+                        editors['edit_a'].setData(row.optiona);
+                        editors['edit_b'].setData(row.optionb);
+                        editors['edit_c'].setData(row.optionc);
+                        editors['edit_d'].setData(row.optiond);
+                        // $('#edit_a').val(row.optiona);
+                        // $('#edit_b').val(row.optionb);
+                        // $('#edit_c').val(row.optionc);
+                        // $('#edit_d').val(row.optiond);
 <?php if ($fn->is_option_e_mode_enabled()) { ?>
                             $('#edit_e').val(row.optione);
 <?php } ?>
                         $('#edit_tf').show('fast');
                         $('.edit_ntf').show('fast');
                     }
-
-                    $('#edit_a').val(row.optiona);
-                    $('#edit_b').val(row.optionb);
-                    $('#edit_c').val(row.optionc);
-                    $('#edit_d').val(row.optiond);
+                    editors['edit_a'].setData(row.optiona);
+                        editors['edit_b'].setData(row.optionb);
+                        editors['edit_c'].setData(row.optionc);
+                        editors['edit_d'].setData(row.optiond);
+                    // $('#edit_a').val(row.optiona);
+                    // $('#edit_b').val(row.optionb);
+                    // $('#edit_c').val(row.optionc);
+                    // $('#edit_d').val(row.optiond);
 <?php if ($fn->is_option_e_mode_enabled()) { ?>
                         $('#edit_e').val(row.optione);
 <?php } ?>
@@ -736,22 +749,7 @@ $type = 1;
             });
         </script>        
 
-        <script>
-     
-            $('#register_form').validate({
-                rules: {
-                   
-                    question: "required",
-                    category: "required",
-                    a: "required",
-                    b: "required",
-                    c: "required",
-                    d: "required",
-                    level: "required",
-                    answer: "required"
-                }
-            });
-        </script>
+       
         <script>
             $('#register_form').on('submit', function (e) {
                 e.preventDefault();
@@ -780,6 +778,9 @@ $type = 1;
                             $('#register_form')[0].reset();
                             $('#category').val(category);
                             $('#subcategory').val(subcategory);
+                            Object.values(editors).forEach(editor => {
+                    editor.setData('');
+                });
 <?php if ($fn->is_language_mode_enabled()) { ?>
                                 $('#language_id').val(language);
 <?php } ?>
@@ -794,17 +795,74 @@ $type = 1;
         </script>
 
         <script>
-            $('#update_form').validate({
-                rules: {
-                    edit_question: "required",
-                    update_quiz_id: "required",
-                    update_a: "required",
-                    update_b: "required",
-                    update_c: "required",
-                    update_d: "required",
-                    edit_answer: "required"
-                }
-            });
+            function setupEditValidation() {
+    $.validator.addMethod("ckeditorRequired", function(value, element) {
+        var editorId = element.id.replace('-hidden', '');
+        var editorContent = editors[editorId].getData().trim();
+        return editorContent !== "";
+    }, " This field is required.");
+
+    $('#update_form').validate({
+        ignore: [],
+        rules: {
+            "edit_question-hidden": {
+                ckeditorRequired: true
+            },
+            category: "required",
+            "edit_a-hidden": {
+                ckeditorRequired: true
+            },
+            "edit_b-hidden": {
+                ckeditorRequired: true
+            },
+            "edit_c-hidden": {
+                ckeditorRequired: true
+            },
+            "edit_d-hidden": {
+                ckeditorRequired: true
+            },
+            edit_level: "required",
+            edit_answer: "required"
+        },
+        messages: {
+            "edit_question-hidden": "Please enter the question",
+            category: "Please select a category",
+            "edit_a-hidden": "Please enter option A ",
+            "edit_b-hidden": "Please enter option B ",
+            "edit_c-hidden": "Please enter option C ",
+            "edit_d-hidden": "Please enter option D ",
+            edit_level: "Please select a difficulty level",
+            edit_answer: "Please select the correct answer"
+        },
+        errorPlacement: function(error, element) {
+            var editorId = element.attr('id').replace('-hidden', '');
+            if (editorId in editors) {
+                error.insertAfter(editors[editorId].ui.view.element);
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        
+    });
+    // Add hidden fields for CKEditor instances
+    
+
+    // Remove the default submit event listener
+    document.getElementById('update_form').removeEventListener('submit', function(){});
+}
+            Promise.all([
+    createEditor('edit_question'),
+    createEditor('edit_a'),
+    createEditor('edit_b'),
+    createEditor('edit_c'),
+    createEditor('edit_d'),
+    createEditor('edit_e')
+]).then(() => {
+    // All editors are ready
+    setupEditValidation()
+    
+});
+            
         </script>
         <script>
             $('#update_form').on('submit', function (e) {
@@ -878,35 +936,38 @@ $type = 1;
         <script>
             $('input[name="question_type"]').on("click", function (e) {
                 var question_type = $(this).val();
-                question_el=question_type
+               
                 
                 if (question_type == "2") {
                     $('#tf').hide('fast');
-                    editors["#a"].setData("<?php echo $config['true_value'] ?>")
-                    editors["#b"].setData("<?php echo $config['false_value'] ?>")
+                    editors["a"].setData("<?php echo $config['true_value'] ?>")
+                    editors["b"].setData("<?php echo $config['false_value'] ?>")
                     // $('#a').val("<?php echo $config['true_value'] ?>");
                     // $('#b').val("<?php echo $config['false_value'] ?>");
                     $('.ntf').hide('fast');
                 } else {
-                    $('#a').val('');
-                    $('#b').val('');
+                    // $('#a').val('');
+                    // $('#b').val('');
+                    editors["a"].setData("")
+                    editors["b"].setData("")
                     $('#tf').show('fast');
                     $('.ntf').show('fast');
                 }
             });
             $('input[name="edit_question_type"]').on("click", function (e) {
                 var edit_question_type = $(this).val();
-                question_el=question_type
+               
 
                 if (edit_question_type == "2") {
                     $('#edit_tf').hide('fast');
-                    editors["#a"].setData("<?php echo $config['true_value'] ?>")
-                    editors["#b"].setData("<?php echo $config['false_value'] ?>")
+                    editors["edit_a"].setData("<?php echo $config['true_value'] ?>")
+                    editors["edit_b"].setData("<?php echo $config['false_value'] ?>")
                     // $('#edit_a').val("<?php echo $config['true_value'] ?>");
                     // $('#edit_b').val("<?php echo $config['false_value'] ?>");
                     $('.edit_ntf').hide('fast');
                     $('#edit_answer').val('');
                 } else {
+                   
                     $('#edit_tf').show('fast');
                     $('.edit_ntf').show('fast');
                 }
