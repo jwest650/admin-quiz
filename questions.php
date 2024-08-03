@@ -684,7 +684,9 @@ function setupValidation() {
                         // $('#edit_c').val(row.optionc);
                         // $('#edit_d').val(row.optiond);
 <?php if ($fn->is_option_e_mode_enabled()) { ?>
-                            $('#edit_e').val(row.optione);
+                            // $('#edit_e').val(row.optione);
+                            editors['edit_e'].setData(row.optiond);
+
 <?php } ?>
                         $('#edit_tf').show('fast');
                         $('.edit_ntf').show('fast');
@@ -698,7 +700,9 @@ function setupValidation() {
                     // $('#edit_c').val(row.optionc);
                     // $('#edit_d').val(row.optiond);
 <?php if ($fn->is_option_e_mode_enabled()) { ?>
-                        $('#edit_e').val(row.optione);
+                        // $('#edit_e').val(row.optione);
+                        editors['edit_e'].setData(row.optiond);
+
 <?php } ?>
                     $('#edit_answer').val(row.answer.toLowerCase());
                     $('#edit_level').val(row.level);
@@ -795,7 +799,7 @@ function setupValidation() {
         </script>
 
         <script>
-            function setupEditValidation() {
+    function setupEditValidation() {
     $.validator.addMethod("ckeditorRequired", function(value, element) {
         var editorId = element.id.replace('-hidden', '');
         var editorContent = editors[editorId].getData().trim();
