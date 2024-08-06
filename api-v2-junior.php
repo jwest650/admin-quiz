@@ -402,7 +402,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
             $no_of = ", (SELECT count(id) FROM tbl_maths_question WHERE tbl_maths_question.subcategory = subcategory.id ) as no_of";
         }
 
-        $sql =  "SELECT * " . $no_of . " FROM `subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
+        $sql =  "SELECT * " . $no_of . " FROM `junior_subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";
         $db->sql($sql);
         $result = $db->getResult();
 
