@@ -213,62 +213,176 @@ $type = '3';
             <?php include 'footer.php'; ?>
             <!-- /footer content -->
         </div>
+       
+        
+<script >
 
-        <script type="text/javascript">
-            MathJax = {
-                tex: {
-                    inlineMath: [['$', '$'], ['\\(', '\\)']]
-                }
-            };
-        </script>
-        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-        <script type="text/javascript">
-            CKEDITOR.replace('question', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('a', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('b', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('c', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('d', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('e', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
-            CKEDITOR.replace('note', {
-                extraPlugins: 'mathjax',
-                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-                height: 100,
-                removeButtons: 'PasteFromWord,Image,Anchor'
-            });
+const customToolbar = [
+                'heading','|','bold', 'italic', 'underline','|','bulletedList', 'numberedList','|',
+                'alignment','|','indent', 'outdent','|','link', 'insertTable', 'imageUpload','|','undo', 'redo'
+        ];
+        const editors = {};
 
-            if (CKEDITOR.env.ie && CKEDITOR.env.version == 8) {
-                document.getElementById('ie8-warning').className = 'tip alert';
+function createEditor(id) {
+    return ClassicEditor.create(document.querySelector(`#${id}`), {
+        toolbar: {
+            items: customToolbar
+        }
+    }).then(newEditor => {
+        editors[id] = newEditor;
+    }).catch((error) => {
+        console.error(error);
+    });
+}
+
+Promise.all([
+    createEditor('question'),
+    createEditor('a'),
+    createEditor('b'),
+    createEditor('c'),
+    createEditor('d'),
+    createEditor('e')
+]).then(() => {
+    // All editors are ready
+    setupValidation();
+});
+
+
+
+
+
+
+function setupValidation() {
+    $.validator.addMethod("ckeditorRequired", function(value, element) {
+        var editorId = element.id;
+        if (!editors[editorId]) {
+            console.warn(`Editor not found for ${editorId}`);
+            return true; // Skip validation if editor not found
+        }
+        var editorContent = editors[editorId].getData().trim();
+        
+        // Only validate c and d if question type is 1
+        if ((editorId === 'c' || editorId === 'd') && $('input[name="question_type"]:checked').val() !== '1') {
+            return true;
+        }
+        
+        return editorContent !== "";
+    }, "This field is required.");
+
+    var validator = $('#register_form').validate({
+        ignore: [],
+        rules: {
+            question: {
+                ckeditorRequired: true
+            },
+            category: "required",
+            a: {
+                ckeditorRequired: true
+            },
+            b: {
+                ckeditorRequired: true
+            },
+            level: "required",
+            answer: "required"
+        },
+        messages: {
+            question: "Please enter the question",
+            category: "Please select a category",
+            a: "Please enter option A",
+            b: "Please enter option B",
+            c: "Please enter option C",
+            d: "Please enter option D",
+            level: "Please select a difficulty level",
+            answer: "Please select the correct answer"
+        },
+        errorPlacement: function(error, element) {
+            if (element.attr('id') in editors) {
+                error.insertAfter(editors[element.attr('id')].ui.view.element);
+            } else {
+                error.insertAfter(element);
             }
+        },  invalidHandler: function(event, validator) {
+            var questionType = $('input[name="question_type"]:checked').val();
+            if (questionType !== '1') {
+                // Remove errors for c and d if question type is not 1
+                validator.errorList = validator.errorList.filter(function(error) {
+                    return error.element.id !== 'c' && error.element.id !== 'd';
+                });
+            }
+        }
+    });
+
+    function updateValidationRules() {
+        var questionType = $('input[name="question_type"]:checked').val();
+        console.log(`Question type changed to: ${questionType}`);
+
+        if (questionType === '1') {
+            $('#c, #d').rules('add', { ckeditorRequired: true });
+        } else {
+            $('#c, #d').rules('remove', 'ckeditorRequired');
+            // Clear any existing errors
+            validator.resetForm();
+        }
+    }
+
+    $('input[name="question_type"]').on('click', updateValidationRules);
+    
+    // Initial call to set up rules based on initial question type
+    updateValidationRules();
+    $('#register_form').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                updateValidationRules()
+
+                var isValid =$("#register_form").validate().form()
+                console.log(isValid)
+                if (isValid) {
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                        var language = $('#language_id').val();
+<?php } ?>
+                    var category = $('#category').val();
+                    var subcategory = $('#subcategory').val();
+                    $.ajax({
+                        type: 'POST',
+                        url: $(this).attr('action'),
+                        data: formData,
+                        beforeSend: function () {
+                            $('#submit_btn').html('Please wait..');
+                            $('#submit_btn').prop('disabled', true);
+                        },
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (result) {
+                            $('#submit_btn').html('Create Now');
+                            $('#result').html(result);
+                            $('#result').show().delay(4000).fadeOut();
+                            $('#register_form')[0].reset();
+                            $('#category').val(category);
+                            $('#subcategory').val(subcategory);
+                            Object.values(editors).forEach(editor => {
+                    editor.setData('');
+                });
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                                $('#language_id').val(language);
+<?php } ?>
+                            $('#tf').show('fast');
+                            $('.ntf').show('fast');
+                            $('#submit_btn').prop('disabled', false);
+                            $('#questions').bootstrapTable('refresh');
+                        }
+                    });
+                }
+            });
+
+}
+
+ 
+
+          
+            // if (CKEDITOR.env.ie && CKEDITOR.env.version == 8) {
+            //     document.getElementById('ie8-warning').className = 'tip alert';
+            // }
         </script>
         <script>
             var type =<?= $type ?>;
@@ -331,33 +445,32 @@ $type = '3';
         </script>       
 
         <script>
-            $('#register_form').validate({
-                rules: {
-                    question: "required",
-                    category: "required",
-                    a: "required",
-                    b: "required",
-                    c: "required",
-                    d: "required",
-                    level: "required",
-                    answer: "required"
-                }
-            });
         </script>    
 
         <script>
-            $('input[name="question_type"]').on("click", function (e) {
+              $('input[name="question_type"]').on("click", function (e) {
                 var question_type = $(this).val();
+
+                
                 if (question_type == "2") {
                     $('#tf').hide('fast');
+                    editors["a"].setData("<?php echo $config['true_value'] ?>")
+                    editors["b"].setData("<?php echo $config['false_value'] ?>")
+
+                  
+                    
                     $('.ntf').hide('fast');
                 } else {
-                    $('#a').val('');
-                    $('#b').val('');
+                    // $('#a').val('');
+                    // $('#b').val('');
+                    
+                    editors["a"].setData("")
+                    editors["b"].setData("")
                     $('#tf').show('fast');
                     $('.ntf').show('fast');
                 }
             });
+            
         </script>
 
     </body>

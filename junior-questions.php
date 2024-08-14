@@ -456,15 +456,11 @@ function createEditor(id) {
         }
     }).then(newEditor => {
         editors[id] = newEditor;
-        // Add change event listener to update hidden field
-        newEditor.model.document.on('change:data', () => {
-            $(`#${id}-hidden`).val(newEditor.getData()).trigger('change');
-        });
+      
     }).catch((error) => {
         console.error(error);
     });
 }
-console.log(editors)
 Promise.all([
     createEditor('question'),
     createEditor('a'),
@@ -479,69 +475,92 @@ Promise.all([
 
 function setupValidation() {
     $.validator.addMethod("ckeditorRequired", function(value, element) {
-        var editorId = element.id.replace('-hidden', '');
+        var editorId = element.id;
+        if (!editors[editorId]) {
+            console.warn(`Editor not found for ${editorId}`);
+            return true; // Skip validation if editor not found
+        }
         var editorContent = editors[editorId].getData().trim();
+        
+        // Only validate c and d if question type is 1
+        if ((editorId === 'c' || editorId === 'd') && $('input[name="question_type"]:checked').val() !== '1') {
+            return true;
+        }
+        
         return editorContent !== "";
-    }, " This field is required.");
+    }, "This field is required.");
 
-    $('#register_form').validate({
+    var validator = $('#register_form').validate({
         ignore: [],
         rules: {
-            "question-hidden": {
+            question: {
                 ckeditorRequired: true
             },
             category: "required",
-            "a-hidden": {
+            a: {
                 ckeditorRequired: true
             },
-            "b-hidden": {
-                ckeditorRequired: true
-            },
-            "c-hidden": {
-                ckeditorRequired: true
-            },
-            "d-hidden": {
+            b: {
                 ckeditorRequired: true
             },
             level: "required",
             answer: "required"
         },
         messages: {
-            "question-hidden": "Please enter the question",
+            question: "Please enter the question",
             category: "Please select a category",
-            "a-hidden": "Please enter option A ",
-            "b-hidden": "Please enter option B ",
-            "c-hidden": "Please enter option C ",
-            "d-hidden": "Please enter option D ",
+            a: "Please enter option A",
+            b: "Please enter option B",
+            c: "Please enter option C",
+            d: "Please enter option D",
             level: "Please select a difficulty level",
             answer: "Please select the correct answer"
         },
         errorPlacement: function(error, element) {
-            var editorId = element.attr('id').replace('-hidden', '');
-            if (editorId in editors) {
-                error.insertAfter(editors[editorId].ui.view.element);
+            if (element.attr('id') in editors) {
+                error.insertAfter(editors[element.attr('id')].ui.view.element);
             } else {
                 error.insertAfter(element);
             }
-        },
-        
+        },  invalidHandler: function(event, validator) {
+            var questionType = $('input[name="question_type"]:checked').val();
+            if (questionType !== '1') {
+                // Remove errors for c and d if question type is not 1
+                validator.errorList = validator.errorList.filter(function(error) {
+                    return error.element.id !== 'c' && error.element.id !== 'd';
+                });
+            }
+        }
     });
 
-   
-    // Remove the default submit event listener
-    document.getElementById('register_form').removeEventListener('submit', function(){});
-}
+    function updateValidationRules() {
+        var questionType = $('input[name="question_type"]:checked').val();
+        console.log(`Question type changed to: ${questionType}`);
 
-      
+        if (questionType === '1') {
+            $('#c, #d').rules('add', { ckeditorRequired: true });
+        } else {
+            $('#c, #d').rules('remove', 'ckeditorRequired');
+            // Clear any existing errors
+            validator.resetForm();
+        }
+    }
 
-     $('#register_form').on('submit', function (e) {
+    $('input[name="question_type"]').on('click', updateValidationRules);
+    
+    // Initial call to set up rules based on initial question type
+    updateValidationRules();
+    $('#register_form').on('submit', function (e) {
                 e.preventDefault();
                 var formData = new FormData(this);
+                updateValidationRules()
 
-                if ($("#register_form").validate().form()) {
-                <?php if ($fn->is_language_mode_enabled()) { ?>
-                    var language = $('#language_id').val();
-                <?php } ?>
+                var isValid =$("#register_form").validate().form()
+                
+                if (isValid) {
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                        var language = $('#language_id').val();
+<?php } ?>
                     var category = $('#category').val();
                     var subcategory = $('#subcategory').val();
                     $.ajax({
@@ -565,21 +584,22 @@ function setupValidation() {
                             Object.values(editors).forEach(editor => {
                     editor.setData('');
                 });
-                        <?php if ($fn->is_language_mode_enabled()) { ?>
-                        $('#language_id').val(language);
-                        <?php } ?>  
-                        
-
-                       
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                                $('#language_id').val(language);
+<?php } ?>
                             $('#tf').show('fast');
                             $('.ntf').show('fast');
                             $('#submit_btn').prop('disabled', false);
                             $('#questions').bootstrapTable('refresh');
-                          
                         }
                     });
                 }
             });
+
+}
+      
+      
+
 
 
 
@@ -818,59 +838,127 @@ var type =<?= $type ?>;
 
         <script>
              function setupEditValidation() {
-    $.validator.addMethod("ckeditorRequired", function(value, element) {
-        var editorId = element.id.replace('-hidden', '');
+                $.validator.addMethod("ckeditorRequired", function(value, element) {
+        var editorId = element.id;
+        if (!editors[editorId]) {
+            console.warn(`Editor not found for ${editorId}`);
+            return true; // Skip validation if editor not found
+        }
         var editorContent = editors[editorId].getData().trim();
+        
+        // Only validate c and d if question type is 1
+        if ((editorId === 'edit_c' || editorId === 'edit_d') && $('input[name="edit_question_type"]:checked').val() !== '1') {
+            return true;
+        }
+        
         return editorContent !== "";
-    }, " This field is required.");
+    }, "This field is required.");
 
-    $('#update_form').validate({
+    var edit_validator = $('#update_form').validate({
         ignore: [],
         rules: {
-            "edit_question-hidden": {
+            'edit_question': {
                 ckeditorRequired: true
             },
-            category: "required",
-            "edit_a-hidden": {
+            'edit_category': "required",
+            'edit_a': {
                 ckeditorRequired: true
             },
-            "edit_b-hidden": {
+            'edit_b': {
                 ckeditorRequired: true
             },
-            "edit_c-hidden": {
-                ckeditorRequired: true
-            },
-            "edit_d-hidden": {
-                ckeditorRequired: true
-            },
-            edit_level: "required",
-            edit_answer: "required"
+            'edit_level': "required",
+            'edit_answer': "required"
         },
         messages: {
-            "edit_question-hidden": "Please enter the question",
-            category: "Please select a category",
-            "edit_a-hidden": "Please enter option A ",
-            "edit_b-hidden": "Please enter option B ",
-            "edit_c-hidden": "Please enter option C ",
-            "edit_d-hidden": "Please enter option D ",
-            edit_level: "Please select a difficulty level",
-            edit_answer: "Please select the correct answer"
+            'edit_question': "Please enter the question",
+            'edit_category': "Please select a category",
+            'edit_a': "Please enter option A",
+            'edit_b': "Please enter option B",
+            'edit_c': "Please enter option C",
+            'edit_d': "Please enter option D",
+            'edit_level': "Please select a difficulty level",
+            'edit_answer': "Please select the correct answer"
         },
         errorPlacement: function(error, element) {
-            var editorId = element.attr('id').replace('-hidden', '');
-            if (editorId in editors) {
-                error.insertAfter(editors[editorId].ui.view.element);
+            if (element.attr('id') in editors) {
+                error.insertAfter(editors[element.attr('id')].ui.view.element);
             } else {
                 error.insertAfter(element);
             }
-        },
-        
+        },  invalidHandler: function(event, validator) {
+            var questionType = $('input[name="edit_question_type"]:checked').val();
+            if (questionType !== '1') {
+                // Remove errors for c and d if question type is not 1
+                validator.errorList = validator.errorList.filter(function(error) {
+                    return error.element.id !== 'edit_c' && error.element.id !== 'edit_d';
+                });
+            }
+        }
     });
-    // Add hidden fields for CKEditor instances
-    
 
-    // Remove the default submit event listener
-    document.getElementById('update_form').removeEventListener('submit', function(){});
+    function updateEditValidationRules() {
+        var questionType = $('input[name="edit_question_type"]:checked').val();
+        console.log(`Question type changed to: ${questionType}`);
+
+        if (questionType === '1') {
+            $('#edit_c, #edit_d').rules('add', { ckeditorRequired: true });
+        } else {
+            $('#edit_c, #edit_d').rules('remove', 'ckeditorRequired');
+            // Clear any existing errors
+            edit_validator.resetForm();
+        }
+    }
+
+    $('input[name="edit_question_type"]').on('click', updateEditValidationRules);
+    
+    // Initial call to set up rules based on initial question type
+    updateEditValidationRules();
+    $('#update_form').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                updateEditValidationRules()
+
+                var isValid =$("#update_form").validate().form()
+                
+                if (isValid) {
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                        var language = $('#language_id').val();
+<?php } ?>
+                    var category = $('#category').val();
+                    var subcategory = $('#subcategory').val();
+                    $.ajax({
+                        type: 'POST',
+                        url: $(this).attr('action'),
+                        data: formData,
+                        beforeSend: function () {
+                            $('#submit_btn').html('Please wait..');
+                            $('#submit_btn').prop('disabled', true);
+                        },
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (result) {
+                            $('#submit_btn').html('Create Now');
+                            $('#result').html(result);
+                            $('#result').show().delay(4000).fadeOut();
+                            $('#register_form')[0].reset();
+                            $('#category').val(category);
+                            $('#subcategory').val(subcategory);
+                            Object.values(editors).forEach(editor => {
+                    editor.setData('');
+                });
+<?php if ($fn->is_language_mode_enabled()) { ?>
+                                $('#language_id').val(language);
+<?php } ?>
+                            $('#tf').show('fast');
+                            $('.ntf').show('fast');
+                            $('#submit_btn').prop('disabled', false);
+                            $('#questions').bootstrapTable('refresh');
+                        }
+                    });
+                }
+            });
 }
             Promise.all([
     createEditor('edit_question'),
@@ -885,35 +973,6 @@ var type =<?= $type ?>;
     
 });
 
-        </script>
-        <script>
-            $('#update_form').on('submit', function (e) {
-                e.preventDefault();
-                var formData = new FormData(this);
-                if ($("#update_form").validate().form()) {
-                    $.ajax({
-                        type: 'POST',
-                        url: $(this).attr('action'),
-                        data: formData,
-                        beforeSend: function () {
-                            $('#update_btn').html('Please wait..');
-                        },
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        success: function (result) {
-                            $('#update_result').html(result);
-                            $('#update_result').show().delay(3000).fadeOut();
-                            $('#update_btn').html('Update Question');
-                            $('#edit_image').val('');
-                            $('#questions').bootstrapTable('refresh');
-                            setTimeout(function () {
-                                $('#editQuestionModal').modal('hide');
-                            }, 4000);
-                        }
-                    });
-                }
-            });
         </script>
         <script>
             $('#filter_btn').on('click', function (e) {
