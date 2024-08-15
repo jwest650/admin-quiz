@@ -132,6 +132,14 @@
                                 </ul>
                             </li>
                             <li>
+                                <a><em class="fas fa-book"></em> Junior Learning Zone<span class="fas fa-caret-down"></span></a>
+                                <ul class="nav child_menu">
+                                    <li><a href="junior-learning-category.php">Category</a></li>
+                                    <li><a href="junior-learning-category-order.php">Category Order</a></li>
+                                    <li><a href="junior-learning.php"> Manage Learning</a></li>
+                                </ul>
+                            </li>
+                            <li>
                                 <a><em class="fas fa-book-open"></em> Maths Quiz<span class="fas fa-caret-down"></span></a>
                                 <ul class="nav child_menu">
                                     <li><a href="maths-category.php">Category</a></li>

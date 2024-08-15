@@ -2450,6 +2450,50 @@ if (isset($_POST['title']) && isset($_POST['add_learning'])) {
     $res = $db->getResult();
     echo '<label class="alert alert-success">Learning created successfully!</label>';
 }
+// 46. add_junior_learning
+if (isset($_POST['title']) && isset($_POST['add_junior_learning'])) {
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $category = $db->escapeString($_POST['category']);
+    $title = $db->escapeString($_POST['title']);
+    $video_id = ($db->escapeString($_POST['video_id'])) ? $db->escapeString($_POST['video_id']) : '';
+    $detail = $db->escapeString($_POST['detail']);
+    $filename = "";
+    if ($_FILES['pdf_file']['error'] == 0 && $_FILES['pdf_file']['size'] > 0) {
+        // Define allowed file types
+        $allowedTypes = ['pdf'];
+
+        // Get the file extension
+        $extension = pathinfo($_FILES["pdf_file"]["name"], PATHINFO_EXTENSION);
+
+        // Check if the file extension is not in the allowed types
+        if (!in_array(strtolower($extension), $allowedTypes)) {
+
+            echo "<label class='alert alert-danger'>Invalid file type. Only PDF files are allowed.</label>";
+            return false;
+        }
+
+        // Rest of your code for file handling
+        if (!is_dir('pdf_files')) {
+            mkdir('pdf_files', 0777, true);
+        }
+        $target_path = 'pdf_files/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . $filename;
+        if (!move_uploaded_file($_FILES["pdf_file"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Failed to upload the file.';
+            echo json_encode($response);
+            return false;
+        }
+
+      
+    }
+
+     $sql = "INSERT INTO `tbl_junior_learning` ( `category`, `language_id`, `title`, `video_id`, `detail`,pdf_file,`status`) VALUES ('" . $category . "','" . $language_id . "','" . $title . "','" . $video_id . "','" . $detail . "','" . $filename . "','0')";
+    $db->sql($sql);
+    $res = $db->getResult();
+    echo '<label class="alert alert-success">Learning created successfully!</label>';
+}
 
 // 47. update_question
 if (isset($_POST['learning_id']) && isset($_POST['update_learning'])) {
@@ -2524,6 +2568,80 @@ if (isset($_POST['learning_id']) && isset($_POST['update_learning'])) {
     echo "<p class='alert alert-success'>Learning updated successfully!</p>";
 }
 
+// 47. update_junior_question
+if (isset($_POST['learning_id']) && isset($_POST['update_junior_learning'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['learning_id'];
+
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $category = $db->escapeString($_POST['category']);
+    $title = $db->escapeString($_POST['title']);
+    $video_id = ($db->escapeString($_POST['video_id'])) ? $db->escapeString($_POST['video_id']) : '';
+    $detail = $db->escapeString($_POST['detail']);
+
+    $filename = "";
+
+
+
+
+
+    if ($_FILES['edit_pdf_file']['error'] == 0 && $_FILES['edit_pdf_file']['size'] > 0) {
+
+        if (!is_dir('pdf_files')) {
+            mkdir('pdf_files', 0777, true);
+        }
+        $extension = pathinfo($_FILES["edit_pdf_file"]["name"])['extension'];
+
+
+
+
+        $allowedTypes = ['pdf'];
+
+        // Get the file extension
+        $extension = pathinfo($_FILES["edit_pdf_file"]["name"], PATHINFO_EXTENSION);
+
+        // Check if the file extension is not in the allowed types
+        if (!in_array(strtolower($extension), $allowedTypes)) {
+
+            echo "<label class='alert alert-danger'>Invalid file type. Only PDF files are allowed.</label>";
+            return false;
+        }
+
+        if (!(in_array($extension, $allowedType))) {
+            $response['error'] = true;
+            $response['message'] = 'type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $target_path = 'pdf_files/';
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["edit_pdf_file"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $image_url = $db->escapeString($_POST['edit_pdf']);
+
+
+        if (file_exists($image_url)) {
+
+            unlink($image_url);
+        }
+    }
+    $sql = "Update `tbl_junior_learning` set `category`='" . $category . "', `title`='" . $title . "', `video_id`='" . $video_id . "', `detail`='" . $detail . "',`pdf_file`='" . $filename . "'";
+    $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
+    $sql .= " where `id`=" . $id;
+    $db->sql($sql);
+
+    echo "<p class='alert alert-success'>Learning updated successfully!</p>";
+}
+
+
 // 48. update_learning_status
 if (isset($_POST['learning_status_id']) && isset($_POST['update_learning_status'])) {
     if (!checkadmin($auth_username)) {
@@ -2550,6 +2668,33 @@ if (isset($_POST['learning_status_id']) && isset($_POST['update_learning_status'
     }
 }
 
+// 48. update_junior_learning_status
+if (isset($_POST['learning_status_id']) && isset($_POST['update_junior_learning_status'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['learning_status_id'];
+    $status = $db->escapeString($_POST['status']);
+    if ($status == 1 || $status == '1') {
+        $sql = 'SELECT id FROM `tbl_junior_learning_question` WHERE `learning_id`=' . $id;
+        $db->sql($sql);
+        $res = $db->getResult();
+        if (empty($res)) {
+            echo "<p class='alert alert-danger'>No enought question for active Learning!</p>";
+        } else {
+            $sql = "Update `tbl_junior_learning` set `status`='" . $status . "' where `id`=" . $id;
+            $db->sql($sql);
+            echo "<p class='alert alert-success'>Learning status updated successfully!</p>";
+        }
+    } else {
+        $sql = "Update `tbl_junior_learning` set `status`='" . $status . "' where `id`=" . $id;
+        $db->sql($sql);
+        echo "<p class='alert alert-success'>Learning status updated successfully!</p>";
+    }
+}
+
+
 // 49. delete_question
 if (isset($_GET['delete_learning']) && $_GET['delete_learning'] != '') {
     if (!checkadmin($auth_username)) {
@@ -2574,6 +2719,31 @@ if (isset($_GET['delete_learning']) && $_GET['delete_learning'] != '') {
         echo 0;
     }
 }
+// 49. delete_junior_question
+if (isset($_GET['delete_junior_learning']) && $_GET['delete_junior_learning'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+    $pdf = $_GET['pdf'];
+
+
+    $sql = 'DELETE FROM `tbl_junior_learning` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        $sql = 'DELETE FROM `tbl_junior_learning_question` WHERE `learning_id`=' . $id;
+        $db->sql($sql);
+        if (file_exists($pdf)) {
+
+            unlink($pdf);
+        }
+
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
 
 // 50. add_learning_question
 if (isset($_POST['question']) && isset($_POST['add_learning_question'])) {
@@ -2596,6 +2766,28 @@ if (isset($_POST['question']) && isset($_POST['add_learning_question'])) {
     $res = $db->getResult();
     echo '<label class="alert alert-success">Question created successfully!</label>';
 }
+// 50. add_junior_learning_question
+if (isset($_POST['question']) && isset($_POST['add_junior_learning_question'])) {
+    $question = $db->escapeString($_POST['question']);
+    $learning_id = $db->escapeString($_POST['learning_id']);
+
+    $question_type = $db->escapeString($_POST['question_type']);
+
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
+    $d = ($question_type == 1) ? $db->escapeString($_POST['d']) : "";
+    $e = ($fn->is_option_e_mode_enabled()) ? (($question_type == 1) ? $db->escapeString($_POST['e']) : "") : "";
+    $answer = $db->escapeString($_POST['answer']);
+
+    $sql = "INSERT INTO `tbl_junior_learning_question`(`learning_id`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `answer`) VALUES 
+	('" . $learning_id . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $answer . "')";
+
+    $db->sql($sql);
+    $res = $db->getResult();
+    echo '<label class="alert alert-success">Question created successfully!</label>';
+}
+
 
 // 51. update_learning_question
 if (isset($_POST['question_id']) && isset($_POST['update_learning_question'])) {
@@ -2623,6 +2815,34 @@ if (isset($_POST['question_id']) && isset($_POST['update_learning_question'])) {
     echo "<p class='alert alert-success'>Question updated successfully!</p>";
 }
 
+// 51. update_junior_learning_question
+if (isset($_POST['question_id']) && isset($_POST['update_junior_learning_question'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['question_id'];
+    $question = $db->escapeString($_POST['question']);
+    $question_type = $db->escapeString($_POST['edit_question_type']);
+
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
+    $d = ($question_type == 1) ? $db->escapeString($_POST['d']) : "";
+    if ($fn->is_option_e_mode_enabled()) {
+        $e = ($question_type == 1) ? $db->escapeString($_POST['e']) : "";
+    }
+    $answer = $db->escapeString($_POST['answer']);
+    $sql = "UPDATE `tbl_junior_learning_question` set `question`='" . $question . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "'";
+    $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
+    $sql .= " WHERE `id`=" . $id;
+    $db->sql($sql);
+
+    echo "<p class='alert alert-success'>Question updated successfully!</p>";
+}
+
+
+
 // 52. delete_learning_question
 if (isset($_GET['delete_learning_question']) && $_GET['delete_learning_question'] != '') {
     if (!checkadmin($auth_username)) {
@@ -2632,6 +2852,22 @@ if (isset($_GET['delete_learning_question']) && $_GET['delete_learning_question'
     $id = $_GET['id'];
 
     $sql = 'DELETE FROM `tbl_learning_question` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
+// 52. delete_junior_learning_question
+if (isset($_GET['delete_junior_learning_question']) && $_GET['delete_junior_learning_question'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+
+    $sql = 'DELETE FROM `tbl_junior_learning_question` WHERE `id`=' . $id;
     if ($db->sql($sql)) {
         echo 1;
     } else {

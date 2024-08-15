@@ -1881,9 +1881,98 @@ if (isset($_GET['table']) && $_GET['table'] == 'learning_zone') {
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
 }
+//junior_learning_zone
+if (isset($_GET['table']) && $_GET['table'] == 'junior_learning_zone') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'q.id';
+    $order = 'DESC';
+    $where = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+
+    if (isset($_GET['sort'])) {
+        $sort = ($_GET['sort'] == 'id') ? "q." . $_GET['sort'] : $_GET['sort'];
+    }
+
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['language']) && !empty($_GET['language'])) {
+        $where = 'where `language_id` = ' . $_GET['language'];
+        if (isset($_GET['category']) && !empty($_GET['category'])) {
+            $where .= ' and `category`=' . $_GET['category'];
+        }
+    } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
+        $where = 'where `category` = ' . $_GET['category'];
+    }
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " WHERE (q.id like '%" . $search . "%' OR q.title like '%" . $search . "%' OR l.language like '%" . $search . "%' )";
+        if (isset($_GET['language']) && !empty($_GET['language'])) {
+            $where .= ' and `language_id` = ' . $_GET['language'];
+            if (isset($_GET['category']) && !empty($_GET['category'])) {
+                $where .= ' and `category`=' . $_GET['category'];
+            }
+        } elseif (isset($_GET['category']) && !empty($_GET['category'])) {
+            $where .= ' and `category` = ' . $_GET['category'];
+        }
+    }
+
+    $left_join = " LEFT JOIN languages l on l.id = q.language_id ";
+
+    $sql = "SELECT COUNT(q.id) as total FROM `tbl_junior_learning` q " . $left_join . " " . $where;
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+
+    $sql = "SELECT q.*, l.language FROM `tbl_junior_learning` q " . $left_join . " " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    foreach ($res as $row) {
+        $pdf_file = (!empty($row['pdf_file'])) ? 'pdf_files/' . $row['pdf_file'] : '';
+
+        $operate = "<a class='btn btn-xs btn-warning' href='learning-questions.php?id=" . $row['id'] . "' title='Add question'><i class='fas fa-plus'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-primary edit-data' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editDataModal' title='Edit'><i class='fas fa-edit'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-success edit-status' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editStatusModal' title='Edit Status'><i class='fas fa-edit'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-danger delete-data' data-id='" . $row['id'] . "'   data-pdf='" . $pdf_file . "' title='Delete'><i class='fas fa-trash'></i></a>";
+
+        $tempRow['id'] = $row['id'];
+        $tempRow['category'] = $row['category'];
+        $tempRow['language_id'] = $row['language_id'];
+        $tempRow['language'] = $row['language'];
+        $tempRow['title'] = $row['title'];
+        $tempRow['video_id'] = $row['video_id'];
+        $tempRow['detail'] = $row['detail'];
+        $tempRow['pdf_file'] = (!empty($row['pdf_file'])) ? '<a href="' . $pdf_file . '" data-name="' . $pdf_file . '" id="get_pdf">View File</a>' : '';
+        $tempRow['pdf_name'] = $pdf_file;
+        $tempRow['status'] = ($row['status']) ? "<label class='label label-success'>Active</label>" : "<label class='label label-danger'>Deactive</label>";
+        $tempRow['operate'] = $operate;
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
 
 // 18. learnning_question
-if (isset($_GET['table']) && $_GET['table'] == 'learnning_question') {
+if (isset($_GET['table']) && $_GET['table'] == 'learning_question') {
     $offset = 0;
     $limit = 10;
     $sort = 'q.id';
@@ -1953,6 +2042,79 @@ if (isset($_GET['table']) && $_GET['table'] == 'learnning_question') {
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
 }
+
+// 18. junior_learning_question
+if (isset($_GET['table']) && $_GET['table'] == 'junior_learning_question') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'q.id';
+    $order = 'DESC';
+    $where = '';
+    $table = $_GET['table'];
+
+    if (isset($_POST['id']))
+        $id = $_POST['id'];
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+
+    if (isset($_GET['sort'])) {
+        $sort = ($_GET['sort'] == 'id') ? "q." . $_GET['sort'] : $_GET['sort'];
+    }
+
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+
+    if (isset($_GET['learning_id'])) {
+        $learning_id = $_GET['learning_id'];
+        $where = " WHERE learning_id=" . $learning_id;
+    }
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where .= " AND (q.`id` like '%" . $search . "%' OR `junior_question` like '%" . $search . "%' OR `optiona` like '%" . $search . "%' OR `optionb` like '%" . $search . "%' OR `optionc` like '%" . $search . "%' OR `optiond` like '%" . $search . "%' OR `answer` like '%" . $search . "%' )";
+    }
+
+    $sql = "SELECT COUNT(q.id) as total FROM `tbl_junior_learning_question` q " . $where;
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+
+    $sql = "SELECT q.* FROM `tbl_junior_learning_question` q " . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    $bulkData = array();
+    $bulkData['total'] = $total;
+    $rows = array();
+    $tempRow = array();
+
+    foreach ($res as $row) {
+        $operate = "<a class='btn btn-xs btn-primary edit-question' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editQuestionModal' title='Edit'><i class='fas fa-edit'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-danger delete-question' data-id='" . $row['id'] . "' title='Delete'><i class='fas fa-trash'></i></a>";
+
+        $tempRow['id'] = $row['id'];
+        $tempRow['question'] = $row['question'];
+        $tempRow['question_type'] = $row['question_type'];
+        $tempRow['optiona'] = $row['optiona'];
+        $tempRow['optionb'] = $row['optionb'];
+        $tempRow['optionc'] = $row['optionc'];
+        $tempRow['optiond'] = $row['optiond'];
+        $tempRow['optione'] = $row['optione'];
+        $tempRow['answer'] = $row['answer'];
+        $tempRow['operate'] = $operate;
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
 
 // 19. maths_question
 if (isset($_GET['table']) && $_GET['table'] == 'maths_question') {
