@@ -3067,7 +3067,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_learning'])) {
             $id = $db->escapeString($_POST['id']);
             $where = ' AND `id` =' . $id;
         }
-        $sql = "SELECT *, (SELECT COUNT(id) FROM tbl_learning_question WHERE tbl_learning_question.learning_id=tbl_learning.id ) as no_of FROM tbl_learning WHERE status=1 AND category=" . $category . " " . $where . " ORDER BY id DESC";
+        $sql = "SELECT *, (SELECT COUNT(id) FROM tbl_junior_learning_question WHERE tbl_junior_learning_question.learning_id=tbl_learning.id ) as no_of FROM tbl_junior_learning WHERE status=1 AND category=" . $category . " " . $where . " ORDER BY id DESC";
         $db->sql($sql);
         $result = $db->getResult();
         if (!empty($result)) {
@@ -3112,7 +3112,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_learning'])) {
     }
     if (isset($_POST['learning_id'])) {
         $id = $db->escapeString($_POST['learning_id']);
-        $sql = "SELECT * FROM `tbl_learning_question` WHERE learning_id=" . $id . " ORDER BY id DESC";
+        $sql = "SELECT * FROM `tbl_junior_learning_question` WHERE learning_id=" . $id . " ORDER BY id DESC";
         $db->sql($sql);
         $result = $db->getResult();
 
