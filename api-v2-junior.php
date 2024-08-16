@@ -194,7 +194,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
 		 
         }
         if ($type == 2 || $type == '2') {
-            $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of,
+            $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of,
 			(select `language` from `languages` l where l.id = c.language_id ) as language
 			FROM `category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
         }

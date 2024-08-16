@@ -608,7 +608,7 @@ $type = '2';
                     $.ajax({
                         type: 'GET',
                         url: "db_operations.php",
-                        data: 'delete_multiple=1&ids=' + ids + '&sec=' + sec + '&is_image=' + is_image,
+                        data: 'delete_junior_multiple=1&ids=' + ids + '&sec=' + sec + '&is_image=' + is_image,
                         beforeSend: function() {
                             delete_button.html('<i class="fa fa-spinner fa-pulse"></i>');
                         },

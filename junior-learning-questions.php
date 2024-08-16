@@ -134,7 +134,7 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                                         </div>
                                     </div>
                                     <table aria-describedby="mydesc" class='table-striped' id='questions'
-                                           data-toggle="table" data-url="get-list.php?table=junior_learnning_question"
+                                           data-toggle="table" data-url="get-list.php?table=junior_learning_question"
                                            data-sort-name="id" data-sort-order="desc"
                                            data-click-to-select="true" data-side-pagination="server"                                           
                                            data-search="true" data-show-columns="true"

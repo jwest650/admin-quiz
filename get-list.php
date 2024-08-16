@@ -1948,7 +1948,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_learning_zone') {
     foreach ($res as $row) {
         $pdf_file = (!empty($row['pdf_file'])) ? 'pdf_files/' . $row['pdf_file'] : '';
 
-        $operate = "<a class='btn btn-xs btn-warning' href='learning-questions.php?id=" . $row['id'] . "' title='Add question'><i class='fas fa-plus'></i></a>";
+        $operate = "<a class='btn btn-xs btn-warning' href='junior-learning-questions.php?id=" . $row['id'] . "' title='Add question'><i class='fas fa-plus'></i></a>";
         $operate .= "<a class='btn btn-xs btn-primary edit-data' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editDataModal' title='Edit'><i class='fas fa-edit'></i></a>";
         $operate .= "<a class='btn btn-xs btn-success edit-status' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editStatusModal' title='Edit Status'><i class='fas fa-edit'></i></a>";
         $operate .= "<a class='btn btn-xs btn-danger delete-data' data-id='" . $row['id'] . "'   data-pdf='" . $pdf_file . "' title='Delete'><i class='fas fa-trash'></i></a>";
