@@ -324,7 +324,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
            
         }
         if ($type == 2 || $type == '2') {
-            $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
+            $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 3 || $type == '3') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_question where tbl_maths_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
