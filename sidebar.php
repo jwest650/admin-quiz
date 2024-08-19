@@ -150,6 +150,16 @@
                                 </ul>
                             </li>
                             <li>
+                                <a><em class="fas fa-book-open"></em> Junior Maths Quiz<span class="fas fa-caret-down"></span></a>
+                                <ul class="nav child_menu">
+                                    <li><a href="maths-junior-category.php">Category</a></li>
+                                    <li><a href="maths-junior-subcategory.php">Sub Category</a></li>
+                                    <li><a href="maths-junior-category-order.php">Category Order</a></li>
+                                    <li><a href="maths-junior-questions.php">Create Questions</a></li>
+                                    <li><a href="maths-junior-questions-view.php">View Questions</a></li>
+                                </ul>
+                            </li>
+                            <li>
                                 <a><i class="fas fa-gift"></i> Contests<span class="fas fa-caret-down"></span></a>
                                 <ul class="nav child_menu">
                                     <li><a href="contest.php"><i class="fas fa-gift"></i> Manage Contest</a></li>

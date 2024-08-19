@@ -144,7 +144,7 @@ if (isset($_POST['get_subcategories_of_category']) && $_POST['get_subcategories_
     }
     echo $options;
 }
-//7. get_subcategories_of_category - ajax dropdown menu options 
+//7. get_junior_subcategories_of_category - ajax dropdown menu options 
 if (isset($_POST['get_junior_subcategories_of_category']) && $_POST['get_junior_subcategories_of_category'] != '') {
     $id = $_POST['category_id'];
     if (empty($id)) {
@@ -2968,6 +2968,100 @@ if (isset($_POST['question']) && isset($_POST['add_maths_question'])) {
     // echo '<label class="alert alert-success">Question created successfully!</label>';
 }
 
+// 53. add_maths_junior_question()
+if (isset($_POST['question']) && isset($_POST['add_maths_junior_question'])) {
+    $question = $db->escapeString($_POST['question']);
+
+    $language_id = ($fn->is_language_mode_enabled()) ? $db->escapeString($_POST['language_id']) : 0;
+    $category = $db->escapeString($_POST['category']);
+    $subcategory = (empty($_POST['subcategory'])) ? 0 : $db->escapeString($_POST['subcategory']);
+
+    $question_type = $db->escapeString($_POST['question_type']);
+
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = ($question_type == 1) ? $db->escapeString($_POST['c']) : "";
+    $d = ($question_type == 1) ? $db->escapeString($_POST['d']) : "";
+    $e = ($fn->is_option_e_mode_enabled()) ? (($question_type == 1) ? $db->escapeString($_POST['e']) : "") : "";
+    $answer = $db->escapeString($_POST['answer']);
+    $note = $db->escapeString($_POST['note']);
+
+    $filename = $full_path = '';
+
+    if (isset($_POST['question_id'])) {
+        $id = $_POST['question_id'];
+
+        if ($_FILES['image']['size'] != 0 && $_FILES['image']['error'] == 0) {
+            $target_path = 'images/maths-question/';
+            if (!is_dir($target_path)) {
+                mkdir($target_path, 0777, true);
+            }
+
+            //image isn't empty and update the image
+            $image_url = $db->escapeString($_POST['image_url']);
+
+            // common image file extensions
+            $extension = pathinfo($_FILES["image"]["name"])['extension'];
+            if (!(in_array($extension, $allowedExts))) {
+                echo '<p class="alert alert-danger">Image type is invalid</p>';
+                return false;
+            }
+            $filename = microtime(true) . '.' . strtolower($extension);
+            $full_path = $target_path . "" . $filename;
+            if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+                echo '<p class="alert alert-danger">Image type is invalid</p>';
+                return false;
+            }
+            if (!empty($image_url) && file_exists($image_url)) {
+                unlink($image_url);
+            }
+            $sql = "UPDATE `tbl_maths_question` SET `image`='" . $filename . "' WHERE `id`=" . $id;
+            $db->sql($sql);
+        }
+        $sql = "UPDATE `tbl_maths_junior_question` SET `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "', `note`='" . $note . "'";
+        $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
+        $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
+        $sql .= " WHERE `id`=" . $id;
+        $db->sql($sql);
+        header("location:maths-questions-view.php");
+    } else {
+        // common image file extensions
+        if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+            $target_path = 'images/maths-question/';
+            if (!is_dir($target_path)) {
+                mkdir($target_path, 0777, true);
+            }
+
+            $extension = pathinfo($_FILES["image"]["name"])['extension'];
+            if (!(in_array($extension, $allowedExts))) {
+                $response['error'] = true;
+                $response['message'] = 'Image type is invalid';
+                echo json_encode($response);
+                return false;
+            }
+
+            $filename = microtime(true) . '.' . strtolower($extension);
+            $full_path = $target_path . "" . $filename;
+            if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+                $response['error'] = true;
+                $response['message'] = 'Image type is invalid';
+                echo json_encode($response);
+                return false;
+            }
+        }
+
+        $sql = "INSERT INTO `tbl_maths_junior_question` (`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `answer`, `note`) VALUES 
+        ('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $answer . "','" . $note . "')";
+
+        $db->sql($sql);
+        $res = $db->getResult();
+        header("location:maths-questions.php");
+    }
+    // echo $sql;
+    // echo '<label class="alert alert-success">Question created successfully!</label>';
+}
+
+
 // 54. delete_maths_question
 if (isset($_GET['delete_maths_question']) && $_GET['delete_maths_question'] != '') {
     if (!checkadmin($auth_username)) {
@@ -2978,6 +3072,25 @@ if (isset($_GET['delete_maths_question']) && $_GET['delete_maths_question'] != '
     $image = $_GET['image'];
 
     $sql = 'DELETE FROM `tbl_maths_question` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+        if (!empty($image) && file_exists($image)) {
+            unlink($image);
+        }
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+// 54. delete_junior_maths_question
+if (isset($_GET['delete_maths_junior_question']) && $_GET['delete_maths_junior_question'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+    $image = $_GET['image'];
+
+    $sql = 'DELETE FROM `tbl_maths_junior_question` WHERE `id`=' . $id;
     if ($db->sql($sql)) {
         if (!empty($image) && file_exists($image)) {
             unlink($image);

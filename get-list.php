@@ -178,10 +178,10 @@ if (isset($_GET['table']) && $_GET['table'] == 'junior_category') {
             $total_question = ", (SELECT count(id) FROM junior_question WHERE junior_question.category = c.id ) as no_of_que";
         }
         if ($type == 2 || $type == '2') {
-            $total_question = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.category = c.id ) as no_of_que";
+            $total_question = ", (SELECT count(id) FROM tbl_junior_learning WHERE tbl_learning.category = c.id ) as no_of_que";
         }
         if ($type == 3 || $type == '3') {
-            $total_question = ", (SELECT count(id) FROM tbl_maths_question WHERE tbl_maths_question.category = c.id ) as no_of_que";
+            $total_question = ", (SELECT count(id) FROM tbl_maths_junior_question WHERE tbl_maths_junior_question.category = c.id ) as no_of_que";
         }
     }
 
