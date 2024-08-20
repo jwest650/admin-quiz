@@ -39,7 +39,7 @@ $type = '3';
                                 <div class='row'>
                                     <div class='col-md-12'>
                                         <form id="category_form" method="POST" action="db_operations.php" class="form-horizontal form-label-left" enctype="multipart/form-data">
-                                            <input type="hidden" id="add_subcategory" name="add_subcategory" required="" value="1" aria-required="true">
+                                            <input type="hidden" id="add_subcategory" name="add_junior_subcategory" required="" value="1" aria-required="true">
                                             <?php
                                             $db->sql("SET NAMES 'utf8'");
                                             $sql = "SELECT * FROM junior_category WHERE type=" . $type . " AND status=1 ORDER BY id DESC";

@@ -39,7 +39,7 @@ $type = '3';
                                 <div class='row'>
                                     <div class='col-md-12 col-sm-12'>
                                         <form id="category_form" method="POST" action="db_operations.php" class="form-horizontal form-label-left" enctype="multipart/form-data">
-                                            <input type="hidden" id="add_category" name="add_category" required="" value="1" aria-required="true">
+                                            <input type="hidden" id="add_category" name="junior_category" required="" value="1" aria-required="true">
                                             <input type="hidden" name="type" value="<?= $type ?>" required>
                                             <?php if ($fn->is_language_mode_enabled()) { ?>
                                                 <div class="form-group row">
