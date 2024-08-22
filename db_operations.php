@@ -270,6 +270,40 @@ if (isset($_POST['get_selected_date']) && !empty($_POST['get_selected_date']) &&
     print_r(json_encode($response));
 }
 
+// 33. get_selected_date for junior - Date options 
+if (isset($_POST['get_selected_date_junior']) && !empty($_POST['get_selected_date_junior']) && $_POST['language_id'] != "") {
+    $selected_date = $db->escapeString($_POST['selected_date']);
+    $language_id = $db->escapeString($_POST['language_id']);
+
+    $sql = "SELECT * from daily_junior_quiz WHERE date_published='$selected_date' AND language_id= '$language_id'";
+    $db->sql($sql);
+    $res = $db->getResult();
+    $html = "";
+
+    if (!empty($res)) {
+        foreach ($res as $row) {
+            $language_id = $row['language_id'];
+        }
+        $questions = $response = array();
+        $questions = $res[0]['questions_id'];
+        $sql = "SELECT `id`, `junior_question` FROM `question` WHERE `id` IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")";
+        $db->sql($sql);
+        $res = $db->getResult();
+        foreach ($res as $question) {
+            $html .= "<li id=" . $question['id'] . " class='ui-state-default ui-sortable-handle'>" . $question['id'] . ". " . $question['question'] . "<a class='btn btn-danger btn-xs remove-row pull-right'>x</a></li>";
+        }
+        $response['error'] = false;
+        $response['language_id'] = $language_id;
+        $response['questions_list'] = $html;
+    } else {
+        //        $html .= "<li id='' class='ui-state-default ui-sortable-handle'>There are no questions added today<a class='btn btn-danger btn-xs remove-row pull-right'>x</a></li>";
+        $response['error'] = false;
+        $response['questions_list'] = $html;
+        $response['language_id'] = '';
+    }
+    print_r(json_encode($response));
+}
+
 if (ALLOW_MODIFICATION == 0 && !defined(ALLOW_MODIFICATION)) {
     echo '<label class="alert alert-danger">This operation is not allowed in demo panel!.</label>';
     return false;
@@ -1970,6 +2004,24 @@ if (isset($_POST['question_ids']) && isset($_POST['update_daily_quiz_order']) &&
         $sql1 = "UPDATE daily_quiz SET `questions_id`='$question_ids',`language_id`='$language_id' WHERE `id`=" . $res[0]['id'];
     } else {
         $sql1 = "INSERT INTO `daily_quiz` (`language_id`,`questions_id`,`date_published`) VALUES ('$language_id','$question_ids',STR_TO_DATE('$date_published', '%Y-%m-%d'))";
+    }
+    $db->sql($sql1);
+    echo "<p class='alert alert-success'> Saved </p>";
+}
+// 32. update_daily_quiz_order_junior
+if (isset($_POST['question_ids']) && isset($_POST['update_daily_quiz_order_junior']) && isset($_POST['language_id'])) {
+    $language_id = $db->escapeString($_POST['language_id']);
+    $question_ids = $db->escapeString($_POST['question_ids']);
+    $date_published = $db->escapeString($_POST['daily_quiz_date']);
+
+    $sql = "SELECT * FROM daily_quiz_junior WHERE date_published = '$date_published' AND language_id='$language_id'";
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (!empty($res)) {
+        $sql1 = "UPDATE daily_quiz_junior SET `questions_id`='$question_ids',`language_id`='$language_id' WHERE `id`=" . $res[0]['id'];
+    } else {
+        $sql1 = "INSERT INTO `daily_quiz_junior` (`language_id`,`questions_id`,`date_published`) VALUES ('$language_id','$question_ids',STR_TO_DATE('$date_published', '%Y-%m-%d'))";
     }
     $db->sql($sql1);
     echo "<p class='alert alert-success'> Saved </p>";

@@ -27,7 +27,6 @@ $type = '3';
                 border: none;
             }
         </style>
-        <script src="https://cdn.ckeditor.com/4.16.2/standard-all/ckeditor.js"></script>
     </head>
     <body class="nav-md">
         <div class="container body">

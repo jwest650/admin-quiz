@@ -2222,11 +2222,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_daily_quiz'])) {
         $questions = $response = array();
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '0';
 
-        $sql1 = "SELECT * from daily_quiz_user WHERE date='$toDate' AND user_id=" . $user_id . "";
+        $sql1 = "SELECT * from daily_quiz_junior_user WHERE date='$toDate' AND user_id=" . $user_id . "";
         $db->sql($sql1);
         $res1 = $db->getResult();
         if (empty($res1)) {
-            $sql = "SELECT * from daily_quiz WHERE date_published='$toDate' AND `language_id`=" . $language_id . "";
+            $sql = "SELECT * from daily_quiz_junior WHERE date_published='$toDate' AND `language_id`=" . $language_id . "";
             $db->sql($sql);
             $res = $db->getResult();
 
@@ -2236,19 +2236,19 @@ if (isset($_POST['access_key']) && isset($_POST['get_daily_quiz'])) {
             //            $res = $db->getResult();
             //        }
             if (!empty($res)) {
-                $sql2 = "SELECT * from daily_quiz_user WHERE user_id=" . $user_id . "";
+                $sql2 = "SELECT * from daily_quiz_junior_user WHERE user_id=" . $user_id . "";
                 $db->sql($sql2);
                 $res2 = $db->getResult();
                 if (!empty($res2)) {
-                    $sql3 = "UPDATE `daily_quiz_user` SET `date` = '" . $toDate . "' WHERE user_id=" . $user_id;
+                    $sql3 = "UPDATE `daily_quiz_junior_user` SET `date` = '" . $toDate . "' WHERE user_id=" . $user_id;
                 } else {
-                    $sql3 = 'INSERT INTO `daily_quiz_user` (`user_id`, `date`) VALUES (' . $user_id . ',"' . $toDate . '")';
+                    $sql3 = 'INSERT INTO `daily_quiz_junior_user` (`user_id`, `date`) VALUES (' . $user_id . ',"' . $toDate . '")';
                 }
                 $db->sql($sql3);
 
                 $questions = $res[0]['questions_id'];
 
-                $sql = "SELECT * FROM `question` WHERE `id` IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")";
+                $sql = "SELECT * FROM `junior_question` WHERE `id` IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")";
                 $db->sql($sql);
                 $result = $db->getResult();
 

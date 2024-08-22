@@ -123,6 +123,7 @@
                                 </ul>
                             </li>
                             <li><a href="daily-quiz.php"><em class="fas fa-question"></em> Daily Quiz</a></li>                          
+                            <li><a href="daily-junior-quiz.php"><em class="fas fa-question"></em> Daily Junior Quiz</a></li>                          
                             <li>
                                 <a><em class="fas fa-book"></em> Learning Zone<span class="fas fa-caret-down"></span></a>
                                 <ul class="nav child_menu">

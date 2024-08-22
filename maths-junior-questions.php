@@ -218,30 +218,32 @@ $type = '3';
 <script >
 
 const customToolbar = [
-    'undo', 'redo',
-        '|',
-        'heading',
-        '|',
-        'fontfamily', 'fontsize', 'fontColor', 'fontBackgroundColor',
-        '|',
-        'bold', 'italic', 'strikethrough', 'subscript', 'superscript', 'code',
-        '|',
-        'link', 'uploadImage', 'blockQuote', 'codeBlock',
-        '|',
-        'alignment',
-        '|',
-        'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
-        ];
+    'heading', '|',
+    'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code', '|',
+    'link', 'imageUpload', 'mediaEmbed', 'blockQuote', '|',
+    'bulletedList', 'numberedList', 'todoList', '|',
+    'insertTable', 'horizontalLine', 'pageBreak', '|',
+    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+    'alignment', 'outdent', 'indent', '|',
+    'highlight', 'removeFormat', '|',
+    'specialCharacters', 'findAndReplace', 'selectAll', '|',
+    'undo', 'redo', '|',
+    'math' // Add this for the math toolbar
+            ];
         const editors = {};
 
 function createEditor(id) {
     return ClassicEditor.create(document.querySelector(`#${id}`), {
-        label: 'Basic styles',
-   
         toolbar: {
             items: customToolbar
         },
-        shouldNotGroupWhenFull: true
+        shouldNotGroupWhenFull: true,
+        math: {
+            engine: 'mathjax',
+            outputType: 'script',
+            forceOutputType: true,
+            enablePreview: true
+        }
     }).then(newEditor => {
         editors[id] = newEditor;
     }).catch((error) => {
