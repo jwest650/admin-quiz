@@ -3890,3 +3890,43 @@ ul.notifications{
 .mt-20{
     margin-top: 20px;
 }
+
+.badge-field-container{
+    display: flex;
+    align-items:end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 10px 0px;
+
+}
+.badge-field-container div {
+    margin: 8px 5px;
+}
+.badge-field-container label,.badge-field-container input {
+    display: block;
+    text-transform: capitalize;
+}
+.badge-field-container input,.badge-field-container textarea,.badge-field-container select{
+    appearance: none;
+    border:1px solid #b6b6b86b;
+    padding: 10px 5px;
+    border-radius: 5px;
+    width: 300px;
+
+}
+.badge-input-full input, .badge-input-full textarea{
+    width: 350px;
+
+}
+.badge-input-full textarea{
+    width: 700px;
+}
+
+
+.badge-form button{
+    background-color: purple;
+    color: white;
+    padding: 7px 30px;
+    border-radius: 5px;
+    text-transform: bold;
+}

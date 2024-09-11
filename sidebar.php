@@ -180,6 +180,7 @@
                                     <ul class="nav child_menu">
                                         <li><a href="system-configurations.php">System Configurations</a></li>
                                         <li><a href="notification-settings.php">Notification Settings</a></li>
+                                        <li><a href="badges.php">Badges Settings</a></li>
                                         <li><a href="about-us.php">About Us</a></li>
                                         <li><a href="instructions.php">Instructions</a></li>
                                         <li><a href="privacy-policy.php">Privacy Policy</a></li>
