@@ -30,7 +30,7 @@ function verify_token() {
     }
     if (!empty($token)) {
         try {
-            // JWT::$leeway = 60;
+            JWT::$leeway = 60;
             $payload = $jwt->decode($token, JWT_SECRET_KEY, ['HS256']);
             if (!isset($payload->iss) || $payload->iss != 'quiz') {
                 $response['error'] = "true";
