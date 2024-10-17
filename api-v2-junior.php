@@ -200,9 +200,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         }
         if ($type == 3 || $type == '3') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_junior_question where tbl_maths_junior_question.category=c.id ) as no_of_que,
-            (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of,
+            (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of,
 			(select `language` from `languages` l where l.id = c.language_id ) as language
-			FROM `category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
+			FROM `junior_category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
         }
         $db->sql($sql);
         $result = $db->getResult();

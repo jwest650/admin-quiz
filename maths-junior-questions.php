@@ -218,24 +218,29 @@ $type = '3';
 <script >
 
 const customToolbar = [
-    'heading', '|',
-    'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code', '|',
-    'link', 'imageUpload', 'mediaEmbed', 'blockQuote', '|',
-    'bulletedList', 'numberedList', 'todoList', '|',
-    'insertTable', 'horizontalLine', 'pageBreak', '|',
-    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-    'alignment', 'outdent', 'indent', '|',
-    'highlight', 'removeFormat', '|',
-    'specialCharacters', 'findAndReplace', 'selectAll', '|',
-    'undo', 'redo', '|',
-    'math' // Add this for the math toolbar
+    
+        'undo', 'redo',
+        '|',
+        'heading',
+        '|',
+        'fontfamily', 'fontsize', 'fontColor', 'fontBackgroundColor',
+        '|',
+        'bold', 'italic', 'strikethrough', 'subscript', 'superscript', 'code',
+        '|',
+        'link', 'uploadImage', 'blockQuote', 'codeBlock',
+        '|',
+        'alignment',
+        '|',
+        'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent',
             ];
         const editors = {};
 
 function createEditor(id) {
     return ClassicEditor.create(document.querySelector(`#${id}`), {
         toolbar: {
-            items: customToolbar
+            items: customToolbar,    
+            shouldNotGroupWhenFull: true
+
         },
         shouldNotGroupWhenFull: true,
         math: {
@@ -351,7 +356,6 @@ function setupValidation() {
                 updateValidationRules()
 
                 var isValid =$("#register_form").validate().form()
-                console.log(isValid)
                 if (isValid) {
 <?php if ($fn->is_language_mode_enabled()) { ?>
                         var language = $('#language_id').val();
@@ -396,9 +400,7 @@ function setupValidation() {
  
 
           
-            // if (CKEDITOR.env.ie && CKEDITOR.env.version == 8) {
-            //     document.getElementById('ie8-warning').className = 'tip alert';
-            // }
+            
         </script>
         <script>
             var type =<?= $type ?>;
