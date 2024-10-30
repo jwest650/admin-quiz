@@ -3067,7 +3067,7 @@ if (isset($_POST['question']) && isset($_POST['add_maths_junior_question'])) {
             if (!empty($image_url) && file_exists($image_url)) {
                 unlink($image_url);
             }
-            $sql = "UPDATE `tbl_maths_question` SET `image`='" . $filename . "' WHERE `id`=" . $id;
+            $sql = "UPDATE `tbl_maths_junior_question` SET `image`='" . $filename . "' WHERE `id`=" . $id;
             $db->sql($sql);
         }
         $sql = "UPDATE `tbl_maths_junior_question` SET `question`='" . $question . "', `category`='" . $category . "', `subcategory`='" . $subcategory . "',`question_type`='" . $question_type . "',`optiona`='" . $a . "',`optionb`='" . $b . "' ,`optionc`='" . $c . "' ,`optiond`='" . $d . "', `answer`='" . $answer . "', `note`='" . $note . "'";
@@ -3107,7 +3107,7 @@ if (isset($_POST['question']) && isset($_POST['add_maths_junior_question'])) {
 
         $db->sql($sql);
         $res = $db->getResult();
-        header("location:maths-questions.php");
+        // header("location:maths-questions.php");
     }
     // echo $sql;
     // echo '<label class="alert alert-success">Question created successfully!</label>';
@@ -3356,3 +3356,159 @@ if (isset($_POST['category_status_id']) && isset($_POST['update_junior_category_
     echo "<p class='alert alert-success'>Category status updated successfully!</p>";
 }
 
+
+// 51. add exam module
+if (isset($_POST['title']) && isset($_POST['add_exam_module'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $title = $db->escapeString($_POST['title']);
+    $date = $db->escapeString($_POST['date']);
+    $language = $db->escapeString($_POST['language']);
+    $key = $db->escapeString($_POST['key']);
+    $duration = $db->escapeString($_POST['duration']);
+    $status = 0;
+
+   
+
+
+    $sql = "INSERT INTO `exam_module` (`title`, `date`, `language_id`, `exam_key`, `duration`, `status`) VALUES
+	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status ."')";
+
+    $db->sql($sql);
+    
+    echo '<label class="alert alert-success">Contest created successfully!</label>';
+}
+// 51. add exam module
+if (isset($_POST['title']) && isset($_POST['add_exam_module'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $title = $db->escapeString($_POST['title']);
+    $date = $db->escapeString($_POST['date']);
+    $language = $db->escapeString($_POST['language']);
+    $key = $db->escapeString($_POST['key']);
+    $duration = $db->escapeString($_POST['duration']);
+    $status = 0;
+
+   
+
+
+    $sql = "INSERT INTO `exam_module` (`title`, `date`, `language_id`, `exam_key`, `duration`, `status`) VALUES
+	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status ."')";
+
+    $db->sql($sql);
+    
+    echo '<label class="alert alert-success">Contest created successfully!</label>';
+}
+// 52. add exam question
+if (isset($_POST['marks']) && isset($_POST['add_exam_question'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $exam_id = $db->escapeString($_POST['exam_id']);
+    $question = $db->escapeString($_POST['question']);
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = !empty($_POST['c']) ? $db->escapeString($_POST['c']) : '';
+    $d = !empty($_POST['d']) ? $db->escapeString($_POST['d']) : '';
+    $e = !empty($_POST['e']) ? $db->escapeString($_POST['e']) : '';
+    $answer = $db->escapeString($_POST['answer']);
+    $marks = $db->escapeString($_POST['marks']);
+
+    $filename = '';
+    if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+        $target_path = 'images/contest-question/';
+        if (!is_dir($target_path)) {
+            mkdir($target_path, 0777, true);
+        }
+
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+    }
+
+
+    $sql = "INSERT INTO `exam_questions` (`exam_id`, `question`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `answer`, `marks`, `image`) VALUES
+	('" . $exam_id . "','" . $question . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $answer . "','" . $marks . "','" . $filename . "')";
+
+    $db->sql($sql);
+    $res = $db->getResult();
+    echo '<label class="alert alert-success">Question created successfully!</label>';
+}
+
+// 53. update exam module status
+if (isset($_POST['update_id']) && isset($_POST['update_exam_status'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['update_id'];
+    $status = $db->escapeString($_POST['status']);
+
+    $sql = 'SELECT *  FROM `exam_questions` WHERE `exam_id`=' . $id;
+    $db->sql($sql);
+    $res = $db->getResult();
+
+    if (!empty($res)) {
+        $sql = "UPDATE `exam_module` SET `status`='" . $status . "' WHERE `id`=" . $id;
+        $db->sql($sql);
+        echo "<p class='alert alert-success'>Status updated successfully!</p>";
+    } else {
+        echo "<p class='alert alert-danger'>No enought question for active</p>";
+    }
+}
+
+
+// 36. update_exam_module()
+if (isset($_POST['exam_id']) && isset($_POST['update_exam_module'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_POST['exam_id'];
+    $title = $db->escapeString($_POST['title']);
+    $date = $db->escapeString($_POST['date']);
+    $key = $db->escapeString($_POST['key']);
+    $duration = $db->escapeString($_POST['duration']);
+
+    
+
+    $sql = "Update exam_module set `title`='" . $title . "', `date`='" . $date . "', `exam_key`='" . $key . "', `duration`='" . $duration . "' where `id`=" . $id;
+
+    $db->sql($sql);
+    echo "<p class='alert alert-success'>Contest updated successfully!</p>";
+}
+
+
+// 43. delete_exam_question()
+if (isset($_GET['id']) && $_GET['delete_exam_module'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+    $id = $_GET['id'];
+
+    $sql = 'DELETE FROM `exam_module` WHERE `id`=' . $id;
+    if ($db->sql($sql)) {
+       
+        echo 1;
+    } else {
+        echo 0;
+    }
+}       

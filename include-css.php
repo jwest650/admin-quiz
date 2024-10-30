@@ -51,10 +51,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.8.4/tinymce.min.js"></script>
 
         <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-math@41.4.2/build/math.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>        
-        
-      
+        <script src="https://cdn.tiny.cloud/1/dx7xicw9gz94vrsgoy8ozyndkvoti1ejiu0ocnljaf2nyx5d/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://www.wiris.net/demo/plugins/tiny_mce/plugin.js"></script>
+
 
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.min.css" integrity="sha256-2kJr1Z0C1y5z0jnhr/mCu46J3R6Uud+qCQHA39i1eYo=" crossorigin="anonymous" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.min.js" integrity="sha256-CgrKEb54KXipsoTitWV+7z/CVYrQ0ZagFB3JOvq2yjo=" crossorigin="anonymous"></script>

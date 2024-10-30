@@ -161,6 +161,15 @@
                                 </ul>
                             </li>
                             <li>
+                            <a><em class="fas fa-graduation-cap"></em> Exam Module<span class="fas fa-caret-down"></span></a>
+                            <ul class="nav child_menu">
+                                    <li><a href="exam-module.php">Exam Module</a></li>
+                                    <li><a href="exam-import.php">Import Questions</a></li>
+                                    
+                                </ul>
+                            </li>
+
+                            <li>
                                 <a><i class="fas fa-gift"></i> Contests<span class="fas fa-caret-down"></span></a>
                                 <ul class="nav child_menu">
                                     <li><a href="contest.php"><i class="fas fa-gift"></i> Manage Contest</a></li>

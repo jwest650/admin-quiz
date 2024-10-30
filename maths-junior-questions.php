@@ -218,41 +218,30 @@ $type = '3';
 <script >
 
 const customToolbar = [
-    
-        'undo', 'redo',
-        '|',
-        'heading',
-        '|',
-        'fontfamily', 'fontsize', 'fontColor', 'fontBackgroundColor',
-        '|',
-        'bold', 'italic', 'strikethrough', 'subscript', 'superscript', 'code',
-        '|',
-        'link', 'uploadImage', 'blockQuote', 'codeBlock',
-        '|',
-        'alignment',
-        '|',
-        'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent',
-            ];
-        const editors = {};
+    'undo redo  fontfamily fontsize forecolor backcolor  bold italic strikethrough subscript superscript code link image blockquote code alignleft aligncenter alignright alignjustify  bullist numlist outdent indent',
+    ' math'
+];
+
+const editors = {};
 
 function createEditor(id) {
-    return ClassicEditor.create(document.querySelector(`#${id}`), {
-        toolbar: {
-            items: customToolbar,    
-            shouldNotGroupWhenFull: true
-
+    tinymce.init({
+        selector: `#${id}`,
+        toolbar: customToolbar,
+        plugins: 'lists link image code advlist mathType',
+        menubar: false,
+        branding: false,
+        height: 300,
+        mathTypeParameters: {
+            // MathType specific configurations (optional)
         },
-        shouldNotGroupWhenFull: true,
-        math: {
-            engine: 'mathjax',
-            outputType: 'script',
-            forceOutputType: true,
-            enablePreview: true
-        }
-    }).then(newEditor => {
-        editors[id] = newEditor;
-    }).catch((error) => {
-        console.error(error);
+        setup: function(editor) {
+            editors[id] = editor;
+        editor.on('change', function(e) {
+            tinymce.triggerSave(); // Trigger save to update the textarea value
+            $('#' + editor.id).valid(); // Trigger validation when TinyMCE content changes
+        });
+    }
     });
 }
 
@@ -268,94 +257,85 @@ Promise.all([
     setupValidation();
 });
 
-
-
-
-
-
 function setupValidation() {
-    $.validator.addMethod("ckeditorRequired", function(value, element) {
-        var editorId = element.id;
-        if (!editors[editorId]) {
-            console.warn(`Editor not found for ${editorId}`);
-            return true; // Skip validation if editor not found
+    // Custom jQuery validator method for TinyMCE
+    $.validator.addMethod("tinymceRequired", function(value, element) {
+        var editor = tinymce.get(element.id); // Get TinyMCE editor by ID
+        if (editor) {
+            var editorContent = editor.getContent().trim();
+            // Check if content is not empty
+            return editorContent !== "" && editorContent !== "<p><br></p>";
         }
-        var editorContent = editors[editorId].getData().trim();
-        
-        // Only validate c and d if question type is 1
-        if ((editorId === 'c' || editorId === 'd') && $('input[name="question_type"]:checked').val() !== '1') {
-            return true;
-        }
-        
-        return editorContent !== "";
+        return false; // Return false if editor not found
     }, "This field is required.");
 
+    // Initialize jQuery validation
     var validator = $('#register_form').validate({
-        ignore: [],
+        ignore: [], // Do not ignore hidden fields (TinyMCE hides the original textarea)
         rules: {
             question: {
-                ckeditorRequired: true
+                tinymceRequired: true // Apply custom rule for TinyMCE validation
             },
-            category: "required",
             a: {
-                ckeditorRequired: true
+                tinymceRequired: true
             },
             b: {
-                ckeditorRequired: true
+                tinymceRequired: true
             },
+            c: {
+                tinymceRequired: true
+            },
+            d: {
+                tinymceRequired: true
+            },
+            category: "required",
             level: "required",
             answer: "required"
         },
         messages: {
             question: "Please enter the question",
-            category: "Please select a category",
             a: "Please enter option A",
             b: "Please enter option B",
             c: "Please enter option C",
             d: "Please enter option D",
+            category: "Please select a category",
             level: "Please select a difficulty level",
             answer: "Please select the correct answer"
         },
         errorPlacement: function(error, element) {
-            if (element.attr('id') in editors) {
-                error.insertAfter(editors[element.attr('id')].ui.view.element);
+            if (tinymce.get(element.attr('id'))) {
+                error.insertAfter(tinymce.get(element.attr('id')).contentAreaContainer); // Show error below editor
             } else {
-                error.insertAfter(element);
-            }
-        },  invalidHandler: function(event, validator) {
-            var questionType = $('input[name="question_type"]:checked').val();
-            if (questionType !== '1') {
-                // Remove errors for c and d if question type is not 1
-                validator.errorList = validator.errorList.filter(function(error) {
-                    return error.element.id !== 'c' && error.element.id !== 'd';
-                });
+                error.insertAfter(element); // For non-TinyMCE fields
             }
         }
     });
 
-    function updateValidationRules() {
-        var questionType = $('input[name="question_type"]:checked').val();
-        console.log(`Question type changed to: ${questionType}`);
 
+
+
+function updateValidationRules() {
+        var questionType = $('input[name="question_type"]:checked').val();
         if (questionType === '1') {
-            $('#c, #d').rules('add', { ckeditorRequired: true });
+            $('#c, #d').rules('add', { tinymceRequired: true });
         } else {
-            $('#c, #d').rules('remove', 'ckeditorRequired');
-            // Clear any existing errors
-            validator.resetForm();
+            $('#c, #d').rules('remove', 'tinymceRequired');
+            validator.resetForm(); // Reset errors for removed validation rules
         }
     }
 
-    $('input[name="question_type"]').on('click', updateValidationRules);
-    
-    // Initial call to set up rules based on initial question type
+    // Call updateValidationRules initially and on question type change
     updateValidationRules();
+    $('input[name="question_type"]').on('click', updateValidationRules);
+
+    
     $('#register_form').on('submit', function (e) {
                 e.preventDefault();
                 var formData = new FormData(this);
-                updateValidationRules()
+                console.log(formData)
 
-                var isValid =$("#register_form").validate().form()
+                var isValid =$("#register_form").valid()
+                console.log(isValid)
                 if (isValid) {
 <?php if ($fn->is_language_mode_enabled()) { ?>
                         var language = $('#language_id').val();
@@ -375,14 +355,18 @@ function setupValidation() {
                         processData: false,
                         success: function (result) {
                             $('#submit_btn').html('Create Now');
-                            $('#result').html(result);
-                            $('#result').show().delay(4000).fadeOut();
-                            $('#register_form')[0].reset();
-                            $('#category').val(category);
-                            $('#subcategory').val(subcategory);
-                            Object.values(editors).forEach(editor => {
-                    editor.setData('');
-                });
+                $('#result').html(result);
+                $('#result').show().delay(4000).fadeOut();
+
+              
+
+                // Set TinyMCE editors to empty
+              
+
+                // Re-enable the submit button
+                $('#submit_btn').prop('disabled', false);
+
+                // Optionally refresh other parts of your UI
 <?php if ($fn->is_language_mode_enabled()) { ?>
                                 $('#language_id').val(language);
 <?php } ?>

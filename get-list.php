@@ -2234,7 +2234,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_question') {
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
 }
-//junior_maths_question
+// 20. junior_maths_question
 if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
     $offset = 0;
     $limit = 10;
@@ -2324,7 +2324,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
         $tempRow['answer'] = $row['answer'];
 
         $tempRow['question'] = "<textarea id='q" . $row['id'] . "' class='form-control'>" . $row['question'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('q" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+         <script type='text/javascript'>CKEDITOR.replace('q" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
         $tempRow['question_type'] = $row['question_type'];
 
         $tempRow['optiona'] = "<textarea id='optiona" . $row['id'] . "' class='form-control'>" . $row['optiona'] . "</textarea> 
@@ -2337,10 +2337,10 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
         <script type='text/javascript'>CKEDITOR.replace('optionc" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
 
         $tempRow['optiond'] = "<textarea id='optiond" . $row['id'] . "' class='form-control'>" . $row['optiond'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optiond" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+         <script type='text/javascript'>CKEDITOR.replace('optiond" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
 
         $tempRow['optione'] = "<textarea id='optione" . $row['id'] . "' class='form-control'>" . $row['optione'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optione" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+         <script type='text/javascript'>CKEDITOR.replace('optione" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
 
         $tempRow['note'] = "<textarea id='note" . $row['id'] . "' class='form-control'>" . $row['note'] . "</textarea> 
         <script type='text/javascript'>CKEDITOR.replace('note" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
@@ -2352,3 +2352,73 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
 }
+
+
+// 21. exam_module
+if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'id';
+    $order = 'DESC';
+    $where = '';
+    $table = $_GET['table'];
+
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['search'])) {
+        $search = $_GET['search'];
+        $where = " where (`id` like '%" . $search . "%' OR `title` like '%" . $search . "%' OR `duration` like '%" . $search . "%' )";
+    }
+
+    $sql = "SELECT COUNT(*) as total FROM `exam_module` " . $where;
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+    $bulkData['total'] = $total;
+  
+
+    $sql = "SELECT q.*, 
+        (SELECT COUNT('id') from exam_questions where exam_questions.exam_id = q.id) as total_question 
+        FROM `exam_module` q " 
+        . $where . " 
+        ORDER BY " . $sort . " " . $order . " 
+        LIMIT " . $offset . ", " . $limit;
+    $db->sql($sql);
+    $res = $db->getResult();
+    $rows = array();
+    $tempRow = array();
+    
+    foreach ($res as $row) {
+        $image = (!empty($row['image'])) ? 'images/contest/' . $row['image'] : '';
+        $operate = "<a href='exam-questions.php' class='btn btn-xs btn-warning add' data-id='" . $row['id'] . "' data-image='" . $image . "'  title='Add Question'><i class='fas fa-plus'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-primary edit-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' data-toggle='modal' data-target='#editCategoryModal' title='Edit'><i class='fas fa-edit'></i></a>";
+
+        $operate .= "<a class='btn btn-xs btn-success edit-data' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editStatusModal' title='Edit Status'><i class='fas fa-edit'></i></a>";
+
+        $operate .= "<a class='btn btn-xs btn-danger delete-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
+       
+        $tempRow['id'] = $row['id'];
+        $tempRow['title'] = $row['title'];
+        $tempRow['date'] = $row['date'];
+        $tempRow['exam_key'] = $row['exam_key'];
+        $tempRow['duration'] = $row['duration'];
+        $tempRow['total_question'] = $row['total_question'];
+        $tempRow['status'] = ($row['status']) ? "<label class='label label-success'>Active</label>" : "<label class='label label-danger'>Deactive</label>";
+        $tempRow['operate'] = $operate;
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
+
