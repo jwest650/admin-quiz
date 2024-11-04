@@ -3454,39 +3454,107 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
         $user_id = $db->escapeString($_POST['user_id']);
        
       
-      
-            $sql = "SELECT * FROM `exam_module ` e, `exam_leaderboard` el  where ('$toDateTime') <= e.date AND e.status=1 AND e.id NOT IN (SELECT `exam_id` FROM `exam_leaderboard` WHERE `user_id`=".$user_id.")";
+            $sql =  "SELECT e.*, 
+            (SELECT SUM(marks) FROM exam_questions WHERE exam_id = e.id) as total_marks 
+            FROM exam_module e 
+            WHERE e.date >= '$toDate' 
+            AND e.status = 1 
+            AND e.id NOT IN (
+                SELECT exam_id FROM exam_leaderboard WHERE user_id = $user_id
+            )";
+    
+
             $db->sql($sql);
             $result = $db->getResult();
 
             $live_ids=array();
             if(!empty($result)){
-                foreach($result as $row){
-                    $live_ids[]=$row['id'];
-                }
-               $response['error']="false";
-               $response['message']="Data fetched successfully";
-               $response['live_exam']=$result;
+              
+               $response['live_exam']['error']="false";
+               $response['live_exam']['message']="Data fetched successfully";
+               $response['live_exam']['data']=$result;
             }else{
-                $response['error']="true";
-                $response['message']="No Live Exam Module Found";
-            }
+                $response['live_exam']['error']="true";
+                $response['live_exam']['message']="No Live Exam Module Found";
+            };
 
 
-
-            $sql='SELECT * FROM `exam_leaderboard` WHERE `exam_id`  IN ('.implode(',',$live_ids).') AND `user_id`='.$user_id;
-            $db->sql($sql);
+			$sql = "SELECT el.*,
+    e.date,
+    e.title,
+    e.duration,
+	(SELECT COUNT(exam_id) FROM exam_questions WHERE exam_id = el.exam_id)as total_questions,
+   (SELECT SUM(marks) FROM exam_questions WHERE exam_id = el.exam_id) as total_marks
+	FROM exam_leaderboard el
+	JOIN exam_module e ON el.exam_id = e.id 
+	WHERE el.user_id = $user_id";          
+			$db->sql($sql);
             $result = $db->getResult();
     
             if(!empty($result)){
                
+               $response['past_exam']['error']="false";
+               $response['past_exam']['message']="Data fetched successfully";
+               $response['past_exam']['data']=$result;
+            }else{
+                $response['past_exam']['error']="true";
+                $response['past_exam']['message']="You Have Not Played Any Exam Yet";
+            };
+		
+		
+         
+       
+
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
+    };
+       
+       
+
+   
+    print_r(json_encode($response));
+}
+
+// get_exam_questions()
+if (isset($_POST['access_key']) && isset($_POST['get_exam_questions']) ) {
+    /* Parameters to be passed
+      access_key:6808
+      get_contest:1
+      user_id:59
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    if (isset($_POST['exam_id']) && !empty($_POST['exam_id'])) {
+        $exam_id = $db->escapeString($_POST['exam_id']);
+       
+      
+            $sql = "SELECT * FROM exam_questions WHERE exam_id = $exam_id";
+
+            $db->sql($sql);
+            $result = $db->getResult();
+
+         
+            if(!empty($result)){
+              
                $response['error']="false";
                $response['message']="Data fetched successfully";
-               $response['past_exam']=$result;
+               $response['data']=$result;
             }else{
                 $response['error']="true";
-                $response['message']="You Have Not Played Any Exam Yet";
+                $response['message']="No Questions Yet";
             };
+
+
+		
+         
        
 
     } else {
@@ -3502,49 +3570,48 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
 
 
 // 41. exam_update_score() 
-if (isset($_POST['access_key']) && isset($_POST['exam_update_score']) ) {
-    /* Parameters to be passed
-      access_key:6808
-      exam_update_score:1
-      user_id:33
-      exam_id:6
-      questions_attended:10
-      correct_answers:8
-      score:8
-     */
+
+if (isset($_POST['access_key']) && isset($_POST['exam_update_score'])) {
     if (!verify_token()) {
         return false;
     }
+    
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-    if (isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['exam_id']) && isset($_POST['score']) && isset($_POST['correct_answers']) && isset($_POST['questions_attended'])) {
+    
+    if (isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['exam_id']) 
+        && isset($_POST['score']) && isset($_POST['correct_answers']) && isset($_POST['wrong_answers'])) {
+        
         $user_id = $db->escapeString($_POST['user_id']);
-        $contest_id = $db->escapeString($_POST['exam_id']);
-        $questions_attended = $db->escapeString($_POST['questions_attended']);
+        $exam_id = $db->escapeString($_POST['exam_id']);
+        $wrong_answers = $db->escapeString($_POST['wrong_answers']);
         $correct_answers = $db->escapeString($_POST['correct_answers']);
         $score = $db->escapeString($_POST['score']);
 
+      $sql = "INSERT INTO exam_leaderboard (user_id, exam_id, wrong_answers, correct_answers, score) 
+        VALUES ($user_id, $exam_id, $wrong_answers, $correct_answers, $score)
+        ON DUPLICATE KEY UPDATE 
+        wrong_answers = VALUES(wrong_answers),
+        correct_answers = VALUES(correct_answers),
+        score = VALUES(score)";
+        
        
-            $sql = "INSERT INTO `exam_leaderboard`(`user_id`, `exam_id`, `questions_attended`, `correct_answers`, `score`) VALUES 
-			(" . $user_id . "," . $contest_id . ", " . $questions_attended . "," . $correct_answers . "," . $score . ")";
-            $db->sql($sql);  // Table name, column names and respective values
-            $res=$db->getResult();
-            if(!empty($res)){
-                $response['error']="false";
-                $response['message']="Score insert successfully";
-            }else{
-                $response['error']="true";
-                $response['message']="Error inserting score";
-            }
-          
+        
+        
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Score inserted successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Error inserting score";
+        }
     } else {
         $response['error'] = "true";
         $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
 }
-

@@ -1,6 +1,6 @@
 <?php 
 session_start();
-if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
+if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
     header("location:home.php");
     return false;
     exit();
@@ -16,7 +16,6 @@ if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
     <?php include 'include-css.php'; ?>
 
 </head>
-<body class="nav-md">
 <body class="nav-md">
     <div class="container body">
         <div class="main_container">

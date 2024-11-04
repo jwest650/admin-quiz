@@ -2401,6 +2401,8 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
     foreach ($res as $row) {
         $image = (!empty($row['image'])) ? 'images/contest/' . $row['image'] : '';
         $operate = "<a href='exam-questions.php' class='btn btn-xs btn-warning add' data-id='" . $row['id'] . "' data-image='" . $image . "'  title='Add Question'><i class='fas fa-plus'></i></a>";
+        $operate .= "<a href='exam-questions-list.php?exam_id=" . $row['id'] . "' class='btn btn-xs btn-primary ' data-id='" . $row['id'] . "' data-image='" . $image . "' title='View Questions'><i class='fas fa-bars'></i></a>";
+
         $operate .= "<a class='btn btn-xs btn-primary edit-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' data-toggle='modal' data-target='#editCategoryModal' title='Edit'><i class='fas fa-edit'></i></a>";
 
         $operate .= "<a class='btn btn-xs btn-success edit-data' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editStatusModal' title='Edit Status'><i class='fas fa-edit'></i></a>";
@@ -2422,3 +2424,70 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
     print_r(json_encode($bulkData));
 }
 
+// 22. exam_question_list
+if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
+    $offset = 0;
+    $limit = 10;
+    $sort = 'id';
+    $order = 'DESC';
+    $where = '';
+    $table = $_GET['table'];
+
+    if (isset($_GET['offset']))
+        $offset = $_GET['offset'];
+    if (isset($_GET['limit']))
+        $limit = $_GET['limit'];
+
+    if (isset($_GET['sort']))
+        $sort = $_GET['sort'];
+    if (isset($_GET['order']))
+        $order = $_GET['order'];
+
+    if (isset($_GET['exam_id']) && !empty($_GET['exam_id'])) {
+        $where = " WHERE exam_id = " . $_GET['exam_id'];
+        
+        if (isset($_GET['search']) && !empty($_GET['search'])) {
+            $search = $_GET['search'];
+            $where .= " AND (id LIKE '%" . $search . "%' OR question LIKE '%" . $search . "%' OR optiona LIKE '%" . $search . "%' OR optionb LIKE '%" . $search . "%' OR optionc LIKE '%" . $search . "%' OR optiond LIKE '%" . $search . "%')";
+        }
+    }  
+
+    $sql = "SELECT COUNT(*) as total FROM exam_questions" . $where;
+    $db->sql($sql);
+    $res = $db->getResult();
+    foreach ($res as $row) {
+        $total = $row['total'];
+    }
+    $bulkData['total'] = $total;
+
+    $sql = "SELECT * FROM exam_questions" . $where . " ORDER BY " . $sort . " " . $order . " LIMIT " . $offset . ", " . $limit;
+    $db->sql($sql);
+    $res = $db->getResult();
+    $rows = array();
+    
+    // Remove debug print_r
+    // print_r($res);
+    
+    foreach ($res as $row) {
+        $tempRow = array(); // Move inside loop
+        $operate = ''; // Initialize operate string
+        
+        $image = (!empty($row['image'])) ? 'images/contest/' . $row['image'] : '';
+        $operate .= "<a class='btn btn-xs btn-primary edit-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' data-toggle='modal' data-target='#editCategoryModal' title='Edit'><i class='fas fa-edit'></i></a>";
+        $operate .= "<a class='btn btn-xs btn-danger delete-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
+       
+        $tempRow['id'] = $row['id'];
+        $tempRow['question'] = $row['question'];
+        $tempRow['optiona'] = $row['optiona'];
+        $tempRow['optionb'] = $row['optionb'];
+        $tempRow['optionc'] = $row['optionc'];
+        $tempRow['optiond'] = $row['optiond'];
+        $tempRow['marks'] = $row['marks'];
+        $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="'.$image.'" data-caption="question"><img src="'.$image.'" height=30></a>' : 'No image';
+        $tempRow['operate'] = $operate;
+        $rows[] = $tempRow;
+    }
+
+    $bulkData['rows'] = $rows;
+    print_r(json_encode($bulkData));
+}
