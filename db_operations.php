@@ -3475,7 +3475,7 @@ if (isset($_POST['update_id']) && isset($_POST['update_exam_status'])) {
 }
 
 
-// 36. update_exam_module()
+ // 54.update_exam_module()
 if (isset($_POST['exam_id']) && isset($_POST['update_exam_module'])) {
     if (!checkadmin($auth_username)) {
         echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
@@ -3489,20 +3489,25 @@ if (isset($_POST['exam_id']) && isset($_POST['update_exam_module'])) {
 
     
 
-    $sql = "Update exam_module set `title`='" . $title . "', `date`='" . $date . "', `exam_key`='" . $key . "', `duration`='" . $duration . "' where `id`=" . $id;
+    $sql = "UPDATE exam_module set `title`='" . $title . "', `date`='" . $date . "', `exam_key`='" . $key . "', `duration`='" . $duration . "' where `id`=" . $id;
 
     $db->sql($sql);
     echo "<p class='alert alert-success'>Contest updated successfully!</p>";
 }
 
 
-// 43. delete_exam_question()
+// 55. delete_exam_module()
 if (isset($_GET['id']) && $_GET['delete_exam_module'] != '') {
     if (!checkadmin($auth_username)) {
         echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
         return false;
     }
+
+
     $id = $_GET['id'];
+
+    $sql_questions = 'DELETE FROM `exam_questions` WHERE `exam_id`=' . $id;
+    $db->sql($sql_questions);
 
     $sql = 'DELETE FROM `exam_module` WHERE `id`=' . $id;
     if ($db->sql($sql)) {
@@ -3511,4 +3516,197 @@ if (isset($_GET['id']) && $_GET['delete_exam_module'] != '') {
     } else {
         echo 0;
     }
-}       
+}      
+
+// 56.update_exam_question()
+if (isset($_POST['question_id']) && isset($_POST['update_exam_question'])) {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+  
+    $exam_id = $db->escapeString($_POST['exam_id']);
+    $question = $db->escapeString($_POST['question']);
+    $a = $db->escapeString($_POST['a']);
+    $b = $db->escapeString($_POST['b']);
+    $c = !empty($_POST['c']) ? $db->escapeString($_POST['c']) : '';
+    $d = !empty($_POST['d']) ? $db->escapeString($_POST['d']) : '';
+    $e = !empty($_POST['e']) ? $db->escapeString($_POST['e']) : '';
+    $answer = $db->escapeString($_POST['answer']);
+    $marks = $db->escapeString($_POST['marks']);
+    $id = $db->escapeString($_POST['question_id']);
+    $question_type = $db->escapeString($_POST['question_type']);
+
+    if($question_type == 2){
+        $c = '';
+        $d = '';
+        $e = '';
+    }
+
+    $filename = '';
+    if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
+        $target_path = 'images/contest-question/';
+        if (!is_dir($target_path)) {
+            mkdir($target_path, 0777, true);
+        }
+
+        $extension = pathinfo($_FILES["image"]["name"])['extension'];
+        if (!(in_array($extension, $allowedExts))) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+        $filename = microtime(true) . '.' . strtolower($extension);
+        $full_path = $target_path . "" . $filename;
+        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $full_path)) {
+            $response['error'] = true;
+            $response['message'] = 'Image type is invalid';
+            echo json_encode($response);
+            return false;
+        }
+    }
+
+
+    $sql = "UPDATE `exam_questions` SET `exam_id`='" . $exam_id . "', `question`='" . $question . "', `optiona`='" . $a . "', `optionb`='" . $b . "', `optionc`='" . $c . "', `optiond`='" . $d . "', `optione`='" . $e . "', `answer`='" . $answer . "', `marks`='" . $marks . "', `image`='" . $filename . "', `question_type`='" . $question_type . "' WHERE `id`=" . $id;
+
+    $db->sql($sql);
+    // $res = $db->getResult();
+    echo '<label class="alert alert-success">Question updated successfully!</label>';
+}
+
+
+// 57. delete_exam_question()
+if (isset($_GET['id']) && $_GET['delete_exam_question'] != '') {
+    if (!checkadmin($auth_username)) {
+        echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
+        return false;
+    }
+
+
+    $id = $_GET['id'];
+
+    $sql_questions = 'DELETE FROM `exam_questions` WHERE `id`=' . $id;
+    
+
+ 
+    if ($db->sql($sql_questions)) {
+       
+        echo 1;
+    } else {
+        echo 0;
+    }
+} 
+// 58. delete_multiple_questions
+
+if (isset($_POST['delete_multiple_questions']) && isset($_POST['question_ids'])) {
+    $question_ids = $_POST['question_ids'];
+    
+    // Convert array to comma-separated string for SQL IN clause
+    $ids = implode(',', array_map('intval', $question_ids));
+    
+    // Delete questions
+    $sql = "DELETE FROM exam_questions WHERE id IN ($ids)";
+    
+    if ($db->sql($sql)) {
+        echo 1;
+    } else {
+        echo 0;
+    }
+    exit();
+}
+
+// 59. import_exam_question()
+if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
+    $exam_id = $_POST['exam_id'];
+     
+    if (empty($exam_id)) {
+        echo json_encode(['error' => true, 'message' => 'Please select an exam module']);
+        exit();
+    }
+
+    if ($_FILES['csv_file']['error'] == 0) {
+        $file = $_FILES['csv_file']['tmp_name'];
+        $handle = fopen($file, "r");
+        
+        // Skip header row
+        $header = fgetcsv($handle);
+        
+        // Convert header to lowercase and trim for consistent comparison
+        $header = array_map(function($item) {
+            return strtolower(trim($item));
+        }, $header);
+        
+        // Get column indexes
+        $columns = array(
+            'question' => array_search('question', $header),
+            'optiona' => array_search('optiona', $header),
+            'optionb' => array_search('optionb', $header),
+            'optionc' => array_search('optionc', $header),
+            'optiond' => array_search('optiond', $header),
+            'answer' => array_search('answer', $header),
+            'marks' => array_search('marks', $header),
+            'question_type' => array_search('question_type', $header)
+        );
+        
+        // Validate required columns exist
+        foreach ($columns as $key => $index) {
+            if ($index === false) {
+                echo json_encode(['error' => true, 'message' => "Missing column: $key"]);
+                exit();
+            }
+        }
+        
+        $success_count = 0;
+        $error_count = 0;
+        $line = 2; // Start from line 2 (after header)
+        
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            // Get values from correct columns
+            $question = $db->escapeString($data[$columns['question']]);
+            $optiona = $db->escapeString($data[$columns['optiona']]);
+            $optionb = $db->escapeString($data[$columns['optionb']]);
+            $optionc = $db->escapeString($data[$columns['optionc']]);
+            $optiond = $db->escapeString($data[$columns['optiond']]);
+            $answer = $db->escapeString($data[$columns['answer']]);
+            $marks = $db->escapeString($data[$columns['marks']]);
+            $question_type = $db->escapeString($data[$columns['question_type']]);
+
+            // Validate required fields
+            if (empty($question) || empty($optiona) || empty($optionb) || 
+                empty($answer) || empty($marks) || empty($question_type)) {
+                $error_count++;
+                continue;
+            }
+
+            // For question_type 2 (true/false), clear options C and D
+            if ($question_type == '2') {
+                $optionc = '';
+                $optiond = '';
+            }
+
+            $sql = "INSERT INTO exam_questions (exam_id, question, optiona, optionb, optionc, optiond, answer, marks, question_type) 
+                    VALUES ('$exam_id', '$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$marks', '$question_type')";
+            
+            if ($db->sql($sql)) {
+                $success_count++;
+            } else {
+                $error_count++;
+            }
+            $line++;
+        }
+        
+        fclose($handle);
+        
+        echo json_encode([
+            'error' => false,
+            'success' => $success_count,
+            'failed' => $error_count,
+            'message' => "$success_count questions imported successfully."
+        ]);
+        exit();
+    } else {
+        echo json_encode(['error' => true, 'message' => 'Error uploading file']);
+        exit();
+    }
+}

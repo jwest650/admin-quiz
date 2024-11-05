@@ -164,7 +164,7 @@
                             <a><em class="fas fa-graduation-cap"></em> Exam Module<span class="fas fa-caret-down"></span></a>
                             <ul class="nav child_menu">
                                     <li><a href="exam-module.php">Exam Module</a></li>
-                                    <li><a href="exam-import.php">Import Questions</a></li>
+                                    <li><a href="exam-import-question.php">Import Questions</a></li>
                                     
                                 </ul>
                             </li>

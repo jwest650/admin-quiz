@@ -5,7 +5,6 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
     return false;
     exit();
 }
-$exam_id = isset($_GET['exam_id']) ? $_GET['exam_id'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +38,7 @@ $exam_id = isset($_GET['exam_id']) ? $_GET['exam_id'] : '';
                                             <div class="form-group">
                                                 <label class="control-label col-md-1 col-sm-3 col-xs-12" for="exam_id">Exam Modules</label>
                                                 <div class="col-md-10 col-sm-6 col-xs-12">
-                                                    <?php
+                                                <?php
                                                     $db->sql("SET NAMES 'utf8'");
                                                     $sql = "SELECT id, title FROM exam_module ";
                                                     $db->sql($sql);
@@ -155,6 +154,23 @@ $exam_id = isset($_GET['exam_id']) ? $_GET['exam_id'] : '';
 
 
             <script>
+
+$('input[name="question_type"]').on("click", function (e) {
+            var question_type = $(this).val();
+            if (question_type == "2") {
+                $('#tf').hide('fast');
+                $('#a').val("<?php echo $config['true_value'] ?>");
+                $('#b').val("<?php echo $config['false_value'] ?>");
+                $('.ntf').hide('fast');
+            } else {
+                $('#a').val('');
+                $('#b').val('');
+                $('#tf').show('fast');
+                $('.ntf').show('fast');
+            }
+        });
+
+        
         $('#question_form').validate({
             rules: {
                 question: "required",

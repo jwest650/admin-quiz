@@ -2465,8 +2465,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
     $res = $db->getResult();
     $rows = array();
     
-    // Remove debug print_r
-    // print_r($res);
+ 
     
     foreach ($res as $row) {
         $tempRow = array(); // Move inside loop
@@ -2482,7 +2481,12 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
         $tempRow['optionb'] = $row['optionb'];
         $tempRow['optionc'] = $row['optionc'];
         $tempRow['optiond'] = $row['optiond'];
+        $tempRow['optione'] = $row['optione'];
         $tempRow['marks'] = $row['marks'];
+        $tempRow['answer'] = $row['answer'];
+        $tempRow['type'] = $row['question_type'];
+
+        $tempRow['exam_id'] = $row['exam_id'];
         $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="'.$image.'" data-caption="question"><img src="'.$image.'" height=30></a>' : 'No image';
         $tempRow['operate'] = $operate;
         $rows[] = $tempRow;
