@@ -483,7 +483,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'users') {
 
         $operate .= "<a class='btn btn-xs btn-warning' href='battle-statistics.php?user_id=" . $row['id'] . "' target='_blank' title='User Statistics'><i class='far fa-chart-bar'></i></a>";
         $operate .= "<a class='btn btn-xs btn-default add-coin' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editUserModal1' title='Coin'><i class='fas fa-coins' style='color: red'></i></a>";
-        $operate .= " <a class='btn btn-xs btn-default target='_blank' title='User Payments'  href='user-payments.php?user_id=".$row['id']."'>
+        $operate .= " <a class='btn btn-xs btn-default target='_blank' title='User Payments'  href='user-payments.php?user_id=" . $row['id'] . "'>
         <i class='fas fa-receipt ' style='color: #74C0FC; font-size:16px;'></i>
         </a>";
 
@@ -2205,28 +2205,23 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_question') {
         $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="' . $image . '" data-caption="maths-image"><img src="' . $image . '" height=30 ></a>' : 'No image';
         $tempRow['answer'] = $row['answer'];
 
-        $tempRow['question'] = "<textarea id='q" . $row['id'] . "' class='form-control'>" . $row['question'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('q" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+        $tempRow['id'] = $row['id'];
+        $tempRow['category'] = $row['category'];
+        $tempRow['subcategory'] = $row['subcategory'];
+        $tempRow['language_id'] = $row['language_id'];
+        $tempRow['language'] = $row['language'];
+        $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="' . $image . '" data-caption="maths-image"><img src="' . $image . '" height=30 ></a>' : 'No image';
+        $tempRow['answer'] = $row['answer'];
+        $tempRow['question'] = $row['question']; // Display question text
         $tempRow['question_type'] = $row['question_type'];
 
-        $tempRow['optiona'] = "<textarea id='optiona" . $row['id'] . "' class='form-control'>" . $row['optiona'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optiona" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+        $tempRow['optiona'] = $row['optiona']; // Display option A text
+        $tempRow['optionb'] = $row['optionb']; // Display option B text
+        $tempRow['optionc'] = $row['optionc']; // Display option C text
+        $tempRow['optiond'] = $row['optiond']; // Display option D text
+        $tempRow['optione'] = $row['optione']; // Display option E text
 
-        $tempRow['optionb'] = "<textarea id='optionb" . $row['id'] . "' class='form-control'>" . $row['optionb'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optionb" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optionc'] = "<textarea id='optionc" . $row['id'] . "' class='form-control'>" . $row['optionc'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optionc" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optiond'] = "<textarea id='optiond" . $row['id'] . "' class='form-control'>" . $row['optiond'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optiond" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optione'] = "<textarea id='optione" . $row['id'] . "' class='form-control'>" . $row['optione'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optione" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['note'] = "<textarea id='note" . $row['id'] . "' class='form-control'>" . $row['note'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('note" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
+        $tempRow['note'] = $row['note']; // Display note text
         $tempRow['operate'] = $operate;
         $rows[] = $tempRow;
     }
@@ -2312,7 +2307,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
 
     foreach ($res as $row) {
         $image = (!empty($row['image'])) ? 'images/maths-question/' . $row['image'] : '';
-        $operate = "<a class='btn btn-xs btn-primary edit-question' href='maths-questions.php?id=" . $row['id'] . "' data-id='" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a>";
+        $operate = "<a class='btn btn-xs btn-primary edit-question' href='maths-junior-questions.php?id=" . $row['id'] . "' data-id='" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a>";
         $operate .= "<a class='btn btn-xs btn-danger delete-question' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
 
         $tempRow['id'] = $row['id'];
@@ -2322,29 +2317,16 @@ if (isset($_GET['table']) && $_GET['table'] == 'maths_junior_question') {
         $tempRow['language'] = $row['language'];
         $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="' . $image . '" data-caption="maths-image"><img src="' . $image . '" height=30 ></a>' : 'No image';
         $tempRow['answer'] = $row['answer'];
-
-        $tempRow['question'] = "<textarea id='q" . $row['id'] . "' class='form-control'>" . $row['question'] . "</textarea> 
-         <script type='text/javascript'>CKEDITOR.replace('q" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+        $tempRow['question'] = $row['question']; // Display question text
         $tempRow['question_type'] = $row['question_type'];
 
-        $tempRow['optiona'] = "<textarea id='optiona" . $row['id'] . "' class='form-control'>" . $row['optiona'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optiona" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
+        $tempRow['optiona'] = $row['optiona']; // Display option A text
+        $tempRow['optionb'] = $row['optionb']; // Display option B text
+        $tempRow['optionc'] = $row['optionc']; // Display option C text
+        $tempRow['optiond'] = $row['optiond']; // Display option D text
+        $tempRow['optione'] = $row['optione']; // Display option E text
 
-        $tempRow['optionb'] = "<textarea id='optionb" . $row['id'] . "' class='form-control'>" . $row['optionb'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optionb" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optionc'] = "<textarea id='optionc" . $row['id'] . "' class='form-control'>" . $row['optionc'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('optionc" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optiond'] = "<textarea id='optiond" . $row['id'] . "' class='form-control'>" . $row['optiond'] . "</textarea> 
-         <script type='text/javascript'>CKEDITOR.replace('optiond" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['optione'] = "<textarea id='optione" . $row['id'] . "' class='form-control'>" . $row['optione'] . "</textarea> 
-         <script type='text/javascript'>CKEDITOR.replace('optione" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
-        $tempRow['note'] = "<textarea id='note" . $row['id'] . "' class='form-control'>" . $row['note'] . "</textarea> 
-        <script type='text/javascript'>CKEDITOR.replace('note" . $row['id'] . "', { extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, });</script>";
-
+        $tempRow['note'] = $row['note']; // Display note text
         $tempRow['operate'] = $operate;
         $rows[] = $tempRow;
     }
@@ -2385,11 +2367,11 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
         $total = $row['total'];
     }
     $bulkData['total'] = $total;
-  
+
 
     $sql = "SELECT q.*, 
         (SELECT COUNT('id') from exam_questions where exam_questions.exam_id = q.id) as total_question 
-        FROM `exam_module` q " 
+        FROM `exam_module` q "
         . $where . " 
         ORDER BY " . $sort . " " . $order . " 
         LIMIT " . $offset . ", " . $limit;
@@ -2397,7 +2379,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
     $res = $db->getResult();
     $rows = array();
     $tempRow = array();
-    
+
     foreach ($res as $row) {
         $image = (!empty($row['image'])) ? 'images/contest/' . $row['image'] : '';
         $operate = "<a href='exam-questions.php' class='btn btn-xs btn-warning add' data-id='" . $row['id'] . "' data-image='" . $image . "'  title='Add Question'><i class='fas fa-plus'></i></a>";
@@ -2408,7 +2390,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam_module') {
         $operate .= "<a class='btn btn-xs btn-success edit-data' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editStatusModal' title='Edit Status'><i class='fas fa-edit'></i></a>";
 
         $operate .= "<a class='btn btn-xs btn-danger delete-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
-       
+
         $tempRow['id'] = $row['id'];
         $tempRow['title'] = $row['title'];
         $tempRow['date'] = $row['date'];
@@ -2445,12 +2427,12 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
 
     if (isset($_GET['exam_id']) && !empty($_GET['exam_id'])) {
         $where = " WHERE exam_id = " . $_GET['exam_id'];
-        
+
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
             $where .= " AND (id LIKE '%" . $search . "%' OR question LIKE '%" . $search . "%' OR optiona LIKE '%" . $search . "%' OR optionb LIKE '%" . $search . "%' OR optionc LIKE '%" . $search . "%' OR optiond LIKE '%" . $search . "%')";
         }
-    }  
+    }
 
     $sql = "SELECT COUNT(*) as total FROM exam_questions" . $where;
     $db->sql($sql);
@@ -2464,17 +2446,17 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
     $db->sql($sql);
     $res = $db->getResult();
     $rows = array();
-    
- 
-    
+
+
+
     foreach ($res as $row) {
         $tempRow = array(); // Move inside loop
         $operate = ''; // Initialize operate string
-        
+
         $image = (!empty($row['image'])) ? 'images/contest/' . $row['image'] : '';
         $operate .= "<a class='btn btn-xs btn-primary edit-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' data-toggle='modal' data-target='#editCategoryModal' title='Edit'><i class='fas fa-edit'></i></a>";
         $operate .= "<a class='btn btn-xs btn-danger delete-quiz' data-id='" . $row['id'] . "' data-image='" . $image . "' title='Delete'><i class='fas fa-trash'></i></a>";
-       
+
         $tempRow['id'] = $row['id'];
         $tempRow['question'] = $row['question'];
         $tempRow['optiona'] = $row['optiona'];
@@ -2487,7 +2469,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
         $tempRow['type'] = $row['question_type'];
 
         $tempRow['exam_id'] = $row['exam_id'];
-        $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="'.$image.'" data-caption="question"><img src="'.$image.'" height=30></a>' : 'No image';
+        $tempRow['image'] = (!empty($row['image'])) ? '<a data-lightbox="Question-Image" href="' . $image . '" data-caption="question"><img src="' . $image . '" height=30></a>' : 'No image';
         $tempRow['operate'] = $operate;
         $rows[] = $tempRow;
     }

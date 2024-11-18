@@ -2060,7 +2060,7 @@ if (isset($_POST['name']) && isset($_POST['add_contest'])) {
     }
 
     $sql = "INSERT INTO `contest` (`name`, `start_date`, `end_date`, `description`, `image`, `entry`,`prize_status`, `date_created`,`status`,`contest_type`) VALUES
-	('" . $name . "','" . $start_date . "','" . $end_date . "','" . $description . "','" . $filename . "','" . $entry . "','0','" . $toDateTime . "','" . $status . "','" . $contest_type ."')";
+	('" . $name . "','" . $start_date . "','" . $end_date . "','" . $description . "','" . $filename . "','" . $entry . "','0','" . $toDateTime . "','" . $status . "','" . $contest_type . "')";
 
     $db->sql($sql);
     $insert_id = $db->insert_id();
@@ -2441,7 +2441,15 @@ if (isset($_POST['import_contest_questions']) && $_POST['import_contest_question
 if (isset($_POST['web_firebase_settings']) && isset($_POST['databaseURL'])) {
 
     $setting = [
-        'apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'client_id_google', 'app_id_fb'
+        'apiKey',
+        'authDomain',
+        'databaseURL',
+        'projectId',
+        'storageBucket',
+        'messagingSenderId',
+        'appId',
+        'client_id_google',
+        'app_id_fb'
     ];
     foreach ($setting as $row) {
         $sql = "SELECT * FROM settings WHERE type='" . $row . "' LIMIT 1";
@@ -2493,11 +2501,9 @@ if (isset($_POST['title']) && isset($_POST['add_learning'])) {
             echo json_encode($response);
             return false;
         }
-
-      
     }
 
-     $sql = "INSERT INTO `tbl_learning` ( `category`, `language_id`, `title`, `video_id`, `detail`,pdf_file,`status`) VALUES ('" . $category . "','" . $language_id . "','" . $title . "','" . $video_id . "','" . $detail . "','" . $filename . "','0')";
+    $sql = "INSERT INTO `tbl_learning` ( `category`, `language_id`, `title`, `video_id`, `detail`,pdf_file,`status`) VALUES ('" . $category . "','" . $language_id . "','" . $title . "','" . $video_id . "','" . $detail . "','" . $filename . "','0')";
     $db->sql($sql);
     $res = $db->getResult();
     echo '<label class="alert alert-success">Learning created successfully!</label>';
@@ -2537,11 +2543,9 @@ if (isset($_POST['title']) && isset($_POST['add_junior_learning'])) {
             echo json_encode($response);
             return false;
         }
-
-      
     }
 
-     $sql = "INSERT INTO `tbl_junior_learning` ( `category`, `language_id`, `title`, `video_id`, `detail`,pdf_file,`status`) VALUES ('" . $category . "','" . $language_id . "','" . $title . "','" . $video_id . "','" . $detail . "','" . $filename . "','0')";
+    $sql = "INSERT INTO `tbl_junior_learning` ( `category`, `language_id`, `title`, `video_id`, `detail`,pdf_file,`status`) VALUES ('" . $category . "','" . $language_id . "','" . $title . "','" . $video_id . "','" . $detail . "','" . $filename . "','0')";
     $db->sql($sql);
     $res = $db->getResult();
     echo '<label class="alert alert-success">Learning created successfully!</label>';
@@ -2981,8 +2985,15 @@ if (isset($_POST['question']) && isset($_POST['add_maths_question'])) {
         $sql .= ($fn->is_option_e_mode_enabled()) ? ",`optione`='" . $e . "'" : "";
         $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
         $sql .= " WHERE `id`=" . $id;
-        $db->sql($sql);
-        header("location:maths-questions-view.php");
+        if ($db->sql($sql)) {
+            // Return a JSON response with a success message and redirect URL
+            echo json_encode(['success' => true, 'redirect' => 'maths-questions-view.php']);
+        } else {
+            // Return a JSON response with an error message
+            echo json_encode(['success' => false, 'message' => 'Update failed.']);
+        }
+        exit();
+        exit();
     } else {
         // common image file extensions
         if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
@@ -3012,9 +3023,14 @@ if (isset($_POST['question']) && isset($_POST['add_maths_question'])) {
         $sql = "INSERT INTO `tbl_maths_question` (`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `answer`, `note`) VALUES 
         ('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $answer . "','" . $note . "')";
 
-        $db->sql($sql);
-        $res = $db->getResult();
-        header("location:maths-questions.php");
+        if ($db->sql($sql)) {
+            // Return a JSON response with a success message and redirect URL
+            echo json_encode(['success' => true, 'redirect' => 'maths-questions-view.php']);
+        } else {
+            // Return a JSON response with an error message
+            echo json_encode(['success' => false, 'message' => 'Update failed.']);
+        }
+        exit();
     }
     // echo $sql;
     // echo '<label class="alert alert-success">Question created successfully!</label>';
@@ -3075,7 +3091,8 @@ if (isset($_POST['question']) && isset($_POST['add_maths_junior_question'])) {
         $sql .= ($fn->is_language_mode_enabled()) ? ", `language_id`=" . $language_id : "";
         $sql .= " WHERE `id`=" . $id;
         $db->sql($sql);
-        header("location:maths-questions-view.php");
+        header("location:maths-junior-questions-view.php");
+        exit();
     } else {
         // common image file extensions
         if ($_FILES['image']['error'] == 0 && $_FILES['image']['size'] > 0) {
@@ -3105,9 +3122,16 @@ if (isset($_POST['question']) && isset($_POST['add_maths_junior_question'])) {
         $sql = "INSERT INTO `tbl_maths_junior_question` (`category`, `subcategory`, `language_id`, `image`, `question`, `question_type`, `optiona`, `optionb`, `optionc`, `optiond`, `optione`, `answer`, `note`) VALUES 
         ('" . $category . "','" . $subcategory . "','" . $language_id . "','" . $filename . "','" . $question . "','" . $question_type . "','" . $a . "','" . $b . "','" . $c . "','" . $d . "','" . $e . "','" . $answer . "','" . $note . "')";
 
-        $db->sql($sql);
-        $res = $db->getResult();
-        // header("location:maths-questions.php");
+        // $db->sql($sql);
+        // $res = $db->getResult();
+        if ($db->sql($sql)) {
+            // Return a JSON response with a success message and redirect URL
+            echo json_encode(['success' => true, 'redirect' => 'maths-junior-questions-view.php']);
+        } else {
+            // Return a JSON response with an error message
+            echo json_encode(['success' => false, 'message' => 'Update failed.']);
+        }
+        exit();
     }
     // echo $sql;
     // echo '<label class="alert alert-success">Question created successfully!</label>';
@@ -3370,14 +3394,14 @@ if (isset($_POST['title']) && isset($_POST['add_exam_module'])) {
     $duration = $db->escapeString($_POST['duration']);
     $status = 0;
 
-   
+
 
 
     $sql = "INSERT INTO `exam_module` (`title`, `date`, `language_id`, `exam_key`, `duration`, `status`) VALUES
-	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status ."')";
+	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status . "')";
 
     $db->sql($sql);
-    
+
     echo '<label class="alert alert-success">Contest created successfully!</label>';
 }
 // 51. add exam module
@@ -3393,14 +3417,14 @@ if (isset($_POST['title']) && isset($_POST['add_exam_module'])) {
     $duration = $db->escapeString($_POST['duration']);
     $status = 0;
 
-   
+
 
 
     $sql = "INSERT INTO `exam_module` (`title`, `date`, `language_id`, `exam_key`, `duration`, `status`) VALUES
-	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status ."')";
+	('" . $title . "','" . $date . "','" . $language . "','" . $key . "','" . $duration . "','" . $status . "')";
 
     $db->sql($sql);
-    
+
     echo '<label class="alert alert-success">Contest created successfully!</label>';
 }
 // 52. add exam question
@@ -3475,7 +3499,7 @@ if (isset($_POST['update_id']) && isset($_POST['update_exam_status'])) {
 }
 
 
- // 54.update_exam_module()
+// 54.update_exam_module()
 if (isset($_POST['exam_id']) && isset($_POST['update_exam_module'])) {
     if (!checkadmin($auth_username)) {
         echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
@@ -3487,7 +3511,7 @@ if (isset($_POST['exam_id']) && isset($_POST['update_exam_module'])) {
     $key = $db->escapeString($_POST['key']);
     $duration = $db->escapeString($_POST['duration']);
 
-    
+
 
     $sql = "UPDATE exam_module set `title`='" . $title . "', `date`='" . $date . "', `exam_key`='" . $key . "', `duration`='" . $duration . "' where `id`=" . $id;
 
@@ -3511,12 +3535,12 @@ if (isset($_GET['id']) && $_GET['delete_exam_module'] != '') {
 
     $sql = 'DELETE FROM `exam_module` WHERE `id`=' . $id;
     if ($db->sql($sql)) {
-       
+
         echo 1;
     } else {
         echo 0;
     }
-}      
+}
 
 // 56.update_exam_question()
 if (isset($_POST['question_id']) && isset($_POST['update_exam_question'])) {
@@ -3524,7 +3548,7 @@ if (isset($_POST['question_id']) && isset($_POST['update_exam_question'])) {
         echo "<label class='alert alert-danger'>Access denied - You are not authorized to access this page.</label>";
         return false;
     }
-  
+
     $exam_id = $db->escapeString($_POST['exam_id']);
     $question = $db->escapeString($_POST['question']);
     $a = $db->escapeString($_POST['a']);
@@ -3537,7 +3561,7 @@ if (isset($_POST['question_id']) && isset($_POST['update_exam_question'])) {
     $id = $db->escapeString($_POST['question_id']);
     $question_type = $db->escapeString($_POST['question_type']);
 
-    if($question_type == 2){
+    if ($question_type == 2) {
         $c = '';
         $d = '';
         $e = '';
@@ -3587,27 +3611,27 @@ if (isset($_GET['id']) && $_GET['delete_exam_question'] != '') {
     $id = $_GET['id'];
 
     $sql_questions = 'DELETE FROM `exam_questions` WHERE `id`=' . $id;
-    
 
- 
+
+
     if ($db->sql($sql_questions)) {
-       
+
         echo 1;
     } else {
         echo 0;
     }
-} 
+}
 // 58. delete_multiple_questions
 
 if (isset($_POST['delete_multiple_questions']) && isset($_POST['question_ids'])) {
     $question_ids = $_POST['question_ids'];
-    
+
     // Convert array to comma-separated string for SQL IN clause
     $ids = implode(',', array_map('intval', $question_ids));
-    
+
     // Delete questions
     $sql = "DELETE FROM exam_questions WHERE id IN ($ids)";
-    
+
     if ($db->sql($sql)) {
         echo 1;
     } else {
@@ -3619,7 +3643,7 @@ if (isset($_POST['delete_multiple_questions']) && isset($_POST['question_ids']))
 // 59. import_exam_question()
 if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
     $exam_id = $_POST['exam_id'];
-     
+
     if (empty($exam_id)) {
         echo json_encode(['error' => true, 'message' => 'Please select an exam module']);
         exit();
@@ -3628,15 +3652,15 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
     if ($_FILES['csv_file']['error'] == 0) {
         $file = $_FILES['csv_file']['tmp_name'];
         $handle = fopen($file, "r");
-        
+
         // Skip header row
         $header = fgetcsv($handle);
-        
+
         // Convert header to lowercase and trim for consistent comparison
-        $header = array_map(function($item) {
+        $header = array_map(function ($item) {
             return strtolower(trim($item));
         }, $header);
-        
+
         // Get column indexes
         $columns = array(
             'question' => array_search('question', $header),
@@ -3648,7 +3672,7 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
             'marks' => array_search('marks', $header),
             'question_type' => array_search('question_type', $header)
         );
-        
+
         // Validate required columns exist
         foreach ($columns as $key => $index) {
             if ($index === false) {
@@ -3656,11 +3680,11 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
                 exit();
             }
         }
-        
+
         $success_count = 0;
         $error_count = 0;
         $line = 2; // Start from line 2 (after header)
-        
+
         while (($data = fgetcsv($handle)) !== FALSE) {
             // Get values from correct columns
             $question = $db->escapeString($data[$columns['question']]);
@@ -3673,8 +3697,10 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
             $question_type = $db->escapeString($data[$columns['question_type']]);
 
             // Validate required fields
-            if (empty($question) || empty($optiona) || empty($optionb) || 
-                empty($answer) || empty($marks) || empty($question_type)) {
+            if (
+                empty($question) || empty($optiona) || empty($optionb) ||
+                empty($answer) || empty($marks) || empty($question_type)
+            ) {
                 $error_count++;
                 continue;
             }
@@ -3687,7 +3713,7 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
 
             $sql = "INSERT INTO exam_questions (exam_id, question, optiona, optionb, optionc, optiond, answer, marks, question_type) 
                     VALUES ('$exam_id', '$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$marks', '$question_type')";
-            
+
             if ($db->sql($sql)) {
                 $success_count++;
             } else {
@@ -3695,9 +3721,9 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
             }
             $line++;
         }
-        
+
         fclose($handle);
-        
+
         echo json_encode([
             'error' => false,
             'success' => $success_count,

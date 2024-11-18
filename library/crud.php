@@ -8,23 +8,24 @@
 define('DOMAIN_URL', 'https://admin.uquiz.xyz/');
 define('JWT_SECRET_KEY', 'Check@boys123');
 
-class Database {
+class Database
+{
     /*
      * Create variables for credentials to MySQL database
      * The variables have been declared as private. This
      * means that they will only be available with the 
      * Database class
      */
-  private $db_host = 'localhost';  // Change as required
-    private $db_user = 'forcopix_uquizadmin';  // Change as required
-    private $db_pass = 'Jgqk_NROs25_98';  // Change as required 
-    private $db_name = 'forcopix_uquizadmin'; // Change as required
-//   private $db_host = 'localhost';  // Change as required
-//     private $db_user = 'root';  // Change as required
-//     private $db_pass = '';  // Change as required 
-//     private $db_name = 'admin-quiz'; // Change as required
+    //   private $db_host = 'localhost';  // Change as required
+    //     private $db_user = 'forcopix_uquizadmin';  // Change as required
+    //     private $db_pass = 'Jgqk_NROs25_98';  // Change as required 
+    //     private $db_name = 'forcopix_uquizadmin'; // Change as required
+    private $db_host = 'localhost';  // Change as required
+    private $db_user = 'root';  // Change as required
+    private $db_pass = '';  // Change as required 
+    private $db_name = 'admin-quiz'; // Change as required
 
-  
+
 
     /*
      * Extra variables that are required by other function such as boolean con variable
@@ -37,7 +38,8 @@ class Database {
 
     // Function to make connection to database
 
-    public function connect() {
+    public function connect()
+    {
         if (!$this->con) {
             $this->myconn = new mysqli($this->db_host, $this->db_user, $this->db_pass, $this->db_name);  // mysql_connect() with variables defined at the start of Database class
             if ($this->myconn->connect_errno > 0) {
@@ -53,7 +55,8 @@ class Database {
     }
 
     // Function to disconnect from the database
-    public function disconnect() {
+    public function disconnect()
+    {
         // If there is a connection to the database
         if ($this->con) {
             // We have found a connection, try to close it
@@ -69,13 +72,14 @@ class Database {
         }
     }
 
-    public function sql($sql) {
+    public function sql($sql)
+    {
         $query = $this->myconn->query($sql);
         $this->myQuery = $sql; // Pass back the SQL
         if ($query) {
             // If the query returns >= 1 assign the number of rows to numResults
             $this->numResults = 0;
-            if (isset($query->num_rows) && ( $query->num_rows > 0)) {
+            if (isset($query->num_rows) && ($query->num_rows > 0)) {
                 $this->numResults = $query->num_rows;
             }
             // Loop through the query results by the number of rows returned
@@ -101,7 +105,8 @@ class Database {
     }
 
     // Function to SELECT from the database
-    public function select($table, $rows = '*', $join = null, $where = null, $order = null, $limit = null) {
+    public function select($table, $rows = '*', $join = null, $where = null, $order = null, $limit = null)
+    {
         // Create query from the variables passed to the function
         $q = 'SELECT ' . $rows . ' FROM ' . $table;
         if ($join != null) {
@@ -151,7 +156,8 @@ class Database {
     }
 
     // Function to insert into the database
-    public function insert($table, $params = array()) {
+    public function insert($table, $params = array())
+    {
         // Check to see if the table exists
         if ($this->tableExists($table)) {
             $sql = 'INSERT INTO `' . $table . '` (`' . implode('`, `', array_keys($params)) . '`) VALUES ("' . implode('", "', $params) . '")';
@@ -171,7 +177,8 @@ class Database {
     }
 
     //Function to delete table or row(s) from database
-    public function delete($table, $where = null) {
+    public function delete($table, $where = null)
+    {
         // Check to see if table exists
         if ($this->tableExists($table)) {
             // The table exists check to see if we are deleting rows or table
@@ -195,7 +202,8 @@ class Database {
     }
 
     // Function to update row in database
-    public function update($table, $params = array(), $where) {
+    public function update($table, $params = array(), $where)
+    {
         // Check to see if table exists
         if ($this->tableExists($table)) {
             // Create Array to hold all the columns to update
@@ -221,7 +229,8 @@ class Database {
     }
 
     // Private function to check if table exists for use with queries
-    private function tableExists($table) {
+    private function tableExists($table)
+    {
         $tablesInDb = $this->myconn->query('SHOW TABLES FROM `' . $this->db_name . '` LIKE "' . $table . '"');
         if ($tablesInDb) {
             if ($tablesInDb->num_rows == 1) {
@@ -234,34 +243,38 @@ class Database {
     }
 
     // Public function to return the data to the user
-    public function getResult() {
+    public function getResult()
+    {
         $val = $this->result;
         $this->result = array();
         return $val;
     }
 
     //Pass the SQL back for debugging
-    public function getSql() {
+    public function getSql()
+    {
         $val = $this->myQuery;
         $this->myQuery = array();
         return $val;
     }
 
     //Pass the number of rows back
-    public function numRows() {
+    public function numRows()
+    {
         $val = $this->numResults;
         $this->numResults = array();
         return $val;
     }
 
     // Escape your string
-    public function escapeString($data) {
+    public function escapeString($data)
+    {
         return $this->myconn->real_escape_string($data);
     }
 
     //get last inser id
-    public function insert_id() {
+    public function insert_id()
+    {
         return $this->myconn->insert_id;
     }
-
 }
