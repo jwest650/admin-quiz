@@ -173,7 +173,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         print_r(json_encode($response));
         return false;
     }
-	 
+
     if (isset($_POST['language_id']) && !empty($_POST['language_id'])) {
         $language_id = $db->escapeString($_POST['language_id']);
 
@@ -185,13 +185,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         }
 
         if ($type == 1 || $type == '1') {
-         
-		    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que,
+
+            $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que,
             (SELECT @no_of_subcategories := count(*) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
 			(select `language` from `languages` l where l.id = c.language_id ) as language,
 			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from junior_question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
 			FROM `junior_category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
-		 
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of,
@@ -270,9 +269,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         print_r(json_encode($response));
         return false;
     }
-	
-	 
-	
+
+
+
     if (isset($_POST['type'])) {
         $type = $db->escapeString($_POST['type']);
     } else {
@@ -283,10 +282,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         $id = $db->escapeString($_POST['id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
         if ($type == 1 || $type == '1') {
-			
-			    $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
-			
-          
+
+            $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of FROM `junior_category` c WHERE c.id = $id AND c.status='1'AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -318,10 +315,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         }
     } else {
         if ($type == 1 || $type == '1') {
-		
-			 $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
-			
-           
+
+            $sql = "SELECT *,(select count(id) from junior_question where junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from junior_question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -373,17 +368,17 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         print_r(json_encode($response));
         return false;
     }
-	
-	 
+
+
     if (isset($_POST['main_id'])) {
         $id = $db->escapeString($_POST['main_id']);
         $sql = "SELECT * FROM `junior_category` WHERE `id`=" . $id . " AND status='1'";
         $db->sql($sql);
         $res = $db->getResult();
-        
-    //   echo   $res[0]['status'] ;
-     
-       
+
+        //   echo   $res[0]['status'] ;
+
+
         if (!empty($res)) {
             $type = $res[0]['type'];
         } else {
@@ -391,9 +386,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         }
 
         if ($type == 1 || $type == '1') {
-            
-			$no_of = ", (SELECT max(`level` + 0) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as maxlevel,(select count(id) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as no_of";
-			
+
+            $no_of = ", (SELECT max(`level` + 0) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as maxlevel,(select count(id) from junior_question where junior_question.subcategory=junior_subcategory.id  ) as no_of";
         }
         // if ($type == 2 || $type == '2') {
         //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
@@ -415,7 +409,6 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
             }
             $response['error'] = "false";
             $response['data'] = $result;
-       
         } else {
             $response['error'] = "true";
             $response['message'] = "No data found!";
@@ -445,10 +438,10 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_category'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['category'])) {
         $id = $db->escapeString($_POST['category']);
-        $sql = "SELECT * FROM `junior_question` WHERE category=" . $id . "   ORDER BY id DESC" ;
+        $sql = "SELECT * FROM `junior_question` WHERE category=" . $id . "   ORDER BY id DESC";
 
         $db->sql($sql);
         $result = $db->getResult();
@@ -491,7 +484,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_subcategory'])
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['subcategory'])) {
         $id = $db->escapeString($_POST['subcategory']);
         $sql = "SELECT * FROM `junior_question` where subcategory=" . $id . " ORDER by RAND()";
@@ -539,14 +532,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['level']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $level = $db->escapeString($_POST['level']);
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $id = (isset($_POST['category'])) ? $db->escapeString($_POST['category']) : $db->escapeString($_POST['subcategory']);
         $limit = $config['total_question'];
 
-        $sql =  "SELECT * FROM `junior_question` WHERE level=" . $level ;
+        $sql =  "SELECT * FROM `junior_question` WHERE level=" . $level;
         $sql .= (isset($_POST['category'])) ? " and `category`=" . $id : " and `subcategory`=" . $id;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
@@ -596,12 +589,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_type'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['type']) && !empty($_POST['type']) && isset($_POST['limit']) && !empty($_POST['limit'])) {
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $type = $db->escapeString($_POST['type']);
         $limit = $db->escapeString($_POST['limit']);
-        $sql = "SELECT * FROM `junior_question` where  question_type=" . $type ;
+        $sql = "SELECT * FROM `junior_question` where  question_type=" . $type;
         $sql .= (!empty($language_id)) ? " and `language_id`=" . $language_id : "";
         $sql .= " ORDER BY rand() DESC";
         $sql .= " LIMIT 0, " . $limit . "";
@@ -649,7 +642,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_for_self_challeng
         print_r(json_encode($response));
         return false;
     }
-	  
+
     if (isset($_POST['limit']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $limit = $db->escapeString($_POST['limit']);
 
@@ -731,7 +724,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions'])) {
     }
     if (!checkBattleExists($match_id)) {
         /* if match does not exist read and store the questions */
-		
+
         $sql = "SELECT * FROM `junior_question`  ";
         $sql .= (!empty($language_id)) ? " WHERE `language_id` = $language_id " : "";
         $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
@@ -804,12 +797,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions_for_comput
         $category = $db->escapeString($_POST['category']);
     } else {
         $category = '';
-    } 
-	 
-	  $sql = "SELECT * FROM `junior_question` " ;
-	
+    }
 
-  
+    $sql = "SELECT * FROM `junior_question` ";
+
+
+
     $sql .= (!empty($language_id)) ? " where `language_id` = $language_id " : "";
     $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
     $sql .= " ORDER BY RAND() LIMIT 0,10";
@@ -926,6 +919,8 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
         $fcm_id = (isset($_POST['fcm_id'])) ? $db->escapeString($_POST['fcm_id']) : '';
         $refer_code = (isset($_POST['refer_code'])) ? $db->escapeString(htmlspecialchars($_POST['refer_code'])) : '';
         $friends_code = (isset($_POST['friends_code'])) ? $db->escapeString(htmlspecialchars($_POST['friends_code'])) : '';
+        $account_type = (isset($_POST['account_type'])) ? $db->escapeString(htmlspecialchars($_POST['account_type'])) : '';
+
         $points = '0';
         $status = '1';
 
@@ -997,7 +992,9 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 'friends_code' => $friends_code,
                 'coins' => '0',
                 'ip_address' => $ip_address,
-                'status' => $status
+                'status' => $status,
+                'account_type' => $account_type
+
             );
             $sql = $db->insert('users', $data);
             $res = $db->getResult();
@@ -1014,7 +1011,9 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 'coins' => '0',
                 'type' => $type,
                 'ip_address' => $ip_address,
-                'status' => $status
+                'status' => $status,
+                'account_type' => $account_type
+
             );
 
             if ($friends_code != '') {
@@ -1088,7 +1087,6 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_by_id'])) {
         $response['message'] = "Please Pass all the fields!";
     }
     print_r(json_encode($response));
-
 }
 // 15. update_fcm_id()
 if (isset($_POST['access_key']) && isset($_POST['update_fcm_id'])) {
@@ -1471,7 +1469,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_datewise_leaderboard'])) {
 
 
 // 21. get_global_leaderboard() 
-if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_global_leaderboard'])) {
     /* Parameters to be passed
       access_key:6808
       get_global_leaderboard:1
@@ -1875,7 +1873,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_battle_statistics'])) {
     print_r(json_encode($response));
 }
 
-    // 30. set_users_statistics() 
+// 30. set_users_statistics() 
 if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])) {
     /* Parameters to be passed
       access_key:6808
@@ -1978,7 +1976,6 @@ if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])) {
         $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
-
 }
 
 // 31. get_users_statistics()
@@ -2406,18 +2403,18 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
     }
     if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
         $user_id = $db->escapeString($_POST['user_id']);
-       
-      
-            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='junior' ";
-			
-        
-        
+
+
+        $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='junior' ";
+
+
+
 
 
         /* selecting live quiz ids */
         $db->sql($sql);
         $result = $db->getResult();
-       
+
         $live_type_ids = $past_type_ids = '';
         if (!empty($result)) {
             foreach ($result as $type_id) {
@@ -2535,8 +2532,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
 
         /* selecting upcoming quiz ids */
         $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='junior'";
-       
-    
+
+
         $db->sql($sql);
         $result = $db->getResult();
         $upcoming_type_ids = '';
@@ -3025,7 +3022,15 @@ if (isset($_POST['access_key']) && isset($_POST['get_firebase_settings'])) {
         return false;
     }
     $setting = [
-        'apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'client_id_google', 'app_id_fb'
+        'apiKey',
+        'authDomain',
+        'databaseURL',
+        'projectId',
+        'storageBucket',
+        'messagingSenderId',
+        'appId',
+        'client_id_google',
+        'app_id_fb'
     ];
     $data = array();
     foreach ($setting as $row) {
@@ -3298,7 +3303,7 @@ function checkBattleExists($match_id)
     }
 }
 
-				
+
 function set_monthly_junior_leaderboard($user_id, $score)
 {
     if (isset($user_id) && isset($score) && !empty($user_id)) {
@@ -3360,79 +3365,77 @@ function set_monthly_junior_leaderboard($user_id, $score)
         }
     }
 }
-				
-				
+
+
 
 // 53. payment_history
-if(isset($_POST['payment_history']) && isset($_POST['access_key'])){
-	/*
+if (isset($_POST['payment_history']) && isset($_POST['access_key'])) {
+    /*
 	  access_key:6808
       payment_history:1
 	
 	*/
-	
-	 if (!verify_token()) {
+
+    if (!verify_token()) {
         return false;
     }
-	
+
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-	
-	
-	if(isset($_POST['user_id'])&&isset($_POST['reference'])){
-	   $email = (isset($_POST['email'])) ? $db->escapeString(htmlspecialchars($_POST['email'])) : '';
-		$user_id = (isset($_POST['user_id'])) ? $db->escapeString(htmlspecialchars($_POST['user_id'])) : '';
-		$reference = (isset($_POST['reference'])) ? $db->escapeString(htmlspecialchars($_POST['reference'])) : '';
-			$amount = (isset($_POST['amount'])) ? $db->escapeString(htmlspecialchars($_POST['amount'])) : '';
-			$status = (isset($_POST['status'])) ? $db->escapeString(htmlspecialchars($_POST['status'])) : '';
-		$channel = (isset($_POST['channel'])) ? $db->escapeString(htmlspecialchars($_POST['channel'])) : '';
-		$currency = (isset($_POST['currency'])) ? $db->escapeString(htmlspecialchars($_POST['currency'])) : '';
-			$username = (isset($_POST['username'])) ? $db->escapeString(htmlspecialchars($_POST['username'])) : '';
-			$created_at = (isset($_POST['created_at'])) ? $db->escapeString(htmlspecialchars($_POST['created_at'])) : '';
-	
-	$sql = "INSERT INTO `payment_history` (`email`,`user_id`,`reference`,`amount`,`channel`,`currency`,`username`,`created_at`,`status`) VALUES('" . $email . "','" . $user_id . "','" . $reference . "','" . $amount . "','" . $channel . "','" . $currency . "','" . $username . "','" . $created_at . "','" . $status ."')";
 
-// Execute the query (handle potential errors)
-if (!$db->sql($sql)) {
-  $response['error'] = 'true';
-  $response['message'] = 'Error inserting data: ' . $db->error;
-  print_r(json_encode($response));
-  exit;
-}
 
-// Respond with success message
-$response['error'] = 'false';
-$response['message'] = 'Payment history inserted successfully';
-print_r(json_encode($response));
+    if (isset($_POST['user_id']) && isset($_POST['reference'])) {
+        $email = (isset($_POST['email'])) ? $db->escapeString(htmlspecialchars($_POST['email'])) : '';
+        $user_id = (isset($_POST['user_id'])) ? $db->escapeString(htmlspecialchars($_POST['user_id'])) : '';
+        $reference = (isset($_POST['reference'])) ? $db->escapeString(htmlspecialchars($_POST['reference'])) : '';
+        $amount = (isset($_POST['amount'])) ? $db->escapeString(htmlspecialchars($_POST['amount'])) : '';
+        $status = (isset($_POST['status'])) ? $db->escapeString(htmlspecialchars($_POST['status'])) : '';
+        $channel = (isset($_POST['channel'])) ? $db->escapeString(htmlspecialchars($_POST['channel'])) : '';
+        $currency = (isset($_POST['currency'])) ? $db->escapeString(htmlspecialchars($_POST['currency'])) : '';
+        $username = (isset($_POST['username'])) ? $db->escapeString(htmlspecialchars($_POST['username'])) : '';
+        $created_at = (isset($_POST['created_at'])) ? $db->escapeString(htmlspecialchars($_POST['created_at'])) : '';
 
-  };			
+        $sql = "INSERT INTO `payment_history` (`email`,`user_id`,`reference`,`amount`,`channel`,`currency`,`username`,`created_at`,`status`) VALUES('" . $email . "','" . $user_id . "','" . $reference . "','" . $amount . "','" . $channel . "','" . $currency . "','" . $username . "','" . $created_at . "','" . $status . "')";
+
+        // Execute the query (handle potential errors)
+        if (!$db->sql($sql)) {
+            $response['error'] = 'true';
+            $response['message'] = 'Error inserting data: ' . $db->error;
+            print_r(json_encode($response));
+            exit;
+        }
+
+        // Respond with success message
+        $response['error'] = 'false';
+        $response['message'] = 'Payment history inserted successfully';
+        print_r(json_encode($response));
+    };
 }
 //get payment history by user_id
-if(isset($_POST['get_payment']) && isset($_POST['access_key'])){
+if (isset($_POST['get_payment']) && isset($_POST['access_key'])) {
 
-if (!verify_token()) {
+    if (!verify_token()) {
         return false;
     }
-	
+
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-$user_id=$_POST['user_id'];
-$sql ="SELECT * FROM payment_history WHERE user_id = '$user_id' ORDER BY created_at DESC";
+    $user_id = $_POST['user_id'];
+    $sql = "SELECT * FROM payment_history WHERE user_id = '$user_id' ORDER BY created_at DESC";
 
-	
 
-$result = $db->sql($sql);
-$response['data']= $db->getResult();
-$response['message']="Data fetched sucessfully";
-$response['error']="false";
-print_r(json_encode($response));
 
+    $result = $db->sql($sql);
+    $response['data'] = $db->getResult();
+    $response['message'] = "Data fetched sucessfully";
+    $response['error'] = "false";
+    print_r(json_encode($response));
 }

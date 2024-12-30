@@ -173,7 +173,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['language_id']) && !empty($_POST['language_id'])) {
         $language_id = $db->escapeString($_POST['language_id']);
 
@@ -185,13 +185,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories_by_language'])) 
         }
 
         if ($type == 1 || $type == '1') {
-           
-		    $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
+
+            $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que,
             (SELECT @no_of_subcategories := count(*) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, 
 			(select `language` from `languages` l where l.id = c.language_id ) as language,
 			if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` 
 			FROM `category` c where `language_id` = " . $language_id . " AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
-		   
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of,
@@ -270,9 +269,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         print_r(json_encode($response));
         return false;
     }
-	
-	 
-	
+
+
+
     if (isset($_POST['type'])) {
         $type = $db->escapeString($_POST['type']);
     } else {
@@ -283,10 +282,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         $id = $db->escapeString($_POST['id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
         if ($type == 1 || $type == '1') {
-		
-		 $sql = "SELECT *,(select count(id) from question where question.category=c.id  ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
-			
-          
+
+            $sql = "SELECT *,(select count(id) from question where question.category=c.id  ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER By CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.id = $id AND c.status='1'AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -318,10 +315,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
         }
     } else {
         if ($type == 1 || $type == '1') {
-			
-			 $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
-			
-           
+
+            $sql = "SELECT *,(select count(id) from question where question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category  ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER By CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 2 || $type == '2') {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_learning where tbl_learning.category=c.id ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
@@ -373,17 +368,17 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         print_r(json_encode($response));
         return false;
     }
-	
-	 
+
+
     if (isset($_POST['main_id'])) {
         $id = $db->escapeString($_POST['main_id']);
         $sql =  "SELECT * FROM `category` WHERE `id`=" . $id . " AND status='1'";
         $db->sql($sql);
         $res = $db->getResult();
-        
-    //   echo   $res[0]['status'] ;
-     
-       
+
+        //   echo   $res[0]['status'] ;
+
+
         if (!empty($res)) {
             $type = $res[0]['type'];
         } else {
@@ -391,9 +386,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         }
 
         if ($type == 1 || $type == '1') {
-            
-			$no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id  ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id  ) as no_of";
-			
+
+            $no_of = ", (SELECT max(`level` + 0) from question where question.subcategory=subcategory.id  ) as maxlevel,(select count(id) from question where question.subcategory=subcategory.id  ) as no_of";
         }
         // if ($type == 2 || $type == '2') {
         //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
@@ -415,7 +409,6 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
             }
             $response['error'] = "false";
             $response['data'] = $result;
-       
         } else {
             $response['error'] = "true";
             $response['message'] = "No data found!";
@@ -445,7 +438,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_category'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['category'])) {
         $id = $db->escapeString($_POST['category']);
         $sql =  "SELECT * FROM `question` WHERE category=" . $id . "   ORDER BY id DESC";
@@ -491,7 +484,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_subcategory'])
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['subcategory'])) {
         $id = $db->escapeString($_POST['subcategory']);
         $sql = "SELECT * FROM `question` where subcategory=" . $id . " ORDER by RAND()";
@@ -539,7 +532,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_level'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['level']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $level = $db->escapeString($_POST['level']);
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
@@ -596,7 +589,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_type'])) {
         print_r(json_encode($response));
         return false;
     }
-	
+
     if (isset($_POST['type']) && !empty($_POST['type']) && isset($_POST['limit']) && !empty($_POST['limit'])) {
         $language_id = (isset($_POST['language_id']) && is_numeric($_POST['language_id'])) ? $db->escapeString($_POST['language_id']) : '';
         $type = $db->escapeString($_POST['type']);
@@ -649,7 +642,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_for_self_challeng
         print_r(json_encode($response));
         return false;
     }
-	  
+
     if (isset($_POST['limit']) && (isset($_POST['category']) || isset($_POST['subcategory']))) {
         $limit = $db->escapeString($_POST['limit']);
 
@@ -731,7 +724,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions'])) {
     }
     if (!checkBattleExists($match_id)) {
         /* if match does not exist read and store the questions */
-		
+
         $sql = "SELECT * FROM `question` ";
         $sql .= (!empty($language_id)) ? " WHERE `language_id` = $language_id " : "";
         $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
@@ -804,11 +797,11 @@ if (isset($_POST['access_key']) && isset($_POST['get_random_questions_for_comput
         $category = $db->escapeString($_POST['category']);
     } else {
         $category = '';
-    } 
-    $sql = "SELECT * FROM `question` " ;
+    }
+    $sql = "SELECT * FROM `question` ";
 
 
-  
+
     $sql .= (!empty($language_id)) ? " where `language_id` = $language_id " : "";
     $sql .= (!empty($language_id)) ? ((!empty($category)) ? " AND `category`='" . $category . "' " : "") : ((!empty($category)) ? " WHERE `category`='" . $category . "' " : "");
     $sql .= " ORDER BY RAND() LIMIT 0,10";
@@ -925,6 +918,7 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
         $fcm_id = (isset($_POST['fcm_id'])) ? $db->escapeString($_POST['fcm_id']) : '';
         $refer_code = (isset($_POST['refer_code'])) ? $db->escapeString(htmlspecialchars($_POST['refer_code'])) : '';
         $friends_code = (isset($_POST['friends_code'])) ? $db->escapeString(htmlspecialchars($_POST['friends_code'])) : '';
+        $account_type = (isset($_POST['account_type'])) ? $db->escapeString(htmlspecialchars($_POST['account_type'])) : '';
         $points = '0';
         $status = '1';
 
@@ -996,7 +990,8 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 'friends_code' => $friends_code,
                 'coins' => '0',
                 'ip_address' => $ip_address,
-                'status' => $status
+                'status' => $status,
+                'account_type' => $account_type
             );
             $sql = $db->insert('users', $data);
             $res = $db->getResult();
@@ -1013,7 +1008,8 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 'coins' => '0',
                 'type' => $type,
                 'ip_address' => $ip_address,
-                'status' => $status
+                'status' => $status,
+                'account_type' => $account_type
             );
 
             if ($friends_code != '') {
@@ -1281,7 +1277,7 @@ if (isset($_POST['access_key']) && isset($_POST['set_monthly_leaderboard'])) {
 
 
 // 19. get_monthly_leaderboard()
-if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_monthly_leaderboard'])) {
     /* Parameters to be passed
       access_key:6808
       get_monthly_leaderboard:1
@@ -1874,7 +1870,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_battle_statistics'])) {
 }
 
 // 30. set_users_statistics()
-if (isset($_POST['access_key']) && isset($_POST['set_users_statistics']) ) {
+if (isset($_POST['access_key']) && isset($_POST['set_users_statistics'])) {
     /* Parameters to be passed
       access_key:6808
       set_users_statistics:1
@@ -2280,7 +2276,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_daily_quiz'])) {
 }
 
 // 37. get_user_coin_score() - get user details
-if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_user_coin_score'])) {
     /* Parameters to be passed
       access_key:6808
       get_user_coin_score:1
@@ -2385,7 +2381,7 @@ if (isset($_POST['access_key']) && isset($_POST['set_user_coin_score'])) {
 
 
 // 39. get_contest()
-if (isset($_POST['access_key']) && isset($_POST['get_contest']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_contest'])) {
     /* Parameters to be passed
       access_key:6808
       get_contest:1
@@ -2402,18 +2398,18 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest']) ) {
     }
     if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
         $user_id = $db->escapeString($_POST['user_id']);
-       
-      
-            $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='general' ";
-			
-        
-        
+
+
+        $sql = "SELECT id FROM `contest` where ('$toDateTime') between CAST(`start_date` AS DATETIME) and CAST(`end_date` AS DATETIME) and `contest_type` ='general' ";
+
+
+
 
 
         /* selecting live quiz ids */
         $db->sql($sql);
         $result = $db->getResult();
-       
+
         $live_type_ids = $past_type_ids = '';
         if (!empty($result)) {
             foreach ($result as $type_id) {
@@ -2531,8 +2527,8 @@ if (isset($_POST['access_key']) && isset($_POST['get_contest']) ) {
 
         /* selecting upcoming quiz ids */
         $sql = "SELECT id FROM `contest` where (CAST(`start_date` AS DATE) > '$toDate') and `contest_type` ='general'";
-       
-    
+
+
         $db->sql($sql);
         $result = $db->getResult();
         $upcoming_type_ids = '';
@@ -2621,7 +2617,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_contest'])) {
 }
 
 // 41. contest_update_score() 
-if (isset($_POST['access_key']) && isset($_POST['contest_update_score']) ) {
+if (isset($_POST['access_key']) && isset($_POST['contest_update_score'])) {
     /* Parameters to be passed
       access_key:6808
       contest_update_score:1
@@ -3022,7 +3018,15 @@ if (isset($_POST['access_key']) && isset($_POST['get_firebase_settings'])) {
         return false;
     }
     $setting = [
-        'apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'client_id_google', 'app_id_fb'
+        'apiKey',
+        'authDomain',
+        'databaseURL',
+        'projectId',
+        'storageBucket',
+        'messagingSenderId',
+        'appId',
+        'client_id_google',
+        'app_id_fb'
     ];
     $data = array();
     foreach ($setting as $row) {
@@ -3356,86 +3360,84 @@ function set_monthly_leaderboard($user_id, $score)
         }
     }
 }
-				
-				
-				
+
+
+
 
 // 53. payment_history
-if(isset($_POST['payment_history']) && isset($_POST['access_key'])){
-	/*
+if (isset($_POST['payment_history']) && isset($_POST['access_key'])) {
+    /*
 	  access_key:6808
       payment_history:1
 	
 	*/
-	
-	 if (!verify_token()) {
+
+    if (!verify_token()) {
         return false;
     }
-	
+
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-	
-	
-	if(isset($_POST['user_id'])&&isset($_POST['reference'])){
-	   $email = (isset($_POST['email'])) ? $db->escapeString(htmlspecialchars($_POST['email'])) : '';
-		$user_id = (isset($_POST['user_id'])) ? $db->escapeString(htmlspecialchars($_POST['user_id'])) : '';
-		$reference = (isset($_POST['reference'])) ? $db->escapeString(htmlspecialchars($_POST['reference'])) : '';
-			$amount = (isset($_POST['amount'])) ? $db->escapeString(htmlspecialchars($_POST['amount'])) : '';
-			$status = (isset($_POST['status'])) ? $db->escapeString(htmlspecialchars($_POST['status'])) : '';
-		$channel = (isset($_POST['channel'])) ? $db->escapeString(htmlspecialchars($_POST['channel'])) : '';
-		$currency = (isset($_POST['currency'])) ? $db->escapeString(htmlspecialchars($_POST['currency'])) : '';
-			$username = (isset($_POST['username'])) ? $db->escapeString(htmlspecialchars($_POST['username'])) : '';
-			$created_at = (isset($_POST['created_at'])) ? $db->escapeString(htmlspecialchars($_POST['created_at'])) : '';
-	
-	$sql = "INSERT INTO `payment_history` (`email`,`user_id`,`reference`,`amount`,`channel`,`currency`,`username`,`created_at`,`status`) VALUES('" . $email . "','" . $user_id . "','" . $reference . "','" . $amount . "','" . $channel . "','" . $currency . "','" . $username . "','" . $created_at . "','" . $status ."')";
 
-// Execute the query (handle potential errors)
-if (!$db->sql($sql)) {
-  $response['error'] = 'true';
-  $response['message'] = 'Error inserting data: ' . $db->error;
-  print_r(json_encode($response));
-  exit;
-}
 
-// Respond with success message
-$response['error'] = 'false';
-$response['message'] = 'Payment history inserted successfully';
-print_r(json_encode($response));
+    if (isset($_POST['user_id']) && isset($_POST['reference'])) {
+        $email = (isset($_POST['email'])) ? $db->escapeString(htmlspecialchars($_POST['email'])) : '';
+        $user_id = (isset($_POST['user_id'])) ? $db->escapeString(htmlspecialchars($_POST['user_id'])) : '';
+        $reference = (isset($_POST['reference'])) ? $db->escapeString(htmlspecialchars($_POST['reference'])) : '';
+        $amount = (isset($_POST['amount'])) ? $db->escapeString(htmlspecialchars($_POST['amount'])) : '';
+        $status = (isset($_POST['status'])) ? $db->escapeString(htmlspecialchars($_POST['status'])) : '';
+        $channel = (isset($_POST['channel'])) ? $db->escapeString(htmlspecialchars($_POST['channel'])) : '';
+        $currency = (isset($_POST['currency'])) ? $db->escapeString(htmlspecialchars($_POST['currency'])) : '';
+        $username = (isset($_POST['username'])) ? $db->escapeString(htmlspecialchars($_POST['username'])) : '';
+        $created_at = (isset($_POST['created_at'])) ? $db->escapeString(htmlspecialchars($_POST['created_at'])) : '';
 
-  };			
+        $sql = "INSERT INTO `payment_history` (`email`,`user_id`,`reference`,`amount`,`channel`,`currency`,`username`,`created_at`,`status`) VALUES('" . $email . "','" . $user_id . "','" . $reference . "','" . $amount . "','" . $channel . "','" . $currency . "','" . $username . "','" . $created_at . "','" . $status . "')";
+
+        // Execute the query (handle potential errors)
+        if (!$db->sql($sql)) {
+            $response['error'] = 'true';
+            $response['message'] = 'Error inserting data: ' . $db->error;
+            print_r(json_encode($response));
+            exit;
+        }
+
+        // Respond with success message
+        $response['error'] = 'false';
+        $response['message'] = 'Payment history inserted successfully';
+        print_r(json_encode($response));
+    };
 }
 //get payment history by user_id
-if(isset($_POST['get_payment']) && isset($_POST['access_key'])){
+if (isset($_POST['get_payment']) && isset($_POST['access_key'])) {
 
-if (!verify_token()) {
+    if (!verify_token()) {
         return false;
     }
-	
+
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-$user_id=$_POST['user_id'];
-$sql ="SELECT * FROM payment_history WHERE user_id = '$user_id' ORDER BY created_at DESC";
+    $user_id = $_POST['user_id'];
+    $sql = "SELECT * FROM payment_history WHERE user_id = '$user_id' ORDER BY created_at DESC";
 
-	
 
-$result = $db->sql($sql);
-$response['data']= $db->getResult();
-$response['message']="Data fetched sucessfully";
-$response['error']="false";
-print_r(json_encode($response));
 
+    $result = $db->sql($sql);
+    $response['data'] = $db->getResult();
+    $response['message'] = "Data fetched sucessfully";
+    $response['error'] = "false";
+    print_r(json_encode($response));
 }
 
 // 39. get_exam_module()
-if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_exam_module'])) {
     /* Parameters to be passed
       access_key:6808
       get_contest:1
@@ -3452,9 +3454,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
     }
     if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
         $user_id = $db->escapeString($_POST['user_id']);
-       
-      
-            $sql =  "SELECT e.*, 
+
+
+        $sql =  "SELECT e.*, 
             (SELECT SUM(marks) FROM exam_questions WHERE exam_id = e.id) as total_marks 
             FROM exam_module e 
             WHERE e.date >= '$toDate' 
@@ -3462,24 +3464,24 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
             AND e.id NOT IN (
                 SELECT exam_id FROM exam_leaderboard WHERE user_id = $user_id
             )";
-    
-
-            $db->sql($sql);
-            $result = $db->getResult();
-
-            $live_ids=array();
-            if(!empty($result)){
-              
-               $response['live_exam']['error']="false";
-               $response['live_exam']['message']="Data fetched successfully";
-               $response['live_exam']['data']=$result;
-            }else{
-                $response['live_exam']['error']="true";
-                $response['live_exam']['message']="No Live Exam Module Found";
-            };
 
 
-			$sql = "SELECT el.*,
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        $live_ids = array();
+        if (!empty($result)) {
+
+            $response['live_exam']['error'] = "false";
+            $response['live_exam']['message'] = "Data fetched successfully";
+            $response['live_exam']['data'] = $result;
+        } else {
+            $response['live_exam']['error'] = "true";
+            $response['live_exam']['message'] = "No Live Exam Module Found";
+        };
+
+
+        $sql = "SELECT el.*,
     e.date,
     e.title,
     e.duration,
@@ -3487,37 +3489,32 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_module']) ) {
    (SELECT SUM(marks) FROM exam_questions WHERE exam_id = el.exam_id) as total_marks
 	FROM exam_leaderboard el
 	JOIN exam_module e ON el.exam_id = e.id 
-	WHERE el.user_id = $user_id";          
-			$db->sql($sql);
-            $result = $db->getResult();
-    
-            if(!empty($result)){
-               
-               $response['past_exam']['error']="false";
-               $response['past_exam']['message']="Data fetched successfully";
-               $response['past_exam']['data']=$result;
-            }else{
-                $response['past_exam']['error']="true";
-                $response['past_exam']['message']="You Have Not Played Any Exam Yet";
-            };
-		
-		
-         
-       
+	WHERE el.user_id = $user_id";
+        $db->sql($sql);
+        $result = $db->getResult();
 
+        if (!empty($result)) {
+
+            $response['past_exam']['error'] = "false";
+            $response['past_exam']['message'] = "Data fetched successfully";
+            $response['past_exam']['data'] = $result;
+        } else {
+            $response['past_exam']['error'] = "true";
+            $response['past_exam']['message'] = "You Have Not Played Any Exam Yet";
+        };
     } else {
         $response['error'] = "true";
         $response['message'] = "Please pass all the fields";
     };
-       
-       
 
-   
+
+
+
     print_r(json_encode($response));
 }
 
 // get_exam_questions()
-if (isset($_POST['access_key']) && isset($_POST['get_exam_questions']) ) {
+if (isset($_POST['access_key']) && isset($_POST['get_exam_questions'])) {
     /* Parameters to be passed
       access_key:6808
       get_contest:1
@@ -3534,37 +3531,31 @@ if (isset($_POST['access_key']) && isset($_POST['get_exam_questions']) ) {
     }
     if (isset($_POST['exam_id']) && !empty($_POST['exam_id'])) {
         $exam_id = $db->escapeString($_POST['exam_id']);
-       
-      
-            $sql = "SELECT * FROM exam_questions WHERE exam_id = $exam_id";
-
-            $db->sql($sql);
-            $result = $db->getResult();
-
-         
-            if(!empty($result)){
-              
-               $response['error']="false";
-               $response['message']="Data fetched successfully";
-               $response['data']=$result;
-            }else{
-                $response['error']="true";
-                $response['message']="No Questions Yet";
-            };
 
 
-		
-         
-       
+        $sql = "SELECT * FROM exam_questions WHERE exam_id = $exam_id";
 
+        $db->sql($sql);
+        $result = $db->getResult();
+
+
+        if (!empty($result)) {
+
+            $response['error'] = "false";
+            $response['message'] = "Data fetched successfully";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No Questions Yet";
+        };
     } else {
         $response['error'] = "true";
         $response['message'] = "Please pass all the fields";
     };
-       
-       
 
-   
+
+
+
     print_r(json_encode($response));
 }
 
@@ -3575,33 +3566,35 @@ if (isset($_POST['access_key']) && isset($_POST['exam_update_score'])) {
     if (!verify_token()) {
         return false;
     }
-    
+
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
         print_r(json_encode($response));
         return false;
     }
-    
-    if (isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['exam_id']) 
-        && isset($_POST['score']) && isset($_POST['correct_answers']) && isset($_POST['wrong_answers'])) {
-        
+
+    if (
+        isset($_POST['user_id']) && !empty($_POST['user_id']) && !empty($_POST['exam_id'])
+        && isset($_POST['score']) && isset($_POST['correct_answers']) && isset($_POST['wrong_answers'])
+    ) {
+
         $user_id = $db->escapeString($_POST['user_id']);
         $exam_id = $db->escapeString($_POST['exam_id']);
         $wrong_answers = $db->escapeString($_POST['wrong_answers']);
         $correct_answers = $db->escapeString($_POST['correct_answers']);
         $score = $db->escapeString($_POST['score']);
 
-      $sql = "INSERT INTO exam_leaderboard (user_id, exam_id, wrong_answers, correct_answers, score) 
+        $sql = "INSERT INTO exam_leaderboard (user_id, exam_id, wrong_answers, correct_answers, score) 
         VALUES ($user_id, $exam_id, $wrong_answers, $correct_answers, $score)
         ON DUPLICATE KEY UPDATE 
         wrong_answers = VALUES(wrong_answers),
         correct_answers = VALUES(correct_answers),
         score = VALUES(score)";
-        
-       
-        
-        
+
+
+
+
         if ($db->sql($sql)) {
             $response['error'] = "false";
             $response['message'] = "Score inserted successfully";
