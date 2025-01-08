@@ -65,10 +65,14 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_questions']) && $_P
         return false;
     }
     $success = true;
-    if (isset($_POST['teacher_id'])) {
-        $category_id = $db->escapeString($_POST['category_id']);
-        $teacher_id = $db->escapeString($_POST['teacher_id']);
-        $sql = "SELECT * FROM teacher_questions WHERE category_id = '$category_id' AND teacher_id = '$teacher_id'";
+    if (isset($_POST['teacher_id']) && isset($_POST['category_id'])) {
+        $category_id = $_POST['category_id'];
+        $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
+        error_log("Category ID: $category_id");
+        error_log("Teacher ID: $teacher_id");
+        $sql = "SELECT tq.*, tc.* FROM teacher_questions tq 
+                JOIN teacher_category tc ON tq.category_id = tc.uid 
+                WHERE tq.category_id = '$category_id' AND tq.teacher_id = '$teacher_id'";
         if (!$db->sql($sql)) {
             $success = false;
         }
@@ -85,7 +89,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_questions']) && $_P
         }
     } else {
         $response['error'] = "true";
-        $response['message'] = "No questions available";
+        $response['message'] = "Pass all field";
     }
 
     print_r(json_encode($response));
@@ -110,16 +114,12 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
     }
 
 
-    $category_id = '';
-    if (isset($_POST['category_id'])) {
-        $category_id = $db->escapeString($_POST['category_id']);
-    };
-    if (!isset($_POST['category_id'])) {
-        $db->sql("SET FOREIGN_KEY_CHECKS=0");
-    }
-    $teacher_id = $db->escapeString($_POST['teacher_id']); // Added missing semicolon
-    $sql = "DELETE FROM teacher_questions WHERE category_id='' AND teacher_id = $teacher_id";
-    $db->sql($sql);
+
+
+
+    $category_id = $db->escapeString($_POST['category_id']);
+    $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
+
 
 
     // Then insert questions
@@ -159,7 +159,6 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
             $response['error'] = "false";
             $response['message'] = "Questions added successfully";
             $response['category_id'] = $category_id;
-            $db->sql("SET FOREIGN_KEY_CHECKS=1");
         } else {
 
             $response['error'] = "true";
@@ -169,7 +168,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
         $response['error'] = "true";
         $response['message'] = "No questions provided or invalid format";
     }
-    $db->sql("SET FOREIGN_KEY_CHECKS=1");
+
     print_r(json_encode($response));
     return false;
 }
@@ -197,11 +196,12 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
     if (isset($_POST['name'])) {
 
         $name = $db->escapeString($_POST['name']);
-        $subject = $db->escapeString($_POST['subject']);
-        $grade = $db->escapeString($_POST['grade']);
-        $visibility = $db->escapeString($_POST['visibility']);
-        $teacher_id = $db->escapeString($_POST['teacher_id']);
-        $language = $db->escapeString($_POST['language']);
+        $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
+
+        $subject = isset($_POST['subject']) ? $db->escapeString($_POST['subject']) : '';
+        $grade = isset($_POST['grade']) ? $db->escapeString($_POST['grade']) : '';
+        $visibility = isset($_POST['visibility']) ? $db->escapeString($_POST['visibility']) : '';
+        $language = isset($_POST['language']) ? $db->escapeString($_POST['language']) : '';
 
         $check_duplicate = "SELECT id FROM teacher_category 
                           WHERE name = '$name' 
@@ -212,10 +212,11 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
         $duplicate = $db->getResult();
 
         if (!empty($duplicate)) {
-            $response['error'] = "true";
-            $response['message'] = "Category already exists";
-            print_r(json_encode($response));
-            return false;
+            $delete_duplicate = "DELETE FROM teacher_category  WHERE name = '$name' 
+                          AND subject = '$subject'
+                          AND grade = '$grade'
+                          AND teacher_id = '$teacher_id'";
+            $db->sql($delete_duplicate);
         }
 
         $filename = '';
@@ -241,35 +242,20 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
                 return false;
             }
         }
-        $db->sql("SET FOREIGN_KEY_CHECKS=0");
+
         // Insert category
         $sql = "INSERT INTO teacher_category (name, subject, grade, visibility, image, teacher_id,language) 
-                VALUES ('$name', '$subject', '$grade', '$visibility', '$filename', '$teacher_id',$language)";
+                VALUES ('$name', '$subject', '$grade', '$visibility', '$filename', '$teacher_id','$language')";
 
         if ($db->sql($sql)) {
             // Get the last inserted ID using a direct query
-            $db->sql("SELECT LAST_INSERT_ID() as id");
+            $db->sql("SELECT uid FROM teacher_category WHERE teacher_id = '$teacher_id' AND name ='$name' ORDER BY uid DESC LIMIT 1");
             $result = $db->getResult();
-            $category_id = $result[0]['id'];
+            $category_id = $result[0];
 
-            $sql_1 = "UPDATE teacher_questions 
-                      SET category_id = '$category_id' 
-                      WHERE teacher_id = '$teacher_id' 
-                      AND (category_id = '' OR category_id IS NULL)";
-
-            if ($db->sql($sql_1)) {
-                // Get the final result with the new category data
-                $sql_select = "SELECT * FROM teacher_category WHERE id = '$category_id'";
-                $db->sql($sql_select);
-                $final_result = $db->getResult();
-
-                $response['error'] = "false";
-                $response['message'] = "Category updated successfully";
-                $response['data'] = $final_result;
-            } else {
-                $response['error'] = "true";
-                $response['message'] = "Failed to update category";
-            }
+            $response['error'] = "false";
+            $response['message'] = "Success";
+            $response['data'] = $category_id;
         } else {
             $response['error'] = "true";
             $response['message'] = "Failed to execute query";
@@ -279,4 +265,150 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
         $response['message'] = "provide all data";
     }
     print_r(json_encode($response));
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['update_category'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    $success = true;
+
+    if ($_POST['data'] && $_POST['category_id'] && $_POST['teacher_id']) {
+        $fields = $_POST['data'];
+        $name = $db->escapeString($fields['name']);
+        $grade = $db->escapeString($fields['grade']);
+        $subject = $db->escapeString($fields['subject']);
+        $visibility = $db->escapeString($fields['visibility']);
+        $language = $db->escapeString($fields['language']);
+        $category_id = $db->escapeString($_POST['category_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+
+        $sql = "UPDATE teacher_category 
+            SET name = '$name', grade = '$grade', subject = '$subject', 
+                visibility = '$visibility', language = '$language' 
+            WHERE uid = '$category_id' AND teacher_id = '$teacher_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Category updated successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to update category";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['publish_category']) && $_POST['publish_category'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    $success = true;
+
+    if ($_POST['publish'] && $_POST['category_id'] && $_POST['teacher_id']) {
+        $publish = $db->escapeString($_POST['publish']);
+
+        $category_id = $db->escapeString($_POST['category_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+
+        $sql = "UPDATE teacher_category 
+            SET publish = '$publish' 
+            WHERE uid = '$category_id' AND teacher_id = '$teacher_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Category updated successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to update category";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_category_and_question_count']) && $_POST['get_category_and_question_count'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['teacher_id'])) {
+
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+        $sql = "SELECT 
+    teacher_category.uid AS category_id,
+    teacher_category.name AS category_name, 
+	teacher_category.image As image,
+	teacher_category.grade As grade,
+	teacher_category.subject As subject,
+	teacher_category.created_at As created_at,
+    COUNT(teacher_questions.id) AS questions_count
+FROM teacher_category
+LEFT JOIN teacher_questions 
+    ON teacher_category.uid = teacher_questions.category_id
+WHERE teacher_category.teacher_id = $teacher_id
+GROUP BY teacher_category.uid, teacher_category.name;
+
+";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['error'] = "false";
+            $response['message'] = "fetched successfully";
+            $response['data'] =  $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to update category";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    print_r(json_encode($response));
+    return false;
 }

@@ -972,6 +972,7 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 $tempRow['ip_address'] = $row['ip_address'];
                 $tempRow['status'] = $row['status'];
                 $tempRow['date_registered'] = $row['date_registered'];
+                $tempRow['account_type'] = $row['account_type'];
                 $newresult[] = $tempRow;
             }
             $response['error'] = "false";
