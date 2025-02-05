@@ -71,9 +71,9 @@ if (isset($_POST['access_key'], $_POST['get_teacher_questions']) && $_POST['get_
         return false;
     }
 
-    if (isset($_POST['teacher_id'], $_POST['category_uid'])) {
+    if (isset($_POST['category_uid'])) {
         $category_uid = $db->escapeString($_POST['category_uid']);
-        $teacher_id = (int)$_POST['teacher_id']; // Ensure teacher_id is an integer
+
 
         // Fetch category data
         $categoryQuery = "SELECT 
@@ -84,7 +84,7 @@ FROM
     teacher_category tc
 JOIN 
     users us 
-    ON us.id = $teacher_id 
+    ON us.id = tc.teacher_id
 WHERE 
     tc.uid = '$category_uid'";
         $categoryData = [];
@@ -117,8 +117,8 @@ WHERE
             foreach ($questionsData as &$question) {
                 if (isset($question['profile'])) {
                     if (!filter_var($question['profile'], FILTER_VALIDATE_URL)) {
-                        $question['profile'] = !empty($question['profile']) 
-                            ? DOMAIN_URL . 'uploads/profile/' . $question['profile'] 
+                        $question['profile'] = !empty($question['profile'])
+                            ? DOMAIN_URL . 'uploads/profile/' . $question['profile']
                             : '';
                     }
                 }
@@ -171,14 +171,14 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
 
 
 
-  
+
 
 
 
     // Then insert questions
     if (isset($_POST['questions']) && is_array($_POST['questions']) && isset($_POST['category_uid'])) {
-		  $category_uid = $db->escapeString($_POST['category_uid']);
-    $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
+        $category_uid = $db->escapeString($_POST['category_uid']);
+        $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
         $success = true;
         foreach ($_POST['questions'] as $question) {
             // Escape all input values
@@ -201,7 +201,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
                 ) VALUES (
                     '$category_uid','$question_text', '$question_type',
                     '$optiona', '$optionb', '$optionc', '$optiond', '$optione',
-                    $points, '$answer', $time,$teacher_id
+                    $points, '$answer','$time',$teacher_id
                 )";
 
             if (!$db->sql($sql)) {
@@ -252,7 +252,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
 
         $name = $db->escapeString($_POST['name']);
         $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
-		 $quiz_type = isset($_POST['quiz_type']) ? $db->escapeString($_POST['quiz_type']) : '';
+        $quiz_type = isset($_POST['quiz_type']) ? $db->escapeString($_POST['quiz_type']) : '';
         $subject = isset($_POST['subject']) ? $db->escapeString($_POST['subject']) : '';
         $grade = isset($_POST['grade']) ? $db->escapeString($_POST['grade']) : '';
         $visibility = isset($_POST['visibility']) ? $db->escapeString($_POST['visibility']) : '';
@@ -342,60 +342,57 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
     $success = true;
 
     if ($_POST['category_uid'] && $_POST['teacher_id']) {
-       
+
         $name = $db->escapeString($_POST['name']);
         $grade = $db->escapeString($_POST['grade']);
         $subject = $db->escapeString($_POST['subject']);
         $visibility = $db->escapeString($_POST['visibility']);
         $language = $db->escapeString($_POST['language']);
         $category_uid = $db->escapeString($_POST['category_uid']);
-		
+
         $teacher_id = $db->escapeString($_POST['teacher_id']);
 
         // Handle the file upload
-    if (isset($_FILES['image'])) {
-        $fileTmpPath = $_FILES['image']['tmp_name'];
-        $fileName = $_FILES['image']['name'];
-        $fileSize = $_FILES['image']['size'];
-        $fileType = $_FILES['image']['type'];
-        $fileNameCmps = explode(".", $fileName);
-        $fileExtension = strtolower(end($fileNameCmps));
+        if (isset($_FILES['image'])) {
+            $fileTmpPath = $_FILES['image']['tmp_name'];
+            $fileName = $_FILES['image']['name'];
+            $fileSize = $_FILES['image']['size'];
+            $fileType = $_FILES['image']['type'];
+            $fileNameCmps = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
 
-        // Specify the directory where you want to save the uploaded file
-       	$base_url ='https://admin.uquiz.xyz/';
-		 $uploadFileDir = 'images/teacher_category/';
-		 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            // Specify the directory where you want to save the uploaded file
+            $base_url = 'https://admin.uquiz.xyz/';
+            $uploadFileDir = 'images/teacher_category/';
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
 
-    if (!in_array($fileExtension, $allowedExtensions)) {
-	 $response['error'] = "true";
-     $response['message'] = "file type not accepted";
-		exit;
-	}
-        if (!is_dir($uploadFileDir)) {
-            mkdir($uploadFileDir, 0755, true); // Create the directory if it doesn't exist
-        }
-        $dest_path = $uploadFileDir . $fileName;
-		$image_url = $base_url . $dest_path;
+            if (!in_array($fileExtension, $allowedExtensions)) {
+                $response['error'] = "true";
+                $response['message'] = "file type not accepted";
+                exit;
+            }
+            if (!is_dir($uploadFileDir)) {
+                mkdir($uploadFileDir, 0755, true); // Create the directory if it doesn't exist
+            }
+            $dest_path = $uploadFileDir . $fileName;
+            $image_url = $base_url . $dest_path;
 
-        // Move the file to the specified directory
-        if(move_uploaded_file($fileTmpPath, $dest_path)){
-		  $sql = "UPDATE teacher_category 
+            // Move the file to the specified directory
+            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                $sql = "UPDATE teacher_category 
             SET name = '$name', grade = '$grade', subject = '$subject', 
                 visibility = '$visibility', language = '$language', image='$image_url' 
             WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
-		}else{
-		  $response['error'] = "true";
-            $response['message'] = "upload error";
-		}
-		
-		
-		  
-	   }else{
-	    $sql = "UPDATE teacher_category 
+            } else {
+                $response['error'] = "true";
+                $response['message'] = "upload error";
+            }
+        } else {
+            $sql = "UPDATE teacher_category 
             SET name = '$name', grade = '$grade', subject = '$subject', 
                 visibility = '$visibility', language = '$language' 
             WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
-	   }
+        }
 
         if ($db->sql($sql)) {
             $response['error'] = "false";
@@ -485,6 +482,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_category_and_question_count
 	teacher_category.subject As subject,
 	teacher_category.teacher_id As teacher_id,
 	teacher_category.created_at As created_at,
+	teacher_category.quiz_type As quiz_type,
 	user.profile,
 	user.name AS user,
     COUNT(teacher_questions.id) AS questions_count
@@ -534,7 +532,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_category_by_uid']) && $_POS
     if (isset($_POST['category_uid'])) {
 
         $category_uid = $db->escapeString($_POST['category_uid']);
-        $sql ="SELECT 
+        $sql = "SELECT 
     tc.*, 
     us.name, 
     us.profile, 
@@ -552,19 +550,19 @@ WHERE
 
 
 
-        if($db->sql($sql)) {
+        if ($db->sql($sql)) {
             $result = $db->getResult();
-			 if($result[0]['profile']){
-			 if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
-                // Not a valid URL. Its a image only or empty
-                $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
-            } else {
-                /* if it is a ur than just pass url as it is */
-                $result[0]['profile'] = $result[0]['profile'];
+            if ($result[0]['profile']) {
+                if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
+                } else {
+                    /* if it is a ur than just pass url as it is */
+                    $result[0]['profile'] = $result[0]['profile'];
+                }
             }
-			 }
-			
-			
+
+
             $response['error'] = "false";
             $response['message'] = "fetched successfully";
             $response['data'] =  $result;
@@ -599,11 +597,11 @@ if (isset($_POST['access_key']) && isset($_POST['delete_category']) && $_POST['d
     }
 
 
-    if ( $_POST['category_uid'] && $_POST['teacher_id']) {
-       
+    if ($_POST['category_uid'] && $_POST['teacher_id']) {
+
 
         $category_uid = $db->escapeString($_POST['category_uid']);
-        $teacher_id =$db->escapeString($_POST['teacher_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
 
         $sql = "DELETE FROM teacher_category WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
 
@@ -641,22 +639,22 @@ if (isset($_POST['access_key']) && isset($_POST['recent_viewed']) && $_POST['rec
     }
 
 
-    if ( $_POST['teacher_id']) {
-       	
-		$uids = json_decode($_POST['list'], true);
-		
-    	$idList = implode(',', array_map('intval', $uids));
-        $teacher_id =$db->escapeString($_POST['teacher_id']);
-		
-		$sql="SELECT tc.*, COUNT(tq.category_uid) AS question_count
+    if ($_POST['teacher_id']) {
+
+        $uids = json_decode($_POST['list'], true);
+
+        $idList = implode(',', array_map('intval', $uids));
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+
+        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
         FROM teacher_category tc
         LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
         WHERE tc.teacher_id = '$teacher_id' AND tc.uid IN ($idList)
 		   GROUP BY tq.category_uid
      	ORDER BY tc.id DESC
         LIMIT 5";
-		
-       
+
+
 
         if ($db->sql($sql)) {
             $result = $db->getResult();
@@ -693,30 +691,30 @@ if (isset($_POST['access_key']) && isset($_POST['trends']) && $_POST['trends'] =
     }
 
 
-   
-       	
-	
-		
-		$sql="SELECT tc.*, COUNT(tq.category_uid) AS question_count
+
+
+
+
+    $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
 FROM teacher_category tc
 LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id WHERE
 tc.publish='true' AND tc.visibility='public'
 GROUP BY tc.uid
 ORDER BY tc.likes DESC,tc.views DESC";
-        
-		
-       
 
-        if ($db->sql($sql)) {
-            $result = $db->getResult();
-            $response['error'] = "false";
-            $response['message'] = "fetched successfully";
-            $response['data'] =  $result;
-        } else {
-            $response['error'] = "true";
-            $response['message'] = "Failed to fetch trends";
-        }
-   
+
+
+
+    if ($db->sql($sql)) {
+        $result = $db->getResult();
+        $response['error'] = "false";
+        $response['message'] = "fetched successfully";
+        $response['data'] =  $result;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch trends";
+    }
+
 
     print_r(json_encode($response));
     return false;
@@ -737,19 +735,19 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions']) && $_POST['get
     }
 
 
-   
-       	if($_POST['category_uid']){
-       	$category_uid =$_POST['category_uid'];
-			
-			$sql="SELECT tq.*, tc.name, (SELECT COUNT(*) FROM teacher_questions WHERE category_uid = '$category_uid')  AS question_count
+
+    if ($_POST['category_uid']) {
+        $category_uid = $_POST['category_uid'];
+
+        $sql = "SELECT tq.*, tc.name, (SELECT COUNT(*) FROM teacher_questions WHERE category_uid = '$category_uid')  AS question_count
         FROM teacher_questions tq
         JOIN teacher_category tc
         ON tc.uid = tq.category_uid
         WHERE tq.category_uid = '$category_uid'
         GROUP BY tq.category_uid, tq.id
 		";
-        
-		if ($db->sql($sql)) {
+
+        if ($db->sql($sql)) {
             $result = $db->getResult();
             $response['error'] = "false";
             $response['message'] = "fetched successfully";
@@ -758,15 +756,13 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions']) && $_POST['get
             $response['error'] = "true";
             $response['message'] = "Failed to fetch questions";
         }
-   
-			
-		}else{
-		$response['error'] = "true";
-            $response['message'] = "provide all fields";
-		}
-	
-		
-		
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "provide all fields";
+    }
+
+
+
 
     print_r(json_encode($response));
     return false;
@@ -791,45 +787,34 @@ if (isset($_POST['access_key']) && isset($_POST['add_view']) && $_POST['add_view
     }
 
 
-   
-       	
-	if($_POST['uid']){
-		$uid=$_POST['uid'];
-		$sql="SELECT views from teacher_category WHERE uid ='$uid'";
-		if ($db->sql($sql)) {
-           $result=$db->getResult();
-			$number=(int)$result[0]['views'] + 1;
-          $sql = "UPDATE teacher_category SET views ='$number' WHERE uid = '$uid'";
+
+
+    if ($_POST['uid']) {
+        $uid = $_POST['uid'];
+        $sql = "SELECT views from teacher_category WHERE uid ='$uid'";
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $number = (int)$result[0]['views'] + 1;
+            $sql = "UPDATE teacher_category SET views ='$number' WHERE uid = '$uid'";
             if ($db->sql($sql)) {
-           
-            $response['error'] = "false";
-            $response['message'] = "updated successfully";
-            
+
+                $response['error'] = "false";
+                $response['message'] = "updated successfully";
+            } else {
+                $response['error'] = "true";
+                $response['message'] = "Failed to update";
+            }
         } else {
-            $response['error'] = "true";
-            $response['message'] = "Failed to update";
-        }
-			
-        }else {
             $response['error'] = "true";
             $response['message'] = "cant find category";
         }
-		
-		
-		
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
 
-        
-		
-       
 
-       
-	}else{
-	 $response['error'] = "true";
-     $response['message'] = "pass all fields";
-	}
-		
-	
-   
+
 
     print_r(json_encode($response));
     return false;
@@ -850,12 +835,12 @@ if (isset($_POST['access_key']) && isset($_POST['get_searched']) && $_POST['get_
     }
 
 
-   
-    
-   $search = isset($_POST['search_word']) ? trim($_POST['search_word']) : '';
-	$quiz_type=isset($_POST['quiz_type']) ? trim($_POST['quiz_type']) : '';
-// Prepare the base query with common conditions
-$sql = "SELECT tc.*, COUNT(tq.id) AS question_count 
+
+
+    $search = isset($_POST['search_word']) ? trim($_POST['search_word']) : '';
+    $quiz_type = isset($_POST['quiz_type']) ? trim($_POST['quiz_type']) : '';
+    // Prepare the base query with common conditions
+    $sql = "SELECT tc.*, COUNT(tq.id) AS question_count 
         FROM teacher_category tc 
         LEFT JOIN teacher_questions tq 
         ON tc.uid = tq.category_uid
@@ -864,35 +849,35 @@ $sql = "SELECT tc.*, COUNT(tq.id) AS question_count
 	
 		";
 
-	if($quiz_type){
-		$sql .=" AND tc.quiz_type ='$quiz_type'";
-	}
-// Add search condition if search term is provided
-if ($search) {
-    // Using a prepared statement to prevent SQL injection
-    $sql .= " AND (tc.name LIKE '{$search}%' OR tc.name REGEXP '{$search}')";
-}
+    if ($quiz_type) {
+        $sql .= " AND tc.quiz_type ='$quiz_type'";
+    }
+    // Add search condition if search term is provided
+    if ($search) {
+        // Using a prepared statement to prevent SQL injection
+        $sql .= " AND (tc.name LIKE '{$search}%' OR tc.name REGEXP '{$search}')";
+    }
 
 
-$sql .= " GROUP BY tc.uid";
-			
-			
-		
-        
-		if ($db->sql($sql)) {
-            $result = $db->getResult();
-            $response['error'] = "false";
-            $response['message'] = "fetched successfully";
-            $response['data'] =  $result;
-        } else {
-            $response['error'] = "true";
-            $response['message'] = "Failed to fetch questions";
-        }
-   
-		
-	
-		
-		
+    $sql .= " GROUP BY tc.uid";
+
+
+
+
+    if ($db->sql($sql)) {
+        $result = $db->getResult();
+        $response['error'] = "false";
+        $response['message'] = "fetched successfully";
+        $response['data'] =  $result;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch questions";
+    }
+
+
+
+
+
 
     print_r(json_encode($response));
     return false;
@@ -917,60 +902,62 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_profile']) && $_POST['
     }
 
 
-   
-    
-   
 
 
-	if(isset($_POST['id'])){
-		$id = $_POST['id'] ;
-	$sql = "SELECT profile,name FROM `users` WHERE id ='$id'";
 
-   if ($db->sql($sql)) {
-         $result = $db->getResult();
-	   
-	   if (!empty($result)) {
-            if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
-                // Not a valid URL. Its a image only or empty
-                $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
+
+
+    if (isset($_POST['id'])) {
+        $id = $_POST['id'];
+        $sql = "SELECT profile,name FROM `users` WHERE id ='$id'";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+
+            if (!empty($result)) {
+                if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
+                } else {
+                    /* if it is a ur than just pass url as it is */
+                    $result[0]['profile'] = $result[0]['profile'];
+                }
+
+
+                $response['error'] = "false";
+                $response['message'] = "fetched successfully";
+                $response['data'] =  $result;
             } else {
-                /* if it is a ur than just pass url as it is */
-                $result[0]['profile'] = $result[0]['profile'];
+                $response['error'] = "false";
+                $response['message'] = "no user found";
             }
-
-	   
-            $response['error'] = "false";
-            $response['message'] = "fetched successfully";
-            $response['data'] =  $result;
         } else {
-            $response['error'] = "false";
-            $response['message'] = "no user found";
-        }
-   
-	}else {
             $response['error'] = "true";
             $response['message'] = "Failed to fetch";
         }
-		
-		
-		
-	
-	
-	
-	}else {
-	 $response['error'] = "true";
-      $response['message'] = "pass all fields";
-	}
-		
-		print_r(json_encode($response));
-			return false;
-		
-		
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
 
-		
+    print_r(json_encode($response));
+    return false;
 }
 
 
+if (isset($_POST['access_key']) && isset($_POST['scoreboard']) && $_POST['scoreboard'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
 
 
 
@@ -978,3 +965,94 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_profile']) && $_POST['
 
 
 
+    if (isset($_POST['quiz_id']) && isset($_POST['user_id']) && isset($_POST['score']) && isset($_POST['incorrect'])) {
+        $user_id = $_POST['user_id'];
+        $quiz_id = trim($_POST['quiz_id']);
+        $score = $_POST['score'];
+        $incorrect = $_POST['incorrect'];
+        $correct = $_POST['correct'];
+        $sql = "INSERT INTO `teacher_quiz_scoreboard` (user_id, quiz_id, score, incorrect, correct)
+        VALUES ('$user_id', '$quiz_id', '$score', '$incorrect', '$correct')
+        ON DUPLICATE KEY UPDATE
+        score = VALUES(score),
+        incorrect = VALUES(incorrect),
+        correct = VALUES(correct)";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['error'] = "false";
+            $response['message'] = 'success';
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "error";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_rank'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+
+
+
+
+    if (isset($_POST['quiz_id']) && isset($_POST['user_id'])) {
+        $user_id = $_POST['user_id'];
+        $quiz_id = $_POST['quiz_id'];
+
+
+
+        $sql = "SELECT *,
+    RANK() OVER (ORDER BY score DESC) as user_rank,
+    (SELECT COUNT(*) FROM teacher_quiz_scoreboard WHERE quiz_id = '$quiz_id') AS total_participants FROM 
+    teacher_quiz_scoreboard 
+	WHERE 
+    quiz_id = '$quiz_id' 
+    AND user_id = $user_id;";
+
+        $sql_2 = "SELECT * FROM teacher_questions WHERE category_uid= '$quiz_id'";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['leaderboard']['error'] = "false";
+            $response['leaderboard']['data'] = $result;
+        } else {
+            $response['leaderboard']['error'] = "true";
+            $response['leaderboard']['message'] = "error";
+        }
+
+        if ($db->sql($sql_2)) {
+            $result = $db->getResult();
+            $response['questions']['error'] = "false";
+            $response['questions']['data'] = $result;
+        } else {
+            $response['questions']['error'] = "true";
+            $response['questions']['message'] = "error";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    return false;
+}

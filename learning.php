@@ -471,7 +471,6 @@ $type = '2';
         $(document).ready(function() {
             tinymce.init({
                 selector: '#detail',
-                height: 150,
                 menubar: true,
                 plugins: [
                     'advlist autolink lists charmap print preview anchor textcolor',
@@ -497,7 +496,7 @@ $type = '2';
         });
         tinymce.init({
             selector: '#edit_detail',
-            height: 150,
+
             menubar: true,
             plugins: [
                 'advlist autolink lists charmap print preview anchor textcolor',
