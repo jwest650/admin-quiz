@@ -1056,3 +1056,202 @@ if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_
     print_r(json_encode($response));
     return false;
 }
+
+if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) && $_POST['import_live_quiz_questions'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+	
+	if(isset($_POST['category'],$_POST['subcategory'],$_FILES['questions'],$_POST['teacher_id'])){
+		
+		 if (isset($_FILES['questions']) && $_FILES['questions']['error'] === UPLOAD_ERR_OK) {
+        $csvFile = $_FILES['questions']['tmp_name'];
+        
+        // Open and read the CSV file
+        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+            // Skip the header row
+            $header = fgetcsv($handle);
+            
+            $questions = [];
+            while (($data = fgetcsv($handle)) !== FALSE) {
+                $questions[] = [
+                    'question' => $data[0],
+                    'option_a' => $data[1],
+                    'option_b' => $data[2],
+                    'option_c' => $data[3],
+                    'option_d' => $data[4],
+				
+                    'answer' => $data[5]
+                ];
+            }
+            fclose($handle);
+			
+			$category=htmlspecialchars($_POST['category']);
+				$subcategory=htmlspecialchars($_POST['subcategory']);
+			$teacher_id=htmlspecialchars($_POST['teacher_id']);
+			$image="";
+			
+			if(isset($_FILES['image'])){
+			$fileTmpPath = $_FILES['image']['tmp_name'];
+            $fileName = $_FILES['image']['name'];
+            $fileSize = $_FILES['image']['size'];
+            $fileType = $_FILES['image']['type'];
+            $fileNameCmps = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
+
+            // Specify the directory where you want to save the uploaded file
+            $base_url = 'https://admin.uquiz.xyz/';
+            $uploadFileDir = 'images/teacher_category/';
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+            if (!in_array($fileExtension, $allowedExtensions)) {
+                $response['error'] = "true";
+                $response['message'] = "file type not accepted";
+                exit;
+            }
+            if (!is_dir($uploadFileDir)) {
+                mkdir($uploadFileDir, 0755, true); // Create the directory if it doesn't exist
+            }
+            $dest_path = $uploadFileDir . $fileName;
+            $image_url = $base_url . $dest_path;
+
+            // Move the file to the specified directory
+            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+               $image=$image_url;
+            } else {
+                $response['error'] = "true";
+                $response['message'] = "upload error";
+				exit;
+            }
+				
+				
+			}
+			
+            
+            
+           	$sql="INSERT INTO teacher_school_quiz_category (category_name,image,teacher_id) VALUES ('$category','$image','$teacher_id')";
+			if($db->sql($sql)){
+			$category_id =$db->insert_id();
+			$sql_1="INSERT INTO teacher_school_quiz_subcategory (subcategory_name,category_id) VALUES ('$subcategory','$category_id')";
+			$db->sql($sql_1);
+			
+				
+			foreach ($questions as $value) {
+                try {
+                    $question = $value['question'];
+                    $optiona = $value['option_a'];
+                    $optionb = $value['option_b'];
+                    $optionc = $value['option_c'];
+                    $optiond = $value['option_d'];
+                    $answer = $value['answer'];
+					
+            $sql_2="INSERT INTO teacher_school_quiz_questions (question,optiona,optionb,optionc,optiond,answer,category_id) VALUES 				('$question','$optiona','$optionb','$optionc','$optiond','$answer','$category_id')";
+                    // Execute the SQL query and check for errors
+                    if (!$db->sql($sql_2)) {
+                        echo json_encode([
+                            'error' => 'true',
+                        ]);
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    // Log the error and return error response
+                    error_log("Error processing question: " . $e->getMessage());
+                    echo json_encode([
+                        'error' => 'true',
+                        'message' => 'Error processing questions: ' . $e->getMessage()
+                    ]);
+                    exit;
+                }
+          		
+        }
+        
+        echo json_encode(['error' => 'false','success' => true]);
+				exit;
+	}
+				
+	 } else {
+            echo json_encode([
+                'error' => 'true',
+                'message' => 'Failed to upload csv'
+            ]);
+			exit;
+        }
+			 
+			 
+			 
+    } else {
+        echo json_encode([
+            'error' => 'true',
+            'message' => 'No file uploaded or upload error'
+        ]);
+			 exit;
+    }
+
+
+	} else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+	 print_r(json_encode($response));
+    exit;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['check_old_questions']) && $_POST['check_old_questions'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+	 $response = array();
+	if(isset($_POST['teacher_id'])){
+		$teacher_id =$_POST['teacher_id'];
+		$sql="SELECT * from teacher_school_quiz_category WHERE teacher_id ='$teacher_id'";
+			
+		  $result = $db->sql($sql);
+    if ($result) {
+        $res = $db->getResult();
+		$count =$db->numRows($res);
+		if($count){
+		 $response['error'] = "false";
+      
+        $response['data'] = $count;
+		}else{
+		 $response['error'] = "true";
+      
+        $response['message'] = 'No question available';
+		}
+       
+        
+       
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Database error occurred";
+    }
+	
+	}else{
+		  $response['error'] = "true";
+        $response['message'] = "pass all fields";
+	}
+	
+	 print_r(json_encode($response));
+    exit;
+	
+}
+
