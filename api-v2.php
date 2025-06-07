@@ -3401,7 +3401,7 @@ if (isset($_POST['payment_history']) && isset($_POST['access_key'])) {
         // Execute the query (handle potential errors)
         if (!$db->sql($sql)) {
             $response['error'] = 'true';
-            $response['message'] = 'Error inserting data: ' . $db->error;
+            $response['message'] = 'Error inserting data';
             print_r(json_encode($response));
             exit;
         }
@@ -3609,3 +3609,153 @@ if (isset($_POST['access_key']) && isset($_POST['exam_update_score'])) {
     }
     print_r(json_encode($response));
 }
+
+//get_teacher_category()
+if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_categories'])) {
+    /* Parameters to be passed
+      access_key:6808
+      get_categories:1
+      id:31 //{optional}
+      type:2  //2-learning zone , 1-quiz zone
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+   
+    if (isset($_POST['teacher_id'])) {
+
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+        // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
+      
+
+        $sql = "SELECT * FROM  teacher_school_quiz_category WHERE teacher_id = $teacher_id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+        if (!empty($result)) {
+          
+           
+           
+            $response['error'] = "false";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        
+            $response['error'] = "true";
+            $response['message'] = "Please pass all the fields";
+        
+    }
+    print_r(json_encode($response));
+}
+
+
+//get_teacher_subcategory()
+if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_subcategory'])) {
+    /* Parameters to be passed
+      access_key:6808
+      get_categories:1
+      id:31 //{optional}
+      type:2  //2-learning zone , 1-quiz zone
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+   
+    if (isset($_POST['category_id'])) {
+
+        $category_id = $db->escapeString($_POST['category_id']);
+        // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
+      
+
+        $sql = "SELECT * FROM  teacher_school_quiz_subcategory WHERE category_id = $category_id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+        if (!empty($result)) {
+          
+           
+           
+            $response['error'] = "false";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        
+            $response['error'] = "true";
+            $response['message'] = "Please pass all the fields";
+        
+    }
+    print_r(json_encode($response));
+}
+
+
+
+//get_teacher_quiz_questions()
+if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_questions'])) {
+    /* Parameters to be passed
+      access_key:6808
+      get_categories:1
+      id:31 //{optional}
+      type:2  //2-learning zone , 1-quiz zone
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+   
+    if (isset($_POST['subcategory_id'])) {
+
+        $subcategory_id = $db->escapeString($_POST['subcategory_id']);
+      
+
+        $sql = "SELECT * FROM  teacher_school_quiz_questions WHERE subcategory_id = $subcategory_id ";
+        $db->sql($sql);
+        $result = $db->getResult();
+        if (!empty($result)) {
+          
+           
+           
+            $response['error'] = "false";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No data found!";
+        }
+    } else {
+        
+            $response['error'] = "true";
+            $response['message'] = "Please pass all the fields";
+        
+    }
+    print_r(json_encode($response));
+}
+

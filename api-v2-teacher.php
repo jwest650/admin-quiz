@@ -639,38 +639,51 @@ if (isset($_POST['access_key']) && isset($_POST['recent_viewed']) && $_POST['rec
     }
 
 
-    if ($_POST['teacher_id']) {
 
-        $uids = json_decode($_POST['list'], true);
 
-        $idList = implode(',', array_map('intval', $uids));
-        $teacher_id = $db->escapeString($_POST['teacher_id']);
+    $uids = json_decode($_POST['list'], true);
 
-        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
-        FROM teacher_category tc
-        LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
-        WHERE tc.teacher_id = '$teacher_id' AND tc.uid IN ($idList)
-		   GROUP BY tq.category_uid
-     	ORDER BY tc.id DESC
+    $idList = implode(',', array_map(function ($uid) use ($db) {
+        return "'" .  trim($db->escapeString($uid)) . "'";
+    }, $uids));
+
+    if (empty($idList)) {
+        die("Error: No category IDs provided.");
+    }
+
+
+
+
+    $sql = "SELECT 
+            tc.*, 
+            COUNT(tq.category_uid) AS question_count
+        FROM 
+            teacher_category tc
+        LEFT JOIN 
+            teacher_questions tq 
+            ON tq.category_uid = tc.uid 
+            AND tc.teacher_id = tq.teacher_id
+        WHERE 
+           
+            tc.uid IN ($idList)
+        GROUP BY 
+            tc.uid 
+        ORDER BY 
+            tc.id DESC
         LIMIT 5";
 
 
 
-        if ($db->sql($sql)) {
-            $result = $db->getResult();
-            $response['error'] = "false";
-            $response['message'] = "fetched successfully";
-            $response['data'] =  $result;
-        } else {
-            $response['error'] = "true";
-            $response['message'] = "Failed to delete category";
-        }
+    if ($db->sql($sql)) {
+        $result = $db->getResult();
+        $response['error'] = "false";
+        $response['message'] = "fetched successfully";
+        $response['data'] =  $result;
     } else {
         $response['error'] = "true";
-        $response['message'] = "Pass all field";
-        print_r(json_encode($response));
-        return false;
+        $response['message'] = "Failed to delete category";
     }
+
 
     print_r(json_encode($response));
     return false;
@@ -1058,9 +1071,7 @@ if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_
 }
 
 if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) && $_POST['import_live_quiz_questions'] == 1) {
-
     if (!verify_token()) {
-
         return false;
     }
 
@@ -1070,140 +1081,106 @@ if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) &
         print_r(json_encode($response));
         return false;
     }
-	
-	if(isset($_POST['category'],$_POST['subcategory'],$_FILES['questions'],$_POST['teacher_id'])){
-		
-		 if (isset($_FILES['questions']) && $_FILES['questions']['error'] === UPLOAD_ERR_OK) {
-        $csvFile = $_FILES['questions']['tmp_name'];
-        
-        // Open and read the CSV file
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
-            // Skip the header row
-            $header = fgetcsv($handle);
-            
-            $questions = [];
-            while (($data = fgetcsv($handle)) !== FALSE) {
-                $questions[] = [
-                    'question' => $data[0],
-                    'option_a' => $data[1],
-                    'option_b' => $data[2],
-                    'option_c' => $data[3],
-                    'option_d' => $data[4],
-				
-                    'answer' => $data[5]
-                ];
-            }
-            fclose($handle);
-			
-			$category=htmlspecialchars($_POST['category']);
-				$subcategory=htmlspecialchars($_POST['subcategory']);
-			$teacher_id=htmlspecialchars($_POST['teacher_id']);
-			$image="";
-			
-			if(isset($_FILES['image'])){
-			$fileTmpPath = $_FILES['image']['tmp_name'];
-            $fileName = $_FILES['image']['name'];
-            $fileSize = $_FILES['image']['size'];
-            $fileType = $_FILES['image']['type'];
-            $fileNameCmps = explode(".", $fileName);
-            $fileExtension = strtolower(end($fileNameCmps));
 
-            // Specify the directory where you want to save the uploaded file
-            $base_url = 'https://admin.uquiz.xyz/';
-            $uploadFileDir = 'images/teacher_category/';
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    if (!isset($_POST['category'], $_POST['subcategory'], $_FILES['questions'], $_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+        print_r(json_encode($response));
+        return false;
+    }
 
-            if (!in_array($fileExtension, $allowedExtensions)) {
-                $response['error'] = "true";
-                $response['message'] = "file type not accepted";
-                exit;
-            }
-            if (!is_dir($uploadFileDir)) {
-                mkdir($uploadFileDir, 0755, true); // Create the directory if it doesn't exist
-            }
-            $dest_path = $uploadFileDir . $fileName;
-            $image_url = $base_url . $dest_path;
-
-            // Move the file to the specified directory
-            if (move_uploaded_file($fileTmpPath, $dest_path)) {
-               $image=$image_url;
-            } else {
-                $response['error'] = "true";
-                $response['message'] = "upload error";
-				exit;
-            }
-				
-				
-			}
-			
-            
-            
-           	$sql="INSERT INTO teacher_school_quiz_category (category_name,image,teacher_id) VALUES ('$category','$image','$teacher_id')";
-			if($db->sql($sql)){
-			$category_id =$db->insert_id();
-			$sql_1="INSERT INTO teacher_school_quiz_subcategory (subcategory_name,category_id) VALUES ('$subcategory','$category_id')";
-			$db->sql($sql_1);
-			
-				
-			foreach ($questions as $value) {
-                try {
-                    $question = $value['question'];
-                    $optiona = $value['option_a'];
-                    $optionb = $value['option_b'];
-                    $optionc = $value['option_c'];
-                    $optiond = $value['option_d'];
-                    $answer = $value['answer'];
-					
-            $sql_2="INSERT INTO teacher_school_quiz_questions (question,optiona,optionb,optionc,optiond,answer,category_id) VALUES 				('$question','$optiona','$optionb','$optionc','$optiond','$answer','$category_id')";
-                    // Execute the SQL query and check for errors
-                    if (!$db->sql($sql_2)) {
-                        echo json_encode([
-                            'error' => 'true',
-                        ]);
-                        exit;
-                    }
-                } catch (Exception $e) {
-                    // Log the error and return error response
-                    error_log("Error processing question: " . $e->getMessage());
-                    echo json_encode([
-                        'error' => 'true',
-                        'message' => 'Error processing questions: ' . $e->getMessage()
-                    ]);
-                    exit;
-                }
-          		
-        }
-        
-        echo json_encode(['error' => 'false','success' => true]);
-				exit;
-	}
-				
-	 } else {
-            echo json_encode([
-                'error' => 'true',
-                'message' => 'Failed to upload csv'
-            ]);
-			exit;
-        }
-			 
-			 
-			 
-    } else {
+    // Check if file upload was successful - FIXED logic
+    if (!isset($_FILES['questions']) || $_FILES['questions']['error'] !== UPLOAD_ERR_OK) {
         echo json_encode([
             'error' => 'true',
             'message' => 'No file uploaded or upload error'
         ]);
-			 exit;
+        exit;
     }
 
+    $csvFile = $_FILES['questions']['tmp_name'];
 
-	} else {
-        $response['error'] = "true";
-        $response['message'] = "pass all fields";
+    // Open and read the CSV file
+    if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        $header = fgetcsv($handle);
+        $questions = [];
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            $questions[] = [
+                'question' => $data[0],
+                'option_a' => $data[1],
+                'option_b' => $data[2],
+                'option_c' => $data[3],
+                'option_d' => $data[4],
+                'answer' => $data[5]
+            ];
+        }
+        fclose($handle);
+
+        $category = htmlspecialchars($_POST['category']);
+        $subcategory = htmlspecialchars($_POST['subcategory']);
+        $teacher_id = htmlspecialchars($_POST['teacher_id']);
+
+        $sql = "INSERT INTO teacher_school_quiz_category (category_name,teacher_id) 
+                VALUES ('$category','$teacher_id')";
+
+        if (!$db->sql($sql)) {
+            $response['error'] = "true";
+            $response['message'] = "Failed to create category";
+            print_r(json_encode($response));
+            exit;
+        }
+
+        $category_id = $db->insert_id();
+        $sql_1 = "INSERT INTO teacher_school_quiz_subcategory (subcategory_name, category_id) 
+                  VALUES ('$subcategory', '$category_id')";
+
+        if (!$db->sql($sql_1)) {
+            $response['error'] = "true";
+            $response['message'] = "Failed to create subcategory";
+            print_r(json_encode($response));
+            exit;
+        }
+
+        $subcategory_id = $db->insert_id(); // FIXED: Move this outside the loop
+
+        foreach ($questions as $value) {
+            try {
+                $question = $db->escapeString($value['question']); // FIXED: Added escaping
+                $optiona = $db->escapeString($value['option_a']);
+                $optionb = $db->escapeString($value['option_b']);
+                $optionc = $db->escapeString($value['option_c']);
+                $optiond = $db->escapeString($value['option_d']);
+                $answer = $db->escapeString($value['answer']);
+
+                $sql_2 = "INSERT INTO teacher_school_quiz_questions 
+                          (question, optiona, optionb, optionc, optiond, answer, subcategory_id) 
+                          VALUES 
+                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory_id')";
+
+                if (!$db->sql($sql_2)) {
+                    throw new Exception('Failed to insert question');
+                }
+            } catch (Exception $e) {
+                error_log("Error processing question: " . $e->getMessage());
+                echo json_encode([
+                    'error' => 'true',
+                    'message' => 'Error processing questions: ' . $e->getMessage()
+                ]);
+                exit;
+            }
+        }
+
+        echo json_encode(['error' => 'false', 'success' => true]);
+        exit;
+    } else {
+        echo json_encode([
+            'error' => 'true',
+            'message' => 'Failed to read CSV file'
+        ]);
+        exit;
     }
-	 print_r(json_encode($response));
-    exit;
 }
+
 
 
 if (isset($_POST['access_key']) && isset($_POST['check_old_questions']) && $_POST['check_old_questions'] == 1) {
@@ -1219,39 +1196,167 @@ if (isset($_POST['access_key']) && isset($_POST['check_old_questions']) && $_POS
         print_r(json_encode($response));
         return false;
     }
-	 $response = array();
-	if(isset($_POST['teacher_id'])){
-		$teacher_id =$_POST['teacher_id'];
-		$sql="SELECT * from teacher_school_quiz_category WHERE teacher_id ='$teacher_id'";
-			
-		  $result = $db->sql($sql);
-    if ($result) {
-        $res = $db->getResult();
-		$count =$db->numRows($res);
-		if($count){
-		 $response['error'] = "false";
-      
-        $response['data'] = $count;
-		}else{
-		 $response['error'] = "true";
-      
-        $response['message'] = 'No question available';
-		}
-       
-        
-       
+    $response = array();
+    if (isset($_POST['teacher_id'])) {
+        $teacher_id = $_POST['teacher_id'];
+        $sql = "SELECT * from teacher_school_quiz_category WHERE teacher_id ='$teacher_id'";
+
+        $result = $db->sql($sql);
+        if ($result) {
+            $res = $db->getResult();
+            $count = $db->numRows($res);
+            if ($count) {
+                $response['error'] = "false";
+
+                $response['data'] = $count;
+            } else {
+                $response['error'] = "true";
+
+                $response['message'] = 'no question available';
+            }
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Database error occurred";
+        }
     } else {
         $response['error'] = "true";
-        $response['message'] = "Database error occurred";
-    }
-	
-	}else{
-		  $response['error'] = "true";
         $response['message'] = "pass all fields";
-	}
-	
-	 print_r(json_encode($response));
+    }
+
+    print_r(json_encode($response));
     exit;
-	
 }
 
+if (isset($_POST['access_key']) && isset($_POST['get_question']) && $_POST['get_question'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    $response = array();
+    if (isset($_POST['edit_id'])) {
+        $edit_id = $_POST['edit_id'];
+        $sql = "SELECT * from teacher_questions WHERE id ='$edit_id'";
+
+        $result = $db->sql($sql);
+        if ($result) {
+            $res = $db->getResult();
+
+            $response['error'] = "false";
+
+            $response['data'] = $res;
+        } else {
+            $response['error'] = "true";
+
+            $response['message'] = 'no question available';
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    exit;
+};
+
+
+if (isset($_POST['access_key']) && isset($_POST['update_question']) && $_POST['update_question'] == 1) {
+
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = true;
+        $response['message'] = "Invalid Access Key";
+        echo json_encode($response);
+        return false;
+    }
+
+    if (!isset($_POST['edit_id'], $_POST['question'], $_POST['answer'], $_POST['time'], $_POST['points'], $_POST['question_type'])) {
+        $response['error'] = true;
+        $response['message'] = "Pass all required fields";
+        echo json_encode($response);
+        return false;
+    }
+
+    $edit_id = (int) $_POST['edit_id']; // Ensure it's an integer
+    $question =  $_POST['question'];
+    $optiona = isset($_POST['optiona']) ? $_POST['optiona'] : "";
+    $optionb = isset($_POST['optionb']) ?  $_POST['optionb'] : "";
+    $optionc = isset($_POST['optionc']) ?  $_POST['optionc'] : "";
+    $optiond = isset($_POST['optiond']) ?  $_POST['optiond'] : "";
+    $optione = isset($_POST['optione']) ?  $_POST['optione'] : "";
+    $points = (int) $_POST['points'];
+    $answer = $_POST['answer'];
+    $time = $_POST['time'];
+    $question_type = (int) $_POST['question_type'];
+
+    // Start SQL query
+    $sql = "UPDATE teacher_questions SET question = '$question'";
+
+    if ($question_type == 1) {
+        $sql .= ", optiona = '$optiona', optionb = '$optionb', optionc = '$optionc', optiond = '$optiond', optione = '$optione'";
+    } elseif ($question_type == 3) {
+        $sql .= ", optiona = '$optiona', optionb = '$optionb'";
+    }
+
+    $sql .= ", answer = '$answer', time = '$time', points = $points WHERE id = $edit_id";
+
+    // Execute query
+    if ($db->sql($sql)) {
+        $response['error'] = 'false';
+        $response['message'] = "Question updated successfully";
+    } else {
+        $response['error'] = 'true';
+        $response['message'] = "Failed to update question";
+    }
+
+    echo json_encode($response);
+    exit;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['delete_question']) && $_POST['delete_question'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+    $response = array();
+    if (isset($_POST['question_id'])) {
+        $edit_id = $_POST['question_id'];
+        $sql = "DELETE from teacher_questions WHERE id ='$question_id'";
+
+        $result = $db->sql($sql);
+        if ($result) {
+
+
+            $response['error'] = "false";
+        } else {
+            $response['error'] = "true";
+
+            $response['message'] = 'not deleted';
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    exit;
+};
