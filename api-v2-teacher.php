@@ -32,16 +32,7 @@ $config = $fn->get_configurations();
 
 include_once('library/verify-token.php');
 
-if (isset($config['system_timezone']) && !empty($config['system_timezone'])) {
-    date_default_timezone_set($config['system_timezone']);
-} else {
-    date_default_timezone_set('Asia/Kolkata');
-}
-if (isset($config['system_timezone_gmt']) && !empty($config['system_timezone_gmt'])) {
-    $db->sql("SET `time_zone` = '" . $config['system_timezone_gmt'] . "'");
-} else {
-    $db->sql("SET `time_zone` = '+05:30'");
-}
+
 
 $db->sql("SET NAMES 'utf8'");
 $response = array();
@@ -50,6 +41,13 @@ $access_key = "6808";
 $toDate = date('Y-m-d');
 $toDateTime = date('Y-m-d H:i:s');
 
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', './error.log');
+error_reporting(E_ALL);
+
+error_log("API called at " . date('Y-m-d H:i:s') . "\n", 3, './error.log');
 
 if (isset($_POST['access_key'], $_POST['get_teacher_questions']) && $_POST['get_teacher_questions'] == 1) {
 
@@ -148,7 +146,7 @@ WHERE
 
     echo json_encode($response);
     return false;
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['create_questions'] == 1) {
@@ -179,6 +177,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
     if (isset($_POST['questions']) && is_array($_POST['questions']) && isset($_POST['category_uid'])) {
         $category_uid = $db->escapeString($_POST['category_uid']);
         $teacher_id = (int)$db->escapeString($_POST['teacher_id']);
+
         $success = true;
         foreach ($_POST['questions'] as $question) {
             // Escape all input values
@@ -192,18 +191,19 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
             $points = (int)$question['points'];
             $answer = $db->escapeString($question['answer']);
             $time = $question['time'];
+            $video_time = isset($question['video_time']) ? $db->escapeString($question['video_time']) : '';
 
 
             $sql = "INSERT INTO teacher_questions (
                      category_uid, question, question_type, 
                     optiona, optionb, optionc, optiond, optione, 
-                    points, answer, time,teacher_id
+                    points, answer, time, teacher_id,video_time
                 ) VALUES (
-                    '$category_uid','$question_text', '$question_type',
+                    '$category_uid', '$question_text', '$question_type',
                     '$optiona', '$optionb', '$optionc', '$optiond', '$optione',
-                    $points, '$answer','$time',$teacher_id
+                    $points, '$answer', '$time', $teacher_id, '$video_time'
                 )";
-
+            error_log("time: $time");
             if (!$db->sql($sql)) {
                 $success = false;
                 break;
@@ -226,7 +226,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 
@@ -323,7 +323,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
         $response['message'] = "provide all data";
     }
     print_r(json_encode($response));
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['update_category'] == 1) {
@@ -410,7 +410,7 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['publish_category']) && $_POST['publish_category'] == 1) {
 
@@ -453,7 +453,7 @@ if (isset($_POST['access_key']) && isset($_POST['publish_category']) && $_POST['
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['get_category_and_question_count']) && $_POST['get_category_and_question_count'] == 1) {
@@ -579,7 +579,7 @@ WHERE
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['delete_category']) && $_POST['delete_category'] == 1) {
@@ -621,7 +621,7 @@ if (isset($_POST['access_key']) && isset($_POST['delete_category']) && $_POST['d
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['recent_viewed']) && $_POST['recent_viewed'] == 1) {
@@ -687,7 +687,7 @@ if (isset($_POST['access_key']) && isset($_POST['recent_viewed']) && $_POST['rec
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['trends']) && $_POST['trends'] == 1) {
 
@@ -731,7 +731,7 @@ ORDER BY tc.likes DESC,tc.views DESC";
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['get_questions']) && $_POST['get_questions'] == 1) {
 
@@ -779,7 +779,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions']) && $_POST['get
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 
@@ -831,7 +831,7 @@ if (isset($_POST['access_key']) && isset($_POST['add_view']) && $_POST['add_view
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['get_searched']) && $_POST['get_searched'] == 1) {
 
@@ -894,7 +894,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_searched']) && $_POST['get_
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 
@@ -955,7 +955,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_user_profile']) && $_POST['
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 
 if (isset($_POST['access_key']) && isset($_POST['scoreboard']) && $_POST['scoreboard'] == 1) {
@@ -1006,7 +1006,7 @@ if (isset($_POST['access_key']) && isset($_POST['scoreboard']) && $_POST['scoreb
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_rank'] == 1) {
 
@@ -1068,7 +1068,7 @@ if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_
 
     print_r(json_encode($response));
     return false;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) && $_POST['import_live_quiz_questions'] == 1) {
     if (!verify_token()) {
@@ -1179,7 +1179,7 @@ if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) &
         ]);
         exit;
     }
-}
+};
 
 
 
@@ -1225,7 +1225,7 @@ if (isset($_POST['access_key']) && isset($_POST['check_old_questions']) && $_POS
 
     print_r(json_encode($response));
     exit;
-}
+};
 
 if (isset($_POST['access_key']) && isset($_POST['get_question']) && $_POST['get_question'] == 1) {
 
@@ -1283,6 +1283,7 @@ if (isset($_POST['access_key']) && isset($_POST['update_question']) && $_POST['u
     if (!isset($_POST['edit_id'], $_POST['question'], $_POST['answer'], $_POST['time'], $_POST['points'], $_POST['question_type'])) {
         $response['error'] = true;
         $response['message'] = "Pass all required fields";
+        error_log("Missing required fields in update_question request: " . json_encode($_POST));
         echo json_encode($response);
         return false;
     }
@@ -1324,6 +1325,66 @@ if (isset($_POST['access_key']) && isset($_POST['update_question']) && $_POST['u
 }
 
 
+if (isset($_POST['access_key']) && isset($_POST['update_interactive_question']) && $_POST['update_interactive_question'] == 1) {
+    error_log("Update Interactive Question Request: ");
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = true;
+        $response['message'] = "Invalid Access Key";
+        echo json_encode($response);
+        return false;
+    }
+
+    if (!isset($_POST['edit_id'], $_POST['question'], $_POST['answer'], $_POST['time'], $_POST['points'], $_POST['question_type'], $_POST['video_time'])) {
+        $response['error'] = true;
+        $response['message'] = "Pass all required fields";
+        echo json_encode($response);
+        error_log("Missing required fields in update_interactive_question request: " . json_encode($_POST));
+
+        return false;
+    }
+
+    $edit_id = (int) $_POST['edit_id']; // Ensure it's an integer
+    $question = $db->escapeString($_POST['question']);
+    $optiona = isset($_POST['optiona']) ? $db->escapeString($_POST['optiona']) : "";
+    $optionb = isset($_POST['optionb']) ? $db->escapeString($_POST['optionb']) : "";
+    $optionc = isset($_POST['optionc']) ? $db->escapeString($_POST['optionc']) : "";
+    $optiond = isset($_POST['optiond']) ? $db->escapeString($_POST['optiond']) : "";
+    $optione = isset($_POST['optione']) ? $db->escapeString($_POST['optione']) : "";
+    $points = (int) $_POST['points'];
+    $answer = $db->escapeString($_POST['answer']);
+    $time = $db->escapeString($_POST['time']);
+    $video_time = isset($_POST['video_time']) ? $db->escapeString($_POST['video_time']) : ''; // Optional field
+    $question_type = (int) $_POST['question_type'];
+
+    // Start SQL query
+    $sql = "UPDATE teacher_questions SET question = '$question'";
+
+    if ($question_type == 1) {
+        $sql .= ", optiona = '$optiona', optionb = '$optionb', optionc = '$optionc', optiond = '$optiond', optione = '$optione'";
+    } elseif ($question_type == 3) {
+        $sql .= ", optiona = '$optiona', optionb = '$optionb'";
+    }
+
+    $sql .= ", answer = '$answer', time = '$time', points = '$points', video_time = '$video_time' WHERE id = $edit_id";
+
+    // Execute query
+    if ($db->sql($sql)) {
+        $response['error'] = 'false';
+        $response['message'] = "Question updated successfully";
+    } else {
+        $response['error'] = 'true';
+        $response['message'] = "Failed to update question";
+    }
+    error_log("Update Interactive Question SQL: " . $sql);
+    echo json_encode($response);
+    exit;
+};
+
+
 if (isset($_POST['access_key']) && isset($_POST['delete_question']) && $_POST['delete_question'] == 1) {
 
     if (!verify_token()) {
@@ -1339,7 +1400,7 @@ if (isset($_POST['access_key']) && isset($_POST['delete_question']) && $_POST['d
     }
     $response = array();
     if (isset($_POST['question_id'])) {
-        $edit_id = $_POST['question_id'];
+        $question_id = $_POST['question_id'];
         $sql = "DELETE from teacher_questions WHERE id ='$question_id'";
 
         $result = $db->sql($sql);

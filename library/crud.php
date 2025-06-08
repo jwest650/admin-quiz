@@ -16,14 +16,41 @@ class Database
      * means that they will only be available with the 
      * Database class
      */
-    private $db_host = 'localhost';  // Change as required
-    private $db_user = 'forcopix_uquizadmin';  // Change as required
-    private $db_pass = 'Jgqk_NROs25_98';  // Change as required 
-    private $db_name = 'forcopix_uquizadmin'; // Change as required
-    // private $db_host = 'localhost';  // Change as required
-    // private $db_user = 'root';  // Change as required
-    // private $db_pass = '';  // Change as required 
-    // private $db_name = 'admin-quiz'; // Change as required
+    private $db_host;
+    private $db_user;
+    private $db_pass;
+    private $db_name;
+
+    public function __construct()
+    {
+        // Detect if running on localhost or production
+        // Improved localhost detection for CLI and web server
+        if (php_sapi_name() === 'cli' || php_sapi_name() === 'phpdbg') {
+            $is_local = true;
+        } else {
+            $is_local = (
+                isset($_SERVER['HTTP_HOST']) &&
+                (
+                    $_SERVER['HTTP_HOST'] === 'localhost' ||
+                    $_SERVER['HTTP_HOST'] === '127.0.0.1' ||
+                    strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0 ||
+                    strpos($_SERVER['HTTP_HOST'], '127.0.0.1:') === 0
+                )
+            );
+        }
+
+        if ($is_local) {
+            $this->db_host = 'localhost';
+            $this->db_user = 'root';
+            $this->db_pass = '';
+            $this->db_name = 'admin_quiz';
+        } else {
+            $this->db_host = 'localhost';
+            $this->db_user = 'forcopix_uquizadmin';
+            $this->db_pass = 'Jgqk_NROs25_98';
+            $this->db_name = 'forcopix_uquizadmin';
+        }
+    }
 
 
 
