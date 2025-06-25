@@ -706,17 +706,25 @@ if (isset($_POST['access_key']) && isset($_POST['trends']) && $_POST['trends'] =
 
 
 
+    $type = isset($_POST['type']) && $_POST['type'] != 'for-you' ? $_POST['type'] : "";
 
-
-    $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
+    if ($type === '' || $type === "''") {
+        // Fetch all quiz types
+        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
 FROM teacher_category tc
-LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id WHERE
-tc.publish='true' AND tc.visibility='public'
+LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
+WHERE tc.publish='true' AND tc.visibility='public'
 GROUP BY tc.uid
-ORDER BY tc.likes DESC,tc.views DESC";
-
-
-
+ORDER BY tc.likes DESC, tc.views DESC";
+    } else {
+        // Fetch specific quiz type
+        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
+FROM teacher_category tc
+LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
+WHERE tc.publish='true' AND tc.visibility='public' AND tc.quiz_type = '$type'
+GROUP BY tc.uid
+ORDER BY tc.likes DESC, tc.views DESC";
+    }
 
     if ($db->sql($sql)) {
         $result = $db->getResult();
@@ -1421,3 +1429,39 @@ if (isset($_POST['access_key']) && isset($_POST['delete_question']) && $_POST['d
     print_r(json_encode($response));
     exit;
 };
+
+
+
+
+if (isset($_POST['access_key']) && isset($_POST['update_category_video_id']) && $_POST['update_category_video_id'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        echo json_encode($response);
+        return false;
+    }
+
+    if (isset($_POST['category_uid'], $_POST['video_id'])) {
+        $category_uid = $db->escapeString($_POST['category_uid']);
+        $video_id = $db->escapeString($_POST['video_id']);
+
+
+        $sql = "UPDATE teacher_category SET video_id = '$video_id' WHERE uid = '$category_uid'";
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Category updated successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to update category";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide category_uid, name, quiz_type, and teacher_id";
+    }
+    echo json_encode($response);
+    return false;
+}
