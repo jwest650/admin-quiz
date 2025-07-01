@@ -3630,20 +3630,20 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_categor
 
 
 
-   
+
     if (isset($_POST['teacher_id'])) {
 
         $teacher_id = $db->escapeString($_POST['teacher_id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
-      
+
 
         $sql = "SELECT * FROM  teacher_school_quiz_category WHERE teacher_id = $teacher_id ";
         $db->sql($sql);
         $result = $db->getResult();
         if (!empty($result)) {
-          
-           
-           
+
+
+
             $response['error'] = "false";
             $response['data'] = $result;
         } else {
@@ -3651,10 +3651,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_categor
             $response['message'] = "No data found!";
         }
     } else {
-        
-            $response['error'] = "true";
-            $response['message'] = "Please pass all the fields";
-        
+
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
 }
@@ -3680,20 +3679,20 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_subcate
 
 
 
-   
+
     if (isset($_POST['category_id'])) {
 
         $category_id = $db->escapeString($_POST['category_id']);
         // $sql = "SELECT *,(select count(id) from question where question.category=c.id and question_level =$question-level ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of, if(@no_of_subcategories = 0, (SELECT @maxlevel := MAX(`level`+0) from question q WHERE c.id = q.category ),@maxlevel := 0) as `maxlevel` FROM `category` c WHERE c.id = $id ORDER By CAST(c.row_order as unsigned) ASC";
-      
+
 
         $sql = "SELECT * FROM  teacher_school_quiz_subcategory WHERE category_id = $category_id ";
         $db->sql($sql);
         $result = $db->getResult();
         if (!empty($result)) {
-          
-           
-           
+
+
+
             $response['error'] = "false";
             $response['data'] = $result;
         } else {
@@ -3701,10 +3700,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_subcate
             $response['message'] = "No data found!";
         }
     } else {
-        
-            $response['error'] = "true";
-            $response['message'] = "Please pass all the fields";
-        
+
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
 }
@@ -3731,19 +3729,19 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_questio
 
 
 
-   
+
     if (isset($_POST['subcategory_id'])) {
 
         $subcategory_id = $db->escapeString($_POST['subcategory_id']);
-      
+
 
         $sql = "SELECT * FROM  teacher_school_quiz_questions WHERE subcategory_id = $subcategory_id ";
         $db->sql($sql);
         $result = $db->getResult();
         if (!empty($result)) {
-          
-           
-           
+
+
+
             $response['error'] = "false";
             $response['data'] = $result;
         } else {
@@ -3751,11 +3749,9 @@ if (isset($_POST['access_key']) && isset($_POST['get_teacher_school_quiz_questio
             $response['message'] = "No data found!";
         }
     } else {
-        
-            $response['error'] = "true";
-            $response['message'] = "Please pass all the fields";
-        
+
+        $response['error'] = "true";
+        $response['message'] = "Please pass all the fields";
     }
     print_r(json_encode($response));
 }
-

@@ -18,7 +18,8 @@
             $db->sql("SET `time_zone` = '+05:30'");
         }
 
-        function get_count($field, $table, $where = '') {
+        function get_count($field, $table, $where = '')
+        {
             if (!empty($where))
                 $where = "where " . $where;
 
@@ -32,7 +33,8 @@
 
         $auth_username = $db->escapeString($_SESSION["username"]);
 
-        function checkadmin($auth_username) {
+        function checkadmin($auth_username)
+        {
             $db = new Database();
             $db->connect();
             $db->sql("SELECT `auth_username`,`role` FROM `authenticate` WHERE `auth_username`='$auth_username' LIMIT 1");
@@ -66,7 +68,7 @@
                 </div>
                 <div class="clearfix"></div>
                 <!-- menu profile quick info -->
-                <div class="profile clearfix text-center">                   
+                <div class="profile clearfix text-center">
                     <div class="profile_info">
                         <h2> <?= ucwords($_SESSION['company_name']) ?> Admin Panel</h2>
                     </div>
@@ -77,30 +79,37 @@
                     <div class="menu_section">
 
                         <ul class="nav side-menu">
-                            <li><a href ="home.php"><em class="fas fa-home"></em> Home</a></li>
+                            <li><a href="home.php"><em class="fas fa-home"></em> Home</a></li>
                             <?php if (checkadmin($auth_username)) { ?>
-                                <li><a href ="users.php"><em class="fas fa-users"></em> Users</a></li>
+                                <li><a href="users.php"><em class="fas fa-users"></em> Users</a></li>
                                 <li>
                                     <a><em class="fas fa-th"></em> Leaderboard<span class="fas fa-caret-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li><a href="global-leaderboard.php">All</a></li>
                                         <li><a href="monthly-leaderboard.php">Monthly</a></li>
-                                        <li><a href="daily-leaderboard.php">Daily</a></li>                                       
+                                        <li><a href="daily-leaderboard.php">Daily</a></li>
                                     </ul>
-                                </li> 
+                                </li>
                                 <li>
                                     <a><em class="fas fa-th"></em> Junior Leaderboard<span class="fas fa-caret-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li><a href="global-junior-leaderboard.php">All</a></li>
                                         <li><a href="monthly-junior-leaderboard.php">Monthly</a></li>
-                                        <li><a href="daily-junior-leaderboard.php">Daily</a></li>                                       
+                                        <li><a href="daily-junior-leaderboard.php">Daily</a></li>
                                     </ul>
-                                </li>    
-                                <li><a href ="users.php"><em class="fas fa-users"></em> Users</a></li>
-                                                                 
+                                </li>
+                                <li>
+                                    <a><em class="fas fa-th"></em> import Junior <span class="fas fa-caret-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="import-junior.php">Import Questions</a></li>
+                                    </ul>
+
+                                </li>
+                                <li><a href="users.php"><em class="fas fa-users"></em> Users</a></li>
+
                                 <?php if ($fn->is_language_mode_enabled()) { ?>
                                     <li><a href="languages.php"><em class="fas fa-language"></em> Languages</a></li>
-                                    <?php
+                            <?php
                                 }
                             }
                             ?>
@@ -122,8 +131,8 @@
                                     <li><a href="junior-questions.php">Questions</a></li>
                                 </ul>
                             </li>
-                            <li><a href="daily-quiz.php"><em class="fas fa-question"></em> Daily Quiz</a></li>                          
-                            <li><a href="daily-junior-quiz.php"><em class="fas fa-question"></em> Daily Junior Quiz</a></li>                          
+                            <li><a href="daily-quiz.php"><em class="fas fa-question"></em> Daily Quiz</a></li>
+                            <li><a href="daily-junior-quiz.php"><em class="fas fa-question"></em> Daily Junior Quiz</a></li>
                             <li>
                                 <a><em class="fas fa-book"></em> Learning Zone<span class="fas fa-caret-down"></span></a>
                                 <ul class="nav child_menu">
@@ -161,11 +170,11 @@
                                 </ul>
                             </li>
                             <li>
-                            <a><em class="fas fa-graduation-cap"></em> Exam Module<span class="fas fa-caret-down"></span></a>
-                            <ul class="nav child_menu">
+                                <a><em class="fas fa-graduation-cap"></em> Exam Module<span class="fas fa-caret-down"></span></a>
+                                <ul class="nav child_menu">
                                     <li><a href="exam-module.php">Exam Module</a></li>
                                     <li><a href="exam-import-question.php">Import Questions</a></li>
-                                    
+
                                 </ul>
                             </li>
 
@@ -193,8 +202,8 @@
                                         <li><a href="about-us.php">About Us</a></li>
                                         <li><a href="instructions.php">Instructions</a></li>
                                         <li><a href="privacy-policy.php">Privacy Policy</a></li>
-                                        <li><a href="terms-conditions.php">Terms Conditions</a></li>    
-                                        <li><a href="web-firebase-settings.php">Web Firebase Settings</a></li>                                       
+                                        <li><a href="terms-conditions.php">Terms Conditions</a></li>
+                                        <li><a href="web-firebase-settings.php">Web Firebase Settings</a></li>
                                     </ul>
                                 </li>
                                 <li><a href="system-update.php"><em class="fas fa-cloud-download-alt"></em> System Update</a></li>

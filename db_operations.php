@@ -41,6 +41,9 @@ $toDateTime = date('Y-m-d H:i:s');
 $allowedExts = array("gif", "jpeg", "jpg", "png", "JPEG", "JPG", "PNG");
 $allowedType = array("pdf");
 
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error.log');
+
 define('ALLOW_MODIFICATION', 1);
 /*
   1. add_category
@@ -3736,3 +3739,103 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
         exit();
     }
 }
+
+
+if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
+
+
+
+
+    if (!isset(
+        $_POST['category'],
+        $_POST['subcategory'],
+        $_FILES['questions'],
+        $_POST['question_type'],
+        $_POST['question_level'],
+        $_POST['language_id'],
+
+
+
+
+    )) {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+        error_log(json_encode($response));
+        return false;
+    }
+
+    // Check if file upload was successful - FIXED logic
+    if (!isset($_FILES['questions']) || $_FILES['questions']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode([
+            'error' => 'true',
+            'message' => 'No file uploaded or upload error'
+        ]);
+        exit;
+    }
+
+    $csvFile = $_FILES['questions']['tmp_name'];
+
+    // Open and read the CSV file
+    if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        $header = fgetcsv($handle);
+        $questions = [];
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            $questions[] = [
+                'question' => $data[0],
+                'option_a' => $data[1],
+                'option_b' => $data[2],
+                'option_c' => $data[3],
+                'option_d' => $data[4],
+                'option_e' => isset($data[5]) ? $data[5] : '', // Optional field for option E
+                'answer' => $data[6],
+                'image' => isset($data[7]) ? $data[7] : '', // Optional image field
+            ];
+        }
+        fclose($handle);
+
+        $category = htmlspecialchars($_POST['category']);
+        $subcategory = htmlspecialchars($_POST['subcategory']);
+        $question_type = htmlspecialchars($_POST['question_type']);
+        $question_level = htmlspecialchars($_POST['question_level']);
+
+        // FIXED: Move this outside the loop
+
+        foreach ($questions as $value) {
+            try {
+                $question = $db->escapeString($value['question']); // FIXED: Added escaping
+                $optiona = $db->escapeString($value['option_a']);
+                $optionb = $db->escapeString($value['option_b']);
+                $optionc = $db->escapeString($value['option_c']);
+                $optiond = $db->escapeString($value['option_d']);
+                $optione = $db->escapeString($value['option_e']);
+                $image = $db->escapeString($value['image']);
+                $answer = $db->escapeString($value['answer']);
+
+                $sql_2 = "INSERT INTO junior_question
+                          (question, optiona, optionb, optionc, optiond, answer, subcategory,category, question_type,level,image,optione) 
+                          VALUES 
+                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory','$category','$question_type','$question_level','$image','$optione')";
+
+                if (!$db->sql($sql_2)) {
+                    throw new Exception('Failed to insert question');
+                }
+            } catch (Exception $e) {
+                error_log("Error processing question: " . $e->getMessage());
+                echo json_encode([
+                    'error' => 'true',
+                    'message' => 'Error processing questions: ' . $e->getMessage()
+                ]);
+                exit;
+            }
+        }
+
+        echo json_encode(['error' => 'false', 'success' => true]);
+        exit;
+    } else {
+        echo json_encode([
+            'error' => 'true',
+            'message' => 'Failed to read CSV file'
+        ]);
+        exit;
+    }
+};
