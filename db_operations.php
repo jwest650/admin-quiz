@@ -3751,7 +3751,6 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
         $_POST['subcategory'],
         $_FILES['questions'],
         $_POST['question_type'],
-        $_POST['question_level'],
 
 
 
@@ -3787,7 +3786,8 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
                 'option_d' => $data[4],
                 'option_e' => isset($data[5]) ? $data[5] : '', // Optional field for option E
                 'answer' => $data[6],
-                'image' => isset($data[7]) ? $data[7] : '', // Optional image field
+                'level' => isset($data[7]) ? $data[7] : '', // Optional level field
+                'image' => isset($data[8]) ? $data[8] : '', // Optional image field
             ];
         }
         fclose($handle);
@@ -3795,7 +3795,6 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
         $category = htmlspecialchars($_POST['category']);
         $subcategory = htmlspecialchars($_POST['subcategory']);
         $question_type = htmlspecialchars($_POST['question_type']);
-        $question_level = htmlspecialchars($_POST['question_level']);
 
         // FIXED: Move this outside the loop
 
@@ -3807,13 +3806,14 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
                 $optionc = $db->escapeString($value['option_c']);
                 $optiond = $db->escapeString($value['option_d']);
                 $optione = $db->escapeString($value['option_e']);
+                $level = $db->escapeString($value['level']);
                 $image = $db->escapeString($value['image']);
                 $answer = $db->escapeString($value['answer']);
 
                 $sql_2 = "INSERT INTO junior_question
                           (question, optiona, optionb, optionc, optiond, answer, subcategory,category, question_type,level,image,optione) 
                           VALUES 
-                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory','$category','$question_type','$question_level','$image','$optione')";
+                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory','$category','$question_type','$level','$image','$optione')";
 
                 if (!$db->sql($sql_2)) {
                     throw new Exception('Failed to insert question');

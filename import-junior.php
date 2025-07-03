@@ -85,16 +85,7 @@ $type = 1;
                   </select>
                 </div>
               </div>
-              <div class="form-group ">
-                <label class="control-label " for="subcategory">question level</label>
-                <div class="">
-                  <select name='question_level' id='question_level' class='form-control'>
-                    <option value=''>Select Level</option>
-                    <option value='1'>Easy</option>
-                    <option value='2'>Medium</option>
-                  </select>
-                </div>
-              </div>
+
               </section>
 
           </div>
@@ -131,9 +122,9 @@ $type = 1;
           <li>Save as this file with .txt extension and change the encoding : UTF-8.</li>
           <li>Change the file extension .txt to .csv.</li>
           <li>Now this file use import question.</li>
-          <li>Do not rearrange the column order. eg.('question,optiona,optionb,optionc,optiond,optione,answer,image
-            What is the capital of Ghana?,Accra,Kumasi,Tamale,Takoradi,Cape Coast,a,https://example.com/image1.jpg
-            Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,Saturn,c,https://example.com/image2.jpg
+          <li>Do not rearrange the column order. eg.('question,optiona,optionb,optionc,optiond,optione,answer,level,image
+            What is the capital of Ghana?,Accra,Kumasi,Tamale,Takoradi,Cape Coast,a,1,https://example.com/image1.jpg
+            Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,Saturn,c,2,https://example.com/image2.jpg
             ')</li>
         </ol>
       </div>
