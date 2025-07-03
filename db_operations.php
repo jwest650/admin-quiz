@@ -3752,7 +3752,6 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
         $_FILES['questions'],
         $_POST['question_type'],
         $_POST['question_level'],
-        $_POST['language_id'],
 
 
 
