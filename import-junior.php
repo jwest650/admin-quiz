@@ -122,10 +122,11 @@ $type = 1;
           <li>Save as this file with .txt extension and change the encoding : UTF-8.</li>
           <li>Change the file extension .txt to .csv.</li>
           <li>Now this file use import question.</li>
-          <li>Do not rearrange the column order. eg.('question,optiona,optionb,optionc,optiond,optione,answer,level,image
-            What is the capital of Ghana?,Accra,Kumasi,Tamale,Takoradi,Cape Coast,a,1,https://example.com/image1.jpg
-            Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,Saturn,c,2,https://example.com/image2.jpg
-            ')</li>
+          <li>Do not rearrange the column order. eg.(question,optiona,optionb,optionc,optiond,optione,answer,level,image,language_id</li>
+          <li>Example data format:</li>
+          What is the capital of Ghana?,Accra,Kumasi,Tamale,Takoradi,Cape Coast,a,1,https://example.com/image1.jpg,1
+          Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,Saturn,c,2,https://example.com/image2.jpg,1
+          )</li>
         </ol>
       </div>
 

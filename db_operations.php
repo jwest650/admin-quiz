@@ -3788,6 +3788,7 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
                 'answer' => $data[6],
                 'level' => isset($data[7]) ? $data[7] : '', // Optional level field
                 'image' => isset($data[8]) ? $data[8] : '', // Optional image field
+                'language_id' => isset($data[9]) ? $data[9] : '', // Optional language field
             ];
         }
         fclose($handle);
@@ -3809,11 +3810,12 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
                 $level = $db->escapeString($value['level']);
                 $image = $db->escapeString($value['image']);
                 $answer = $db->escapeString($value['answer']);
+                $language_id = $db->escapeString($value['language_id']);
 
                 $sql_2 = "INSERT INTO junior_question
-                          (question, optiona, optionb, optionc, optiond, answer, subcategory,category, question_type,level,image,optione) 
+                          (question, optiona, optionb, optionc, optiond, answer, subcategory,category, question_type,level,image,optione,language_id) 
                           VALUES 
-                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory','$category','$question_type','$level','$image','$optione')";
+                          ('$question', '$optiona', '$optionb', '$optionc', '$optiond', '$answer', '$subcategory','$category','$question_type','$level','$image','$optione','$language_id')";
 
                 if (!$db->sql($sql_2)) {
                     throw new Exception('Failed to insert question');
