@@ -24,6 +24,12 @@ header('X-Content-Type-Options: nosniff');
 include('library/crud.php');
 include('library/functions.php');
 
+ini_set("log_errors", 1);
+ini_set("error_log", __DIR__ . "/error.log"); // log file path
+error_reporting(E_ALL);
+
+
+
 $db = new Database();
 $db->connect();
 
@@ -921,6 +927,7 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
         $account_type = (isset($_POST['account_type'])) ? $db->escapeString(htmlspecialchars($_POST['account_type'])) : '';
         $points = '0';
         $status = '1';
+        error_log("Firebase ID: " . $account_type);
 
         if (!empty($friends_code)) {
             $code = $fn->valid_friends_refer_code($friends_code);
