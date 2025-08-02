@@ -71,6 +71,7 @@ if (isset($_POST['access_key'], $_POST['get_teacher_questions']) && $_POST['get_
 
     if (isset($_POST['category_uid'])) {
         $category_uid = $db->escapeString($_POST['category_uid']);
+        error_log($category_uid);
 
 
         // Fetch category data
@@ -1463,5 +1464,201 @@ if (isset($_POST['access_key']) && isset($_POST['update_category_video_id']) && 
         $response['message'] = "Please provide category_uid, name, quiz_type, and teacher_id";
     }
     echo json_encode($response);
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['create_class']) && $_POST['create_class'] == 1) {
+
+
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['name'])  || !isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide name, guardian, and teacher_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $name = $db->escapeString($_POST['name']);
+    $teacher_id =  $db->escapeString($_POST['teacher_id']);
+
+    $sql = "INSERT INTO teacher_classes (name, teacher_id) VALUES ('$name', '$teacher_id')";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Class created successfully";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to create class";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['fetch_classes']) && $_POST['fetch_classes'] == 1) {
+
+
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    $teacher_id =  $db->escapeString($_POST['teacher_id']);
+
+    $sql = "SELECT * FROM teacher_classes WHERE teacher_id = '$teacher_id'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Classes fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch classes";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['add_student']) && $_POST['add_student'] == 1) {
+
+
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['name'])  || !isset($_POST['teacher_id']) || !isset($_POST['class_id']) || !isset($_POST['guardian']) || !isset($_POST['user_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide name, guardian, teacher_id, class_id, and user_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $name = $db->escapeString($_POST['name']);
+    $teacher_id =  $db->escapeString($_POST['teacher_id']);
+    $class_id =  $db->escapeString($_POST['class_id']);
+    $guardian =  $db->escapeString($_POST['guardian']);
+    $user_id =  $db->escapeString($_POST['user_id']);
+
+    $sql = "INSERT INTO teacher_class_students (name, teacher_id, class_id, guardian, user_id) VALUES ('$name', '$teacher_id', '$class_id', '$guardian', '$user_id')";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Student added successfully";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to add student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['fetch_students']) && $_POST['fetch_students'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id']) || !isset($_POST['class_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id and class_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $teacher_id =  $db->escapeString($_POST['teacher_id']);
+    $class_id =  $db->escapeString($_POST['class_id']);
+
+    $sql = "SELECT * FROM teacher_class_students WHERE teacher_id = '$teacher_id' AND class_id = '$class_id'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Students fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch students";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['fetch_student']) && $_POST['fetch_student'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['user_id']) || !isset($_POST['class_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide user_id and class_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $user_id =  $db->escapeString($_POST['user_id']);
+    $class_id =  $db->escapeString($_POST['class_id']);
+
+    $sql = "SELECT teacher_class_students.*, tc.name as class_name, u.name as teacher_name FROM teacher_class_students JOIN teacher_classes tc ON teacher_class_students.class_id = tc.id JOIN users u ON u.id = teacher_class_students.teacher_id WHERE teacher_class_students.user_id = '$user_id' AND teacher_class_students.class_id = '$class_id'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Student fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
     return false;
 }
