@@ -866,3 +866,83 @@ API called at 2025-08-03 01:23:34
 API called at 2025-08-03 01:23:34
 API called at 2025-08-03 01:24:57
 API called at 2025-08-03 01:24:57
+API called at 2025-08-03 01:28:07
+API called at 2025-08-03 01:28:07
+API called at 2025-08-04 22:17:14
+API called at 2025-08-04 22:17:14
+API called at 2025-08-04 22:25:03
+API called at 2025-08-04 22:25:03
+API called at 2025-08-04 22:25:07
+API called at 2025-08-04 22:25:57
+API called at 2025-08-04 22:25:57
+API called at 2025-08-04 22:27:44
+API called at 2025-08-04 22:27:44
+API called at 2025-08-04 22:27:57
+API called at 2025-08-04 22:27:57
+API called at 2025-08-04 22:28:00
+API called at 2025-08-04 22:37:29
+API called at 2025-08-04 22:37:29
+API called at 2025-08-04 22:37:31
+API called at 2025-08-04 22:37:55
+API called at 2025-08-04 22:37:55
+API called at 2025-08-04 22:37:59
+API called at 2025-08-04 22:38:01
+API called at 2025-08-04 22:38:01
+API called at 2025-08-04 22:38:31
+API called at 2025-08-04 22:38:31
+API called at 2025-08-04 22:38:33
+API called at 2025-08-04 22:41:51
+API called at 2025-08-04 22:41:52
+API called at 2025-08-04 22:41:54
+API called at 2025-08-04 22:48:25
+API called at 2025-08-04 22:48:25
+API called at 2025-08-04 22:49:39
+API called at 2025-08-04 22:49:39
+API called at 2025-08-04 22:59:01
+API called at 2025-08-04 22:59:01
+API called at 2025-08-04 22:59:02
+[04-Aug-2025 22:59:02 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '.name FROM  users  WHERE id = '651'' at line 1 in D:\Programming\admin-quiz\library\crud.php:104
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(104): mysqli->query('SELECT *.name F...')
+#1 D:\Programming\admin-quiz\api-v2-teacher.php(1691): Database->sql('SELECT *.name F...')
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 104
+API called at 2025-08-04 22:59:32
+API called at 2025-08-04 22:59:32
+[04-Aug-2025 22:59:32 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '.name FROM  users  WHERE id = '651'' at line 1 in D:\Programming\admin-quiz\library\crud.php:104
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(104): mysqli->query('SELECT *.name F...')
+#1 D:\Programming\admin-quiz\api-v2-teacher.php(1691): Database->sql('SELECT *.name F...')
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 104
+API called at 2025-08-04 22:59:34
+API called at 2025-08-04 23:00:41
+API called at 2025-08-04 23:00:41
+API called at 2025-08-04 23:02:24
+API called at 2025-08-04 23:02:24
+API called at 2025-08-04 23:03:09
+API called at 2025-08-04 23:03:09
+API called at 2025-08-04 23:03:13
+API called at 2025-08-04 23:11:42
+API called at 2025-08-04 23:11:42
+[04-Aug-2025 23:11:42 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'teacher_id' in where clause is ambiguous in D:\Programming\admin-quiz\library\crud.php:104
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(104): mysqli->query('SELECT *,COUNT(...')
+#1 D:\Programming\admin-quiz\api-v2-teacher.php(1536): Database->sql('SELECT *,COUNT(...')
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 104
+API called at 2025-08-04 23:13:29
+API called at 2025-08-04 23:13:29
+API called at 2025-08-04 23:13:48
+API called at 2025-08-04 23:13:48
+API called at 2025-08-04 23:21:12
+API called at 2025-08-04 23:21:12
+API called at 2025-08-04 23:21:12
+API called at 2025-08-04 23:22:38
+API called at 2025-08-04 23:22:38
+API called at 2025-08-04 23:28:18
+API called at 2025-08-04 23:28:18
+API called at 2025-08-04 23:28:19
+API called at 2025-08-04 23:33:22
+API called at 2025-08-04 23:33:22
+API called at 2025-08-04 23:33:23
