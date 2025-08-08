@@ -1537,7 +1537,7 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_classes']) && $_POST['fet
     COUNT(tcs.id) AS student_count 
 FROM 
     teacher_classes tc 
-JOIN 
+LEFT JOIN 
     teacher_class_students tcs 
     ON tcs.class_id = tc.id 
     AND tcs.teacher_id = tc.teacher_id 
