@@ -1625,7 +1625,11 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_students_class_details'])
     $teacher_id =  $db->escapeString($_POST['teacher_id']);
     $class_id =  $db->escapeString($_POST['class_id']);
 
-    $sql = "SELECT tcs.*,tc.name as class_name FROM teacher_class_students tcs JOIN teacher_classes tc ON tc.id = tcs.class_id WHERE tcs.teacher_id = '$teacher_id' AND tcs.class_id = '$class_id'";
+    $sql = "SELECT tcs.*, tc.name as class_name 
+            FROM teacher_classes tc 
+            LEFT JOIN teacher_class_students tcs 
+            ON tc.id = tcs.class_id 
+            WHERE tc.id = '$class_id' AND tc.teacher_id = '$teacher_id'";
     if ($db->sql($sql)) {
         $response['error'] = "false";
         $response['message'] = "Students fetched successfully";
