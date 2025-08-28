@@ -47,7 +47,6 @@ ini_set('log_errors', 1);
 ini_set('error_log', './error.log');
 error_reporting(E_ALL);
 
-error_log("API called at " . date('Y-m-d H:i:s') . "\n", 3, './error.log');
 
 if (isset($_POST['access_key'], $_POST['get_teacher_questions']) && $_POST['get_teacher_questions'] == 1) {
 
@@ -340,7 +339,7 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
         print_r(json_encode($response));
         return false;
     }
-    $success = true;
+
 
     if ($_POST['category_uid'] && $_POST['teacher_id']) {
 
@@ -372,12 +371,9 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
                 $response['message'] = "file type not accepted";
                 exit;
             }
-            if (!is_dir($uploadFileDir)) {
-                mkdir($uploadFileDir, 0755, true); // Create the directory if it doesn't exist
-            }
+
             $dest_path = $uploadFileDir . $fileName;
             $image_url = $base_url . $dest_path;
-
             // Move the file to the specified directory
             if (move_uploaded_file($fileTmpPath, $dest_path)) {
                 $sql = "UPDATE teacher_category 
@@ -391,7 +387,7 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
         } else {
             $sql = "UPDATE teacher_category 
             SET name = '$name', grade = '$grade', subject = '$subject', 
-                visibility = '$visibility', language = '$language' 
+                visibility = '$visibility', language = '$language'  
             WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
         }
 
@@ -1709,6 +1705,196 @@ if (isset($_POST['access_key']) && isset($_POST['get_user']) && $_POST['get_user
         $response['error'] = "false";
         $response['message'] = "User fetched successfully";
         $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['teacher_categories']) && $_POST['teacher_categories'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['user_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide user_id ";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $user_id =  $db->escapeString($_POST['user_id']);
+
+    $sql = "SELECT name FROM  users  WHERE id = '$user_id' visibility ='public' AND publish ='true'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "User fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['explore_junior_categories']) && $_POST['explore_junior_categories'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    error_log('yes');
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    $sql = "SELECT name,uid,image FROM  teacher_category WHERE grade ='junior'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['explore_senior_categories']) && $_POST['explore_senior_categories'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    error_log('yes');
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    $sql = "SELECT name,uid,image FROM  teacher_category WHERE grade ='senior' OR grade='higher'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_categories']) && $_POST['get_categories'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['type'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $type = $_POST['type'];
+
+    $sql = "SELECT name,uid,image FROM  teacher_category WHERE subject ='$type'";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch student";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['get_category_with_questions']) && $_POST['get_category_with_questions'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['uid'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $uid = $_POST['uid'];
+    $result = [];
+
+    $sql = "SELECT tc.name,tc.uid,tc.image,us.name as teacher_name, us.profile FROM  teacher_category tc JOIN 
+    users us 
+    ON us.id = tc.teacher_id  WHERE tc.uid='$uid' AND tc.visibility ='public' AND tc.publish ='true'";
+
+    $db->sql($sql);
+    $result['category'] = $db->getResult();
+
+    if (isset($result['category']['profile'])) {
+        if (!filter_var($question['profile'], FILTER_VALIDATE_URL)) {
+            $result['category']['profile'] = !empty($result['category']['profile'])
+                ? DOMAIN_URL . 'uploads/profile/' . $result['category']['profile']
+                : '';
+        }
+    }
+
+    $sql = "SELECT COUNT(id) FROM  teacher_questions  WHERE category_uid='$uid' ";
+    $db->sql($sql);
+    $result['questions'] = $db->getResult();
+
+
+
+
+
+    if (!empty($result)) {
+        $response['error'] = "false";
+        $response['message'] = "Fetched successfully";
+        $response['data'] = $result;
     } else {
         $response['error'] = "true";
         $response['message'] = "Failed to fetch student";
