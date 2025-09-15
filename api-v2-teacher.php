@@ -1892,13 +1892,609 @@ if (isset($_POST['access_key']) && isset($_POST['get_category_with_questions']) 
 
 
     if (!empty($result)) {
-        $response['error'] = "false";
-        $response['message'] = "Fetched successfully";
-        $response['data'] = $result;
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $result
+        ]);
+    } else if (empty($result)) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => false,
+            "message" => "successfully",
+            "data" => $result
+        ]);
     } else {
-        $response['error'] = "true";
-        $response['message'] = "Failed to fetch student";
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
     }
-    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['get_library_category_info']) && $_POST['get_library_category_info'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $uid = $_POST['teacher_id'];
+    $sql = "SELECT 
+                (SELECT COUNT(*) FROM teacher_category WHERE teacher_id='$uid' AND is_copied=false) as created_by_me,
+                (SELECT COUNT(*) FROM teacher_quiz_likes WHERE teacher_id='$uid') as like_by_me,
+                (SELECT COUNT(*) FROM teacher_category WHERE teacher_id='$uid') as all_content";
+
+
+    $db->sql($sql);
+
+    $result = $db->getResult();
+
+    if (!empty($result)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $result
+        ]);
+    } else if (empty($result)) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => false,
+            "message" => "successfully",
+            "data" => $result
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_liked_quizzes']) && $_POST['get_liked_quizzes'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $sql = "SELECT 
+    tql.teacher_id,
+    tql.quiz_id,
+    tc.uid,
+    tc.name,
+    tc.subject,
+    tc.grade,
+    tc.image,
+    tc.quiz_type,
+    COUNT(DISTINCT tq.id) AS question_count
+FROM teacher_quiz_likes tql
+JOIN teacher_category tc ON tc.uid = tql.quiz_id
+LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid
+WHERE tql.teacher_id = '$teacher_id'
+GROUP BY tql.quiz_id;
+";
+
+
+
+
+
+    $db->sql($sql);
+
+    $result = $db->getResult();
+
+    if (!empty($result)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $result
+        ]);
+    } else if (empty($result)) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => false,
+            "message" => "successfully",
+            "data" => $result
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['like_quiz']) && $_POST['like_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['quiz_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $quiz_id = $_POST['quiz_id'];
+    $sql = "INSERT INTO teacher_quiz_likes (teacher_id, quiz_id) VALUES ('$teacher_id', '$quiz_id')
+";
+
+
+
+
+
+
+
+
+
+    try {
+        $sql = "INSERT INTO teacher_quiz_likes (teacher_id, quiz_id) 
+            VALUES ('$teacher_id', '$quiz_id')";
+        $db->sql($sql);
+
+        echo json_encode([
+            "error" => false,
+            "message" => "Quiz liked successfully"
+        ]);
+    } catch (Exception $e) {
+        if ($db->errno == 1062) { // 1062 = Duplicate entry
+            echo json_encode([
+                "error" => true,
+                "message" => "Quiz already liked"
+            ]);
+        } else {
+            echo json_encode([
+                "error" => true,
+                "message" => "Error liking quiz: " . $db->error
+            ]);
+        }
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_all_content']) && $_POST['get_all_content'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $sql = "SELECT tc.*,COUNT(tq.id) as question_count FROM teacher_category tc JOIN teacher_questions tq ON tq.category_uid =tc.uid WHERE tc.teacher_id ='$teacher_id' GROUP BY tc.id";
+
+
+    $db->sql($sql);
+
+    $result = $db->getResult();
+
+    if (!empty($result)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $result
+        ]);
+    } else if (empty($result)) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => false,
+            "message" => "successfully",
+            "data" => $result
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['get_collection']) && $_POST['get_collection'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $sql = "SELECT * FROM teacher_folders WHERE teacher_id='$teacher_id'";
+
+
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $db->getResult()
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['create_collection']) && $_POST['create_collection'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['folder_name'], $_POST['quiz_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $folder_name = $db->escapeString($_POST['folder_name']);
+    $quiz_id = $db->escapeString($_POST['quiz_id']);
+    $sql = "INSERT INTO  teacher_folders (teacher_id,name) VALUES ('$teacher_id','$folder_name')";
+
+
+    $db->sql($sql);
+    $folder_id = $db->insert_id();
+    $sql = "INSERT INTO  teacher_folder_quizzes (folder_id,quiz_id) VALUES ('$folder_id','$quiz_id')";
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['add_to_collection']) && $_POST['add_to_collection'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['collections'], $_POST['quiz_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $folder_ids = $_POST['collections'] ?? ''; // e.g. "1,2,3"
+    $quiz_id = $db->escapeString($_POST['quiz_id'] ?? '');
+
+    if (!empty($folder_ids) && !empty($quiz_id)) {
+        $folder_ids = explode(',', $folder_ids);
+
+        $success = true; // track if all inserts work
+
+        foreach ($folder_ids as $folder_id) {
+            $folder_id = $db->escapeString(trim($folder_id));
+
+            if ($folder_id !== '') {
+                $sql = "INSERT INTO teacher_folder_quizzes (folder_id, quiz_id) 
+                    VALUES ('$folder_id', '$quiz_id')";
+
+                if (!$db->sql($sql)) {
+                    $success = false; // mark as failed if any insert fails
+                }
+            }
+        }
+
+        if ($success) {
+            http_response_code(200);
+            echo json_encode([
+                "error" => false,
+                "message" => "Inserted successfully"
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                "error" => true,
+                "message" => "One or more inserts failed"
+            ]);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode([
+            "error" => true,
+            "message" => "Invalid input"
+        ]);
+    }
+}
+
+
+
+if (isset($_POST['access_key']) && isset($_POST['copy_quiz']) && $_POST['copy_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['quiz_id'], $_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $uid = $_POST['quiz_id'];
+    $teacher_id = $_POST['teacher_id'];
+    $sql = "INSERT INTO teacher_category  (name, subject, grade, image, teacher_id, language, quiz_type, video_id,is_copied,visibility) 
+        SELECT name, subject, grade,  image, $teacher_id, language, quiz_type, video_id,true,'private'
+        FROM teacher_category 
+        WHERE uid = '$uid'";
+
+    $db->sql($sql);
+
+
+    $new_quiz_id = "SELECT uid FROM teacher_category WHERE id = " . $db->insert_id();
+    $db->sql($new_quiz_id);
+    $new_quiz_id = $db->getResult();
+    $new_quiz_id = $new_quiz_id[0]['uid'];
+    error_log("New Quiz ID: " . $new_quiz_id);
+
+
+    $sql = "INSERT INTO teacher_questions (
+                     category_uid, question, question_type, 
+                    optiona, optionb, optionc, optiond, optione, 
+                    points, answer, time, teacher_id,video_time
+                ) 
+        SELECT '$new_quiz_id', question, question_type, 
+                    optiona, optionb, optionc, optiond, optione, 
+                    points, answer, time, $teacher_id,video_time
+        FROM teacher_questions 
+        WHERE category_uid = '$uid'";
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['create_collection_folder']) && $_POST['create_collection_folder'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['folder_name'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $folder_name = $db->escapeString($_POST['folder_name']);
+    $sql = "INSERT INTO  teacher_folders (teacher_id,name) VALUES ('$teacher_id','$folder_name')";
+
+
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_folder_quiz']) && $_POST['get_folder_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['folder_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $folder_id = $_POST['folder_id'];
+
+    $sql = "SELECT quiz_id FROM teacher_folder_quizzes 
+            
+            WHERE folder_id='$folder_id'";
+
+    $db->sql($sql);
+    $result = $db->getResult();
+
+    if (!empty($result)) {
+        $quiz_ids = array_column($result, 'quiz_id');
+        $quiz_ids_str = implode("','", $quiz_ids);
+        error_log("Quiz IDs: " . $quiz_ids_str);
+
+        $sql = "SELECT tc.*,COUNT(tq.id) as question_count FROM teacher_category tc JOIN teacher_questions tq ON tq.category_uid =tc.uid WHERE uid IN ('$quiz_ids_str') GROUP BY tc.id";
+
+        if ($db->sql($sql)) {
+            http_response_code(200);
+            echo json_encode([
+                "error" => false,
+                "message" => "Fetched successfully",
+                "data" => $db->getResult()
+
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                "error" => true,
+                "message" => "Failed to fetch data"
+            ]);
+        }
+    } else {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "No quizzes found in this folder",
+            "data" => []
+
+        ]);
+    }
+
+
+
+
+
+
+
+
     return false;
 }

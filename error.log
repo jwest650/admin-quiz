@@ -1,57 +1,160 @@
-[28-Aug-2025 11:58:10 Africa/Accra] Firebase ID: 
-[28-Aug-2025 14:02:27 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:04:34 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:04:56 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:05:10 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:05:41 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:06:35 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:07:03 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:07:29 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:07:47 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:08:02 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:15:05 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:15:47 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:15:51 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:18:14 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:19:18 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:36:51 Europe/Berlin] a224a0c7-67fa-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 14:37:17 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 12:37:57 Africa/Accra] Firebase ID: 
-[28-Aug-2025 14:38:15 Europe/Berlin] yes
-[28-Aug-2025 14:38:15 Europe/Berlin] yes
-[28-Aug-2025 14:39:39 Europe/Berlin] yes
-[28-Aug-2025 14:39:39 Europe/Berlin] yes
-[28-Aug-2025 14:41:39 Europe/Berlin] yes
-[28-Aug-2025 14:41:39 Europe/Berlin] yes
-[28-Aug-2025 14:42:00 Europe/Berlin] yes
-[28-Aug-2025 14:42:00 Europe/Berlin] yes
-[28-Aug-2025 14:44:20 Europe/Berlin] yes
-[28-Aug-2025 14:44:20 Europe/Berlin] yes
-[28-Aug-2025 14:45:04 Europe/Berlin] yes
-[28-Aug-2025 14:45:04 Europe/Berlin] yes
-[28-Aug-2025 14:46:57 Europe/Berlin] yes
-[28-Aug-2025 14:46:57 Europe/Berlin] yes
-[28-Aug-2025 14:48:13 Europe/Berlin] yes
-[28-Aug-2025 14:48:13 Europe/Berlin] yes
-[28-Aug-2025 14:48:19 Europe/Berlin] yes
-[28-Aug-2025 14:48:19 Europe/Berlin] yes
-[28-Aug-2025 14:50:46 Europe/Berlin] yes
-[28-Aug-2025 14:50:46 Europe/Berlin] yes
-[28-Aug-2025 15:49:37 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 15:57:23 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 15:59:21 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 16:01:24 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 16:03:45 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 16:06:41 Europe/Berlin] e97a7fb6-7aa4-11f0-8862-c5cfbe4a393d
-[28-Aug-2025 16:07:14 Europe/Berlin] yes
-[28-Aug-2025 16:07:14 Europe/Berlin] yes
-[28-Aug-2025 19:25:45 Europe/Berlin] yes
-[28-Aug-2025 19:25:45 Europe/Berlin] yes
-[28-Aug-2025 19:27:41 Europe/Berlin] yes
-[28-Aug-2025 19:27:41 Europe/Berlin] yes
-[28-Aug-2025 19:30:40 Europe/Berlin] yes
-[28-Aug-2025 19:30:40 Europe/Berlin] yes
-[28-Aug-2025 19:31:58 Europe/Berlin] yes
-[28-Aug-2025 19:31:58 Europe/Berlin] yes
-[28-Aug-2025 19:32:50 Europe/Berlin] yes
-[28-Aug-2025 19:32:50 Europe/Berlin] yes
+[12-Sep-2025 19:10:54 Europe/Berlin] 1007b5a9-6884-11f0-8862-c5cfbe4a393d
+[12-Sep-2025 19:12:20 Europe/Berlin] Error liking quiz: Duplicate entry '656-1007b5a9-6884-11f0-8862-c5cfbe4a' for key 'unique_like'
+[13-Sep-2025 18:58:20 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 18:58:24 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 18:58:28 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:10 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: MySQL server has gone away in D:\Programming\admin-quiz\library\crud.php:104
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(104): mysqli->query('SELECT * FROM s...')
+#1 D:\Programming\admin-quiz\library\functions.php(41): Database->sql('SELECT * FROM s...')
+#2 D:\Programming\admin-quiz\api-v2.php(37): Functions->get_configurations()
+#3 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 104
+[13-Sep-2025 19:00:15 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:19 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:45 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:49 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:53 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:00:59 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:01:03 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:02:45 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:02:49 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:02:53 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:03:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:03:19 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:03:23 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:05:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:05:18 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[13-Sep-2025 19:05:22 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:71
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(71): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 71
+[15-Sep-2025 15:02:46 Africa/Accra] Firebase ID: 
+[15-Sep-2025 17:05:12 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'admin_quiz.teacher_quiz_likes' doesn't exist in D:\Programming\admin-quiz\library\crud.php:104
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(104): mysqli->query('SELECT \r\n      ...')
+#1 D:\Programming\admin-quiz\api-v2-teacher.php(1945): Database->sql('SELECT \r\n      ...')
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 104
+[15-Sep-2025 18:11:11 Europe/Berlin] 280af5a3-826e-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:11:48 Europe/Berlin] Quiz IDs: 280af5a3-826e-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:11:51 Europe/Berlin] 280af5a3-826e-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:11:59 Europe/Berlin] Quiz IDs: 280af5a3-826e-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:12:24 Europe/Berlin] Quiz IDs: 280af5a3-826e-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:13:36 Europe/Berlin] 2c350ee7-6ae4-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:16:56 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:17:14 Europe/Berlin] New Quiz ID: 71782517-924f-11f0-a940-509a4c514c85
+[15-Sep-2025 18:17:17 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:20:38 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:21:36 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:23:36 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:24:07 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:25:48 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:26:15 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:26:22 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:26:49 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:27:18 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:28:05 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:28:13 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:28:44 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:28:55 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:30:39 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:30:57 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:31:31 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:31:44 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:34:49 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:39:01 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:58:26 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
+[15-Sep-2025 18:58:54 Europe/Berlin] 0ac80568-8359-11f0-8862-c5cfbe4a393d
