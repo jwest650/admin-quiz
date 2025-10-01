@@ -1639,6 +1639,55 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_students_class_details'])
 }
 
 
+if (isset($_POST['access_key']) && isset($_POST['fetch_students_from_classes']) && $_POST['fetch_students_from_classes'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id']) || !isset($_POST['classes'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id and class_id";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $teacher_id =  $db->escapeString($_POST['teacher_id']);
+    $classes_array = json_decode($_POST['classes'], true);
+
+    $where = "WHERE teacher_id=$teacher_id";
+
+    if (!empty($classes_array)) {
+        $result = implode(", ", $classes_array);
+        $where = "WHERE class_id IN ($result) AND teacher_id =$teacher_id";
+    }
+
+    $sql = "SELECT * FROM teacher_class_students $where";
+    error_log($sql);
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Students fetched successfully";
+        $response['data'] = $db->getResult();
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to fetch students";
+    }
+    print_r(json_encode($response));
+    return false;
+}
+
+
+
+
+
 if (isset($_POST['access_key']) && isset($_POST['fetch_student']) && $_POST['fetch_student'] == 1) {
 
     if (!verify_token()) {
@@ -2497,4 +2546,72 @@ if (isset($_POST['access_key']) && isset($_POST['get_folder_quiz']) && $_POST['g
 
 
     return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assign_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $teacher_id = $_POST['teacher_id'];
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $timer = isset($_POST['timer']) ? $db->escapeString($_POST['timer']) : 0;
+    $attempts = isset($_POST['attempts']) ? $db->escapeString($_POST['attempts']) : 0;
+    $show_answers = isset($_POST['show_answers']) ? $db->escapeString($_POST['show_answers']) : 'false';
+    $schuffle_questions = isset($_POST['shuffle_questions']) ? $db->escapeString($_POST['shuffle_questions']) : 'false';
+    $memes = isset($_POST['memes']) ? $db->escapeString($_POST['memes']) : 'false';
+    $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
+    $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
+
+
+    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, shuffle, memes, deadline) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline')";
+    if ($db->sql($sql)) {
+
+        $assigned_quiz_id = $db->insert_id();
+        $response['error'] = "false";
+        $response['message'] = "Quiz assigned successfully";
+        $response['assigned_quiz_id'] = $assigned_quiz_id;
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to assign quiz";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!empty($students)) {
+        // Make sure you have a DB connection $db (PDO or mysqli)
+
+
+        foreach ($students as $student) {
+            // Protect against missing keys
+            $class_id   = isset($student['class_id']) ? intval($student['class_id']) : 0;
+            $student_id = isset($student['id']) ? intval($student['id']) : 0;
+
+            if ($class_id > 0 && $student_id > 0) {
+                $db->sql("INSERT INTO teacher_assigned_students (class_id, student_id,assign_id) VALUES ('$class_id', '$student_id','$assigned_quiz_id')");
+            }
+        }
+    }
+
+    echo (json_encode($response));
+    return false;
+
+    // error_log("Students: " . print_r($students, true));
 }
