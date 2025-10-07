@@ -54,6 +54,8 @@ class Database
 
 
 
+
+
     /*
      * Extra variables that are required by other function such as boolean con variable
      */
@@ -81,6 +83,7 @@ class Database
         }
     }
 
+
     // Function to disconnect from the database
     public function disconnect()
     {
@@ -101,32 +104,41 @@ class Database
 
     public function sql($sql)
     {
-        $query = $this->myconn->query($sql);
-        $this->myQuery = $sql; // Pass back the SQL
-        if ($query) {
-            // If the query returns >= 1 assign the number of rows to numResults
-            $this->numResults = 0;
-            if (isset($query->num_rows) && ($query->num_rows > 0)) {
-                $this->numResults = $query->num_rows;
-            }
-            // Loop through the query results by the number of rows returned
-            for ($i = 0; $i < $this->numResults; $i++) {
-                $r = $query->fetch_array();
-                $key = array_keys($r);
-                for ($x = 0; $x < count($key); $x++) {
-                    // Sanitizes keys so only alphavalues are allowed
-                    if (!is_int($key[$x])) {
-                        if ($query->num_rows >= 1) {
-                            $this->result[$i][$key[$x]] = $r[$key[$x]];
-                        } else {
-                            $this->result = null;
+        try {
+            $query = $this->myconn->query($sql);
+            $this->myQuery = $sql; // Pass back the SQL
+            if ($query) {
+                // If the query returns >= 1 assign the number of rows to numResults
+                $this->numResults = 0;
+                if (isset($query->num_rows) && ($query->num_rows > 0)) {
+                    $this->numResults = $query->num_rows;
+                }
+                // Loop through the query results by the number of rows returned
+                for ($i = 0; $i < $this->numResults; $i++) {
+                    $r = $query->fetch_array();
+                    $key = array_keys($r);
+                    for ($x = 0; $x < count($key); $x++) {
+                        // Sanitizes keys so only alphavalues are allowed
+                        if (!is_int($key[$x])) {
+                            if ($query->num_rows >= 1) {
+                                $this->result[$i][$key[$x]] = $r[$key[$x]];
+                            } else {
+                                $this->result = null;
+                            }
                         }
                     }
                 }
+                return true; // Query was successful
             }
-            return true; // Query was successful
-        } else {
-            array_push($this->result, $this->myconn->error);
+        } catch (Exception $e) {
+            $errorCode = $e->getCode();
+            $errorMessage = $e->getMessage();
+
+            if (strpos($errorMessage, 'Duplicate entry') !== false) {
+                $this->result = ["error" => "Duplicate entry detected"];
+            } else {
+                $this->result = ["error" => $errorMessage];
+            }
             return false; // No rows where returned
         }
     }

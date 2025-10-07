@@ -2563,7 +2563,7 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
         return false;
     }
 
-    if (!isset($_POST['teacher_id'], $_POST['category_uid'])) {
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'], $_POST['access_code'])) {
         $response['error'] = "true";
         $response['message'] = "missing field";
         print_r(json_encode($response));
@@ -2579,9 +2579,11 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
     $memes = isset($_POST['memes']) ? $db->escapeString($_POST['memes']) : 'false';
     $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
     $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
+    $access_code = $db->escapeString($_POST['access_code']);
 
 
-    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, shuffle, memes, deadline) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline')";
+    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, shuffle, memes, deadline,access_code) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline', '$access_code')";
+
     if ($db->sql($sql)) {
 
         $assigned_quiz_id = $db->insert_id();
@@ -2590,8 +2592,13 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
         $response['assigned_quiz_id'] = $assigned_quiz_id;
     } else {
         $response['error'] = "true";
-        $response['message'] = "Failed to assign quiz";
-        print_r(json_encode($response));
+
+        $error_M = $db->getResult();
+
+        $response['message'] = $error_M['error'] ?? "Failed to assign quiz";
+        error_log("SQL Error: " . $response['message']);
+
+        echo (json_encode($response));
         return false;
     }
 
@@ -2614,4 +2621,155 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
     return false;
 
     // error_log("Students: " . print_r($students, true));
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['assign_quiz_details']) && $_POST['assign_quiz_details'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $sql = "SELECT ta.*,tc.name FROM teacher_assign ta JOIN teacher_category tc ON tc.uid ='$category_uid' WHERE ta.teacher_id='$teacher_id' AND ta.category_id='$category_uid'";
+
+
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Fetched successfully",
+            "data" => $db->getResult()
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['end_assigned_quiz']) && $_POST['end_assigned_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $teacher_id = $_POST['teacher_id'];
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $sql = "UPDATE teacher_assign SET deadline=NOW() WHERE teacher_id='$teacher_id' AND category_id='$category_uid'";
+
+
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        echo json_encode([
+            "error" => false,
+            "message" => "Update successfully",
+
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to update data"
+        ]);
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_assignment']) && $_POST['get_assignment'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['student_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $student_id = $_POST['student_id'];
+    error_log($student_id);
+    $sql = "SELECT tcs.*,tc.name,tc.image
+FROM teacher_class_students tcs
+JOIN teacher_assigned_students tas ON tcs.id = tas.student_id
+JOIN teacher_assign ta ON ta.id = tas.assign_id
+AND ta.deadline > NOW()
+join teacher_category tc ON tc.uid = ta.category_id
+WHERE tcs.user_id = '$student_id'";
+
+
+
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
+        error_log($student_id);
+        echo json_encode([
+            "error" => false,
+            "message" => "fetched successfully",
+            'data' => $db->getResult()
+
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
 }
