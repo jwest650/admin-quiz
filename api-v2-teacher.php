@@ -2580,9 +2580,10 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
     $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
     $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
     $access_code = $db->escapeString($_POST['access_code']);
+    $created_at = $_POST['created_at'] ?? "";
 
 
-    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, shuffle, memes, deadline,access_code) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline', '$access_code')";
+    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, schuffle, memes, deadline,access_code) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline', '$access_code')";
 
     if ($db->sql($sql)) {
 
@@ -2622,6 +2623,90 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
 
     // error_log("Students: " . print_r($students, true));
 }
+
+
+
+if (isset($_POST['access_key']) && isset($_POST['edit_assign_quiz']) && $_POST['edit_assign_quiz'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'], $_POST['id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $id = $_POST['id'];
+    $teacher_id = $_POST['teacher_id'];
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $timer = isset($_POST['timer']) ? $db->escapeString($_POST['timer']) : 0;
+    $attempts = isset($_POST['attempts']) ? $db->escapeString($_POST['attempts']) : 0;
+    $show_answers = isset($_POST['show_answers']) ? $db->escapeString($_POST['show_answers']) : 'false';
+    $schuffle_questions = isset($_POST['shuffle_questions']) ? $db->escapeString($_POST['shuffle_questions']) : 'false';
+    $memes = isset($_POST['memes']) ? $db->escapeString($_POST['memes']) : 'false';
+    $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
+    $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
+    $access_code = $db->escapeString($_POST['access_code']);
+    $created_at = $_POST['created_at'] ?? "";
+
+
+    $sql = "UPDATE teacher_assign SET teacher_id='$teacher_id', category_id='$category_uid',timer='$timer', attempt='$attempts',  show_answers='$show_answers', schuffle='$schuffle_questions', memes='$memes',  deadline='$deadline' WHERE category_id='$category_uid' AND teacher_id='$teacher_id' AND id='$id'";
+
+
+
+    if ($db->sql($sql)) {
+
+        $response['error'] = "false";
+        $response['message'] = "Quiz assigned successfully";
+        $response['assigned_quiz_id'] = $assigned_quiz_id;
+    } else {
+        $response['error'] = "true";
+
+        $error_M = $db->getResult();
+
+        $response['message'] = $error_M['error'] ?? "Failed to assign quiz";
+        error_log("SQL Error: " . $response['message']);
+
+        echo (json_encode($response));
+        return false;
+    }
+
+    if (!empty($students)) {
+        // Make sure you have a DB connection $db (PDO or mysqli)
+
+
+        foreach ($students as $student) {
+            // Protect against missing keys
+            $class_id   = isset($student['class_id']) ? intval($student['class_id']) : 0;
+            $student_id = isset($student['id']) ? intval($student['id']) : 0;
+
+            if ($class_id > 0 && $student_id > 0) {
+                $db->sql("  INSERT INTO teacher_assigned_students (class_id, student_id, assign_id)
+            VALUES ('$class_id', '$student_id', '$id')
+            ON DUPLICATE KEY UPDATE 
+                class_id = VALUES(class_id),
+                student_id = VALUES(student_id),
+                assign_id = VALUES(assign_id)");
+            }
+        }
+    }
+
+    echo (json_encode($response));
+    return false;
+
+    // error_log("Students: " . print_r($students, true));
+}
+
 
 
 if (isset($_POST['access_key']) && isset($_POST['assign_quiz_details']) && $_POST['assign_quiz_details'] == 1) {
@@ -2757,6 +2842,69 @@ WHERE tcs.user_id = '$student_id'";
     if ($db->sql($sql)) {
         http_response_code(200);
         error_log($student_id);
+        echo json_encode([
+            "error" => false,
+            "message" => "fetched successfully",
+            'data' => $db->getResult()
+
+
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => true,
+            "message" => "Failed to fetch data"
+        ]);
+    }
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['fetch_report']) && $_POST['fetch_report'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['type'], $_POST['teacher_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+    $type = $_POST['type'];
+    $teacher_id = $_POST['teacher_id'];
+
+    $sql = "SELECT ta.created_at,ta.access_code,ta.category_id,ta.deadline,tc.name,tc.quiz_type,COUNT(tas.assign_id) as students FROM teacher_assign ta
+    JOIN teacher_assigned_students tas ON tas.assign_id = ta.id
+JOIN teacher_category tc ON tc.uid = ta.category_id
+WHERE ta.teacher_id = '$teacher_id'";
+
+
+    if ($type == 'running') {
+        $sql .= " AND ta.deadline > NOW() AND ta.created_at < NOW()";
+    } elseif ($type == 'completed') {
+        $sql .= " AND ta.deadline < NOW()";
+    } elseif ($type == 'scheduled') {
+        $sql .= " AND ta.deadline > NOW() AND ta.created_at > NOW()";
+    }
+
+
+
+    $sql .= " GROUP BY tas.assign_id";
+
+
+
+    if ($db->sql($sql)) {
+        http_response_code(200);
         echo json_encode([
             "error" => false,
             "message" => "fetched successfully",

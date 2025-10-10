@@ -112,3 +112,90 @@
 [07-Oct-2025 20:31:00 Europe/Berlin] 654
 [07-Oct-2025 20:49:36 Europe/Berlin] 654
 [07-Oct-2025 20:49:36 Europe/Berlin] 654
+[08-Oct-2025 15:31:39 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:31:43 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:31:47 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:31:51 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:31:55 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:32:10 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[08-Oct-2025 15:32:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in D:\Programming\admin-quiz\library\crud.php:73
+Stack trace:
+#0 D:\Programming\admin-quiz\library\crud.php(73): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'admin_quiz')
+#1 D:\Programming\admin-quiz\api-v2.php(34): Database->connect()
+#2 {main}
+  thrown in D:\Programming\admin-quiz\library\crud.php on line 73
+[09-Oct-2025 14:41:31 Africa/Accra] Firebase ID: 
+[09-Oct-2025 16:41:33 Europe/Berlin] 654
+[09-Oct-2025 16:41:33 Europe/Berlin] 654
+[09-Oct-2025 16:47:04 Europe/Berlin] 654
+[09-Oct-2025 16:47:04 Europe/Berlin] 654
+[09-Oct-2025 14:48:18 Africa/Accra] Firebase ID: 
+[09-Oct-2025 16:48:18 Europe/Berlin] 654
+[09-Oct-2025 16:48:18 Europe/Berlin] 654
+[09-Oct-2025 14:48:40 Africa/Accra] Firebase ID: 
+[09-Oct-2025 16:49:11 Europe/Berlin] 654
+[09-Oct-2025 16:49:11 Europe/Berlin] 654
+[09-Oct-2025 15:25:15 Africa/Accra] Firebase ID: 
+[10-Oct-2025 14:56:19 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 14:56:52 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:18:30 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:19:20 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:20:19 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:21:36 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:43:44 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:46:16 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:46:34 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:46:42 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:46:52 Europe/Berlin] SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE category_id='0ac80568-8359-11f0-8862-c5cfbe4a393d' AND teacher_id='656'...' at line 1
+[10-Oct-2025 15:47:42 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:47:46 Europe/Berlin] SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'WHERE category_id='0ac80568-8359-11f0-8862-c5cfbe4a393d' AND teacher_id='656'...' at line 1
+[10-Oct-2025 15:48:58 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:49:13 Europe/Berlin] PHP Warning:  Undefined variable $assigned_quiz_id in D:\Programming\admin-quiz\api-v2-teacher.php on line 2671
+[10-Oct-2025 15:51:00 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:52:32 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 15:54:30 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:22:11 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:29:40 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:30:21 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:33:51 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:34:17 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:35:09 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:35:38 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:35:44 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:35:54 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:36:26 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:37:02 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:37:09 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:37:41 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:38:04 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
+[10-Oct-2025 22:38:33 Europe/Berlin] SELECT * FROM teacher_class_students WHERE teacher_id=656
