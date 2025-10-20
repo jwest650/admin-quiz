@@ -70,7 +70,6 @@ if (isset($_POST['access_key'], $_POST['get_teacher_questions']) && $_POST['get_
 
     if (isset($_POST['category_uid'])) {
         $category_uid = $db->escapeString($_POST['category_uid']);
-        error_log($category_uid);
 
 
         // Fetch category data
@@ -203,7 +202,6 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
                     '$optiona', '$optionb', '$optionc', '$optiond', '$optione',
                     $points, '$answer', '$time', $teacher_id, '$video_time'
                 )";
-            error_log("time: $time");
             if (!$db->sql($sql)) {
                 $success = false;
                 break;
@@ -1013,6 +1011,58 @@ if (isset($_POST['access_key']) && isset($_POST['scoreboard']) && $_POST['scoreb
     return false;
 };
 
+
+if (isset($_POST['access_key']) && isset($_POST['student_score']) && $_POST['student_score'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+
+
+
+
+    if (isset($_POST['assign_id']) && isset($_POST['score']) && isset($_POST['student_id'])  && isset($_POST['total_questions']) && isset($_POST['questions_answered'])) {
+        $assign_id = $_POST['assign_id'];
+
+        $student_id = trim($_POST['student_id']);
+        $score = $_POST['score'];
+        $duration = $_POST['duration'];
+        $total_questions = $_POST['total_questions'];
+        $questions_answered = $_POST['questions_answered'];
+
+        $sql = "INSERT INTO `teacher_student_score` (
+            assign_id, score, student_id, duration, total_questions, questions_answered
+        ) VALUES ('$assign_id',  '$score', '$student_id', '$duration', '$total_questions', '$questions_answered')";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['error'] = false;
+            $response['message'] = 'success';
+        } else {
+            $response['error'] = true;
+            $response['message'] = "error";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    return false;
+};
+
+
 if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_rank'] == 1) {
 
     if (!verify_token()) {
@@ -1671,7 +1721,6 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_students_from_classes']) 
     }
 
     $sql = "SELECT * FROM teacher_class_students $where";
-    error_log($sql);
     if ($db->sql($sql)) {
         $response['error'] = "false";
         $response['message'] = "Students fetched successfully";
@@ -1806,7 +1855,6 @@ if (isset($_POST['access_key']) && isset($_POST['explore_junior_categories']) &&
         return false;
     }
 
-    error_log('yes');
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
@@ -1835,7 +1883,6 @@ if (isset($_POST['access_key']) && isset($_POST['explore_senior_categories']) &&
         return false;
     }
 
-    error_log('yes');
     if ($access_key != $_POST['access_key']) {
         $response['error'] = "true";
         $response['message'] = "Invalid Access Key";
@@ -2395,7 +2442,6 @@ if (isset($_POST['access_key']) && isset($_POST['copy_quiz']) && $_POST['copy_qu
     $db->sql($new_quiz_id);
     $new_quiz_id = $db->getResult();
     $new_quiz_id = $new_quiz_id[0]['uid'];
-    error_log("New Quiz ID: " . $new_quiz_id);
 
 
     $sql = "INSERT INTO teacher_questions (
@@ -2509,7 +2555,6 @@ if (isset($_POST['access_key']) && isset($_POST['get_folder_quiz']) && $_POST['g
     if (!empty($result)) {
         $quiz_ids = array_column($result, 'quiz_id');
         $quiz_ids_str = implode("','", $quiz_ids);
-        error_log("Quiz IDs: " . $quiz_ids_str);
 
         $sql = "SELECT tc.*,COUNT(tq.id) as question_count FROM teacher_category tc JOIN teacher_questions tq ON tq.category_uid =tc.uid WHERE uid IN ('$quiz_ids_str') GROUP BY tc.id";
 
@@ -2578,12 +2623,12 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
     $schuffle_questions = isset($_POST['shuffle_questions']) ? $db->escapeString($_POST['shuffle_questions']) : 'false';
     $memes = isset($_POST['memes']) ? $db->escapeString($_POST['memes']) : 'false';
     $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
+    $start_time = isset($_POST['start_time']) ? $db->escapeString($_POST['start_time']) : null;
     $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
     $access_code = $db->escapeString($_POST['access_code']);
-    $created_at = $_POST['created_at'] ?? "";
 
 
-    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, schuffle, memes, deadline,access_code) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline', '$access_code')";
+    $sql = "INSERT INTO teacher_assign (teacher_id, category_id, timer, attempt, show_answers, schuffle, memes, deadline,access_code,start_time) VALUES ('$teacher_id', '$category_uid', '$timer', '$attempts', '$show_answers', '$schuffle_questions', '$memes', '$deadline', '$access_code','$start_time')";
 
     if ($db->sql($sql)) {
 
@@ -2597,7 +2642,6 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
         $error_M = $db->getResult();
 
         $response['message'] = $error_M['error'] ?? "Failed to assign quiz";
-        error_log("SQL Error: " . $response['message']);
 
         echo (json_encode($response));
         return false;
@@ -2620,8 +2664,6 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz']) && $_POST['assig
 
     echo (json_encode($response));
     return false;
-
-    // error_log("Students: " . print_r($students, true));
 }
 
 
@@ -2656,8 +2698,8 @@ if (isset($_POST['access_key']) && isset($_POST['edit_assign_quiz']) && $_POST['
     $memes = isset($_POST['memes']) ? $db->escapeString($_POST['memes']) : 'false';
     $deadline = isset($_POST['deadline']) ? $db->escapeString($_POST['deadline']) : null;
     $students = isset($_POST['students']) ? json_decode($_POST['students'], true) : [];
-    $access_code = $db->escapeString($_POST['access_code']);
-    $created_at = $_POST['created_at'] ?? "";
+
+
 
 
     $sql = "UPDATE teacher_assign SET teacher_id='$teacher_id', category_id='$category_uid',timer='$timer', attempt='$attempts',  show_answers='$show_answers', schuffle='$schuffle_questions', memes='$memes',  deadline='$deadline' WHERE category_id='$category_uid' AND teacher_id='$teacher_id' AND id='$id'";
@@ -2675,7 +2717,6 @@ if (isset($_POST['access_key']) && isset($_POST['edit_assign_quiz']) && $_POST['
         $error_M = $db->getResult();
 
         $response['message'] = $error_M['error'] ?? "Failed to assign quiz";
-        error_log("SQL Error: " . $response['message']);
 
         echo (json_encode($response));
         return false;
@@ -2703,8 +2744,6 @@ if (isset($_POST['access_key']) && isset($_POST['edit_assign_quiz']) && $_POST['
 
     echo (json_encode($response));
     return false;
-
-    // error_log("Students: " . print_r($students, true));
 }
 
 
@@ -2731,7 +2770,14 @@ if (isset($_POST['access_key']) && isset($_POST['assign_quiz_details']) && $_POS
     }
     $teacher_id = $_POST['teacher_id'];
     $category_uid = $db->escapeString($_POST['category_uid']);
-    $sql = "SELECT ta.*,tc.name FROM teacher_assign ta JOIN teacher_category tc ON tc.uid ='$category_uid' WHERE ta.teacher_id='$teacher_id' AND ta.category_id='$category_uid'";
+    $sql = "SELECT ta.*,tc.name,COUNT(tq.id) as questions,us.name as teacher FROM teacher_assign ta
+JOIN teacher_category tc 
+    ON tc.uid = ta.category_id
+JOIN teacher_questions tq 
+    ON tq.category_uid = tc.uid
+JOIN users us 
+    ON us.id = ta.teacher_id 
+     WHERE ta.teacher_id='$teacher_id' AND ta.category_id='$category_uid'";
 
 
 
@@ -2821,12 +2867,10 @@ if (isset($_POST['access_key']) && isset($_POST['get_assignment']) && $_POST['ge
     if (!isset($_POST['student_id'])) {
         $response['error'] = "true";
         $response['message'] = "missing field";
-        print_r(json_encode($response));
         return false;
     }
     $student_id = $_POST['student_id'];
-    error_log($student_id);
-    $sql = "SELECT tcs.*,tc.name,tc.image
+    $sql = "SELECT tcs.*,tc.name,tc.image,tc.uid  as category_id,ta.id as assign_id
 FROM teacher_class_students tcs
 JOIN teacher_assigned_students tas ON tcs.id = tas.student_id
 JOIN teacher_assign ta ON ta.id = tas.assign_id
@@ -2841,7 +2885,6 @@ WHERE tcs.user_id = '$student_id'";
 
     if ($db->sql($sql)) {
         http_response_code(200);
-        error_log($student_id);
         echo json_encode([
             "error" => false,
             "message" => "fetched successfully",
@@ -2883,18 +2926,18 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_report']) && $_POST['fetc
     $type = $_POST['type'];
     $teacher_id = $_POST['teacher_id'];
 
-    $sql = "SELECT ta.created_at,ta.access_code,ta.category_id,ta.deadline,tc.name,tc.quiz_type,COUNT(tas.assign_id) as students FROM teacher_assign ta
+    $sql = "SELECT ta.start_time,ta.access_code,ta.category_id,ta.deadline,tc.name,tc.quiz_type,COUNT(tas.assign_id) as students FROM teacher_assign ta
     JOIN teacher_assigned_students tas ON tas.assign_id = ta.id
 JOIN teacher_category tc ON tc.uid = ta.category_id
 WHERE ta.teacher_id = '$teacher_id'";
 
 
     if ($type == 'running') {
-        $sql .= " AND ta.deadline > NOW() AND ta.created_at < NOW()";
+        $sql .= " AND ta.deadline > NOW() AND ta.start_time < NOW()";
     } elseif ($type == 'completed') {
         $sql .= " AND ta.deadline < NOW()";
     } elseif ($type == 'scheduled') {
-        $sql .= " AND ta.deadline > NOW() AND ta.created_at > NOW()";
+        $sql .= " AND ta.deadline > NOW() AND ta.start_time > NOW()";
     }
 
 
@@ -2921,3 +2964,135 @@ WHERE ta.teacher_id = '$teacher_id'";
     }
     return false;
 }
+
+
+if (isset($_POST['access_key']) && isset($_POST['get_category_and_assigned_details']) && $_POST['get_category_and_assigned_details'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['quiz_id'], $_POST['assign_id'])) {
+
+        $category_uid = $db->escapeString($_POST['quiz_id']);
+        $assign_id = $db->escapeString($_POST['assign_id']);
+        $sql = "SELECT 
+    ta.*, 
+    us.profile, 
+    us.name AS teacher_name,
+    tc.quiz_type
+FROM teacher_assign ta
+JOIN teacher_category tc 
+    ON tc.uid = ta.category_id
+JOIN users us 
+    ON us.id = tc.teacher_id
+WHERE ta.id='$assign_id' AND ta.category_id='$category_uid'
+";
+
+
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            if ($result[0]['profile']) {
+                if (filter_var($result[0]['profile'], FILTER_VALIDATE_URL) === FALSE) {
+                    // Not a valid URL. Its a image only or empty
+                    $result[0]['profile'] = (!empty($result[0]['profile'])) ? DOMAIN_URL . 'uploads/profile/' . $result[0]['profile'] : '';
+                } else {
+                    /* if it is a ur than just pass url as it is */
+                    $result[0]['profile'] = $result[0]['profile'];
+                }
+            }
+
+
+            $response['error'] = false;
+            $response['message'] = "fetched successfully";
+            $response['data'] =  $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to fetch category";
+        }
+    } else {
+        $response['error'] = true;
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    print_r(json_encode($response));
+    return false;
+};
+
+
+
+if (isset($_POST['access_key']) && isset($_POST['report_quiz_details']) && $_POST['report_quiz_details'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['assign_id'])) {
+
+        $assign_id = $db->escapeString($_POST['assign_id']);
+
+        $sql = "SELECT tss.*,us.name FROM teacher_student_score tss
+        JOIN users us ON us.id = tss.student_id
+
+        WHERE tss.assign_id='$assign_id'";
+
+        $sql_1 = "SELECT 
+    COUNT(DISTINCT tas.student_id) AS total_assigned,
+    COUNT(DISTINCT tss.student_id) AS total_completed,
+    ROUND(
+        (COUNT(DISTINCT tss.student_id) / COUNT(DISTINCT tas.student_id)) * 100, 2
+    ) AS completion_rate,
+    ROUND(AVG((tss.score / tss.total_questions) * 100), 2) AS average_score_percent,
+    ROUND(MAX((tss.score / tss.total_questions) * 100), 2) AS max_score_percent,
+    ROUND(MIN((tss.score / tss.total_questions) * 100), 2) AS min_score_percent
+FROM teacher_assign ta
+JOIN teacher_assigned_students tas 
+    ON tas.assign_id = ta.id
+LEFT JOIN teacher_student_score tss 
+    ON tss.assign_id = ta.id 
+WHERE ta.id = '$assign_id'";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+
+            $response['data'] =  $result;
+
+            if ($db->sql($sql_1)) {
+                $result_1 = $db->getResult();
+                $response['summary'] =  $result_1;
+            }
+            $response['error'] = false;
+            $response['message'] = "fetched successfully";
+        } else {
+            $response['error'] = true;
+            $response['message'] = "Failed to fetch";
+        }
+    } else {
+        $response['error'] = true;
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    print_r(json_encode($response));
+    return false;
+};
