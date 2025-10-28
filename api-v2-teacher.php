@@ -84,6 +84,12 @@ JOIN
     ON us.id = tc.teacher_id
 WHERE 
     tc.uid = '$category_uid'";
+
+
+
+
+
+
         $categoryData = [];
         if ($db->sql($categoryQuery)) {
             $categoryData = $db->getResult();
@@ -106,6 +112,11 @@ WHERE
             
             WHERE 
                 tq.category_uid = '$category_uid'";
+
+        if ($_POST['schuffle']) {
+            $questionsQuery .= "  ORDER BY RAND()";
+        }
+
         $questionsData = [];
         if ($db->sql($questionsQuery)) {
             $questionsData = $db->getResult();
@@ -1124,6 +1135,86 @@ if (isset($_POST['access_key']) && isset($_POST['daily_rank']) && $_POST['daily_
     print_r(json_encode($response));
     return false;
 };
+
+
+if (isset($_POST['access_key']) && isset($_POST['class_rank']) && $_POST['class_rank'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+
+
+
+
+
+    if (isset($_POST['quiz_id']) && isset($_POST['user_id']) && isset($_POST['assign_id'])) {
+        $user_id = $_POST['user_id'];
+        $quiz_id = $_POST['quiz_id'];
+        $assign_id = $_POST['assign_id'];
+
+
+
+        $sql = "WITH latest_attempt AS (
+    SELECT t1.*
+    FROM teacher_student_score t1
+    JOIN (
+        SELECT student_id, MAX(created_at) AS latest_time
+        FROM teacher_student_score
+        WHERE assign_id = '$assign_id'
+        GROUP BY student_id
+    ) t2
+    ON t1.student_id = t2.student_id AND t1.created_at = t2.latest_time
+    WHERE t1.assign_id = '$assign_id'
+)
+SELECT 
+    latest_attempt.student_id,
+    latest_attempt.score,
+    RANK() OVER (ORDER BY latest_attempt.score DESC) AS user_rank,
+    (SELECT COUNT(DISTINCT student_id) 
+        FROM teacher_student_score 
+        WHERE assign_id = '$assign_id') AS total_participants
+FROM latest_attempt
+ORDER BY latest_attempt.score DESC;
+";
+
+        $sql_2 = "SELECT * FROM teacher_questions WHERE category_uid= '$quiz_id'";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['leaderboard']['error'] = "false";
+            $response['leaderboard']['data'] = $result;
+        } else {
+            $response['leaderboard']['error'] = "true";
+            $response['leaderboard']['message'] = "error";
+        }
+
+        if ($db->sql($sql_2)) {
+            $result = $db->getResult();
+            $response['questions']['error'] = "false";
+            $response['questions']['data'] = $result;
+        } else {
+            $response['questions']['error'] = "true";
+            $response['questions']['message'] = "error";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "pass all fields";
+    }
+
+    print_r(json_encode($response));
+    return false;
+};
+
 
 if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) && $_POST['import_live_quiz_questions'] == 1) {
     if (!verify_token()) {
@@ -2997,7 +3088,15 @@ JOIN users us
 WHERE ta.id='$assign_id' AND ta.category_id='$category_uid'
 ";
 
+        if (isset($_POST['id'])) {
+            $id = $_POST['id'];
+            $sql_2 = "SELECT  COUNT(id) as count FROM teacher_student_score WHERE student_id =$id";
 
+            if ($db->sql($sql_2)) {
+                $count_result = $db->getResult();
+                $response['attempt_count'] =  $count_result;
+            }
+        }
 
         if ($db->sql($sql)) {
             $result = $db->getResult();
@@ -3053,7 +3152,7 @@ if (isset($_POST['access_key']) && isset($_POST['report_quiz_details']) && $_POS
         $sql = "SELECT tss.*,us.name FROM teacher_student_score tss
         JOIN users us ON us.id = tss.student_id
 
-        WHERE tss.assign_id='$assign_id'";
+        WHERE tss.assign_id=$assign_id";
 
         $sql_1 = "SELECT 
     COUNT(DISTINCT tas.student_id) AS total_assigned,
