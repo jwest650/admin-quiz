@@ -1179,6 +1179,8 @@ if (isset($_POST['access_key']) && isset($_POST['class_rank']) && $_POST['class_
 SELECT 
     latest_attempt.student_id,
     latest_attempt.score,
+    latest_attempt.questions_answered,
+    latest_attempt.total_questions,
     RANK() OVER (ORDER BY latest_attempt.score DESC) AS user_rank,
     (SELECT COUNT(DISTINCT student_id) 
         FROM teacher_student_score 
@@ -1733,6 +1735,7 @@ if (isset($_POST['access_key']) && isset($_POST['add_student']) && $_POST['add_s
         $response['error'] = "true";
         $response['message'] = "Failed to add student";
     }
+    error_log("Add Student SQL: " . json_encode($response));
     print_r(json_encode($response));
     return false;
 }
@@ -1762,11 +1765,35 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_students_class_details'])
     $teacher_id =  $db->escapeString($_POST['teacher_id']);
     $class_id =  $db->escapeString($_POST['class_id']);
 
-    $sql = "SELECT tcs.*, tc.name as class_name 
-            FROM teacher_classes tc 
-            LEFT JOIN teacher_class_students tcs 
-            ON tc.id = tcs.class_id 
-            WHERE tc.id = '$class_id' AND tc.teacher_id = '$teacher_id'";
+    $sql = "SELECT 
+    tcs.*,
+    tc.name AS class_name,
+    AVG(student_avg.avg_score) AS average_score,
+    SUM(student_avg.attempts) AS total_attempts
+FROM teacher_classes tc
+LEFT JOIN teacher_class_students tcs 
+    ON tc.id = tcs.class_id
+LEFT JOIN (
+    SELECT 
+        tss.student_id,
+        tss.assign_id,
+        AVG(tss.score) AS avg_score,
+        COUNT(tss.id) AS attempts
+    FROM teacher_student_score tss
+    GROUP BY tss.student_id, tss.assign_id
+) AS student_avg
+    ON tcs.user_id = student_avg.student_id
+LEFT JOIN teacher_assigned_students tas
+    ON tcs.user_id = tas.student_id 
+    AND tas.assign_id = student_avg.assign_id
+WHERE 
+    tc.id = '$class_id'
+    AND tc.teacher_id = '$teacher_id'
+GROUP BY 
+    tcs.user_id, tcs.class_id, tc.name;
+
+
+            ";
     if ($db->sql($sql)) {
         $response['error'] = "false";
         $response['message'] = "Students fetched successfully";
@@ -3192,6 +3219,93 @@ WHERE ta.id = '$assign_id'";
         return false;
     }
 
+    print_r(json_encode($response));
+    return false;
+};
+
+
+if (isset($_POST['access_key']) && isset($_POST['delete_student_from_class']) && $_POST['delete_student_from_class'] == 1) {
+    error_log("Delete student from class called");
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    if ($_POST['student_id'] && $_POST['teacher_id'] && $_POST['class_id']) {
+
+
+        $user_id = $db->escapeString($_POST['student_id']);
+        $class_id = $db->escapeString($_POST['class_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+
+        $sql = "DELETE FROM teacher_class_students WHERE user_id ='$user_id' AND class_id = '$class_id' AND teacher_id = '$teacher_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Category delete successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to delete category";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+};
+
+if (isset($_POST['access_key']) && isset($_POST['edit_student_guardian_email']) && $_POST['edit_student_guardian_email'] == 1) {
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    if ($_POST['student_id'] && $_POST['teacher_id'] && $_POST['class_id'] && isset($_POST['guardian_email'])) {
+
+
+        $user_id = $db->escapeString($_POST['student_id']);
+        $class_id = $db->escapeString($_POST['class_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+        $guardian_email = $db->escapeString($_POST['guardian_email']);
+
+        $sql = "UPDATE teacher_class_students SET guardian='$guardian_email' WHERE user_id ='$user_id' AND class_id = '$class_id' AND teacher_id = '$teacher_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = " successfully updated";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to update";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Pass all field";
+        print_r(json_encode($response));
+        return false;
+    }
+    error_log(json_encode($response));
     print_r(json_encode($response));
     return false;
 };
