@@ -42,7 +42,7 @@ class Database
         if ($is_local) {
             $this->db_host = 'localhost';
             $this->db_user = 'root';
-            $this->db_pass = '';
+            $this->db_pass = 'Jay@1997';
             $this->db_name = 'admin_quiz';
         } else {
             $this->db_host = 'localhost';

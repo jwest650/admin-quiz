@@ -238,8 +238,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_questions']) && $_POST['
 };
 
 
-
-if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['create_category'] == 1) {
+if (isset($_POST['access_key']) && isset($_POST['create_teacher_lesson']) && $_POST['create_teacher_lesson'] == 1) {
 
 
 
@@ -255,6 +254,120 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
         return false;
     }
 
+
+
+
+
+
+
+
+
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $teacher_id = (int)($_POST['teacher_id']);
+
+    $success = true;
+
+
+    foreach ($_POST['data'] as $question) {
+
+
+
+        $question_type = isset($question['question_type']) && is_numeric($question['question_type'])
+            ? (int)$question['question_type']
+            : 0; // default integer
+        $question_text = $db->escapeString($question['desc'] ?? '');
+
+        $optiona = $db->escapeString($question['optiona'] ?? '');
+        $optionb = $db->escapeString($question['optionb'] ?? '');
+        $optionc = $db->escapeString($question['optionc'] ?? '');
+        $optiond = $db->escapeString($question['optiond'] ?? '');
+        $optione = $db->escapeString($question['optione'] ?? '');
+
+        $points = isset($question['points']) ? (int)$question['points'] : 0;
+        $answer = $db->escapeString($question['answer'] ?? '');
+        $time = $db->escapeString($question['time'] ?? '');
+        $video_time = $db->escapeString($question['video_time'] ?? '');
+
+
+        $sql = "
+        INSERT INTO teacher_questions (
+            category_uid,
+            question,
+            question_type,
+            optiona,
+            optionb,
+            optionc,
+            optiond,
+            optione,
+            points,
+            answer,
+            `time`,
+            teacher_id,
+            video_time
+        ) VALUES (
+            '$category_uid',
+            '$question_text',
+            '$question_type',
+            '$optiona',
+            '$optionb',
+            '$optionc',
+            '$optiond',
+            '$optione',
+            $points,
+            '$answer',
+            '$time',
+            $teacher_id,
+            '$video_time'
+        )
+    ";
+
+
+        if (!$db->sql($sql)) {
+            $success = false;
+            $db_error = $db->getResult(); // This stores the last error from $db->sql()
+            error_log("Failed to insert question. SQL: $sql");
+            error_log("DB Error: " . print_r($db_error, true));
+            break;
+        }
+    }
+
+    if ($success) {
+        $response = [
+            "error" => "false",
+            "message" => "Questions added successfully",
+            "category_uid" => $category_uid
+        ];
+    } else {
+        $response = [
+            "error" => "true",
+            "message" => "Failed to add questions"
+        ];
+    }
+
+
+
+    print_r(json_encode($response));
+    exit;
+};
+
+
+
+
+if (isset($_POST['create_category']) && $_POST['create_category'] == 1) {
+    error_log("Received request to create category with data: " . print_r($_POST, true));
+
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
 
     // First create category
     if (isset($_POST['name'])) {
@@ -276,6 +389,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
 						  ";
         $db->sql($check_duplicate);
         $duplicate = $db->getResult();
+        error_log("Duplicate Check Result: " . print_r($duplicate, true));
 
         if (!empty($duplicate)) {
             $delete_duplicate = "DELETE FROM teacher_category  WHERE name = '$name' 
@@ -309,8 +423,8 @@ if (isset($_POST['access_key']) && isset($_POST['create_category']) && $_POST['c
                 return false;
             }
         }
-
         // Insert category
+
         $sql = "INSERT INTO teacher_category (name, subject, grade, visibility, image, teacher_id,language,quiz_type) 
                 VALUES ('$name', '$subject', '$grade', '$visibility', '$filename', '$teacher_id','$language','$quiz_type')";
 
