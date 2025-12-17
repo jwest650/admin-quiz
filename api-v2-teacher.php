@@ -113,7 +113,7 @@ WHERE
             WHERE 
                 tq.category_uid = '$category_uid'";
 
-        if ($_POST['schuffle']) {
+        if (isset($_POST['schuffle'])) {
             $questionsQuery .= "  ORDER BY RAND()";
         }
 
@@ -275,7 +275,7 @@ if (isset($_POST['access_key']) && isset($_POST['create_teacher_lesson']) && $_P
         $question_type = isset($question['question_type']) && is_numeric($question['question_type'])
             ? (int)$question['question_type']
             : 0; // default integer
-        $question_text = $db->escapeString($question['desc'] ?? '');
+        $question_text = $db->escapeString($question['question'] ?? '');
 
         $optiona = $db->escapeString($question['optiona'] ?? '');
         $optionb = $db->escapeString($question['optionb'] ?? '');
@@ -321,13 +321,41 @@ if (isset($_POST['access_key']) && isset($_POST['create_teacher_lesson']) && $_P
         )
     ";
 
+        $question_id   = isset($question['id']) ? (int)$question['id'] : 0;
+        $sql_2 = "
+UPDATE teacher_questions SET
+    question       = '$question_text',
+    question_type  = $question_type,
+    optiona        = '$optiona',
+    optionb        = '$optionb',
+    optionc        = '$optionc',
+    optiond        = '$optiond',
+    optione        = '$optione',
+    points         = $points,
+    answer         = '$answer',
+    `time`         = '$time'
+WHERE id = $question_id
+";
 
-        if (!$db->sql($sql)) {
-            $success = false;
-            $db_error = $db->getResult(); // This stores the last error from $db->sql()
-            error_log("Failed to insert question. SQL: $sql");
-            error_log("DB Error: " . print_r($db_error, true));
-            break;
+
+
+        if ($question_id) {
+
+            if (!$db->sql($sql_2)) {
+                $success = false;
+                $db_error = $db->getResult(); // This stores the last error from $db->sql()
+                error_log("Failed to update question. SQL: $sql");
+                error_log("DB Error: " . print_r($db_error, true));
+                break;
+            }
+        } else {
+            if (!$db->sql($sql)) {
+                $success = false;
+                $db_error = $db->getResult(); // This stores the last error from $db->sql()
+                error_log("Failed to insert question. SQL: $sql");
+                error_log("DB Error: " . print_r($db_error, true));
+                break;
+            }
         }
     }
 
