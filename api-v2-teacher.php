@@ -429,28 +429,48 @@ if (isset($_POST['create_category']) && $_POST['create_category'] == 1) {
         }
 
         $filename = '';
-        // Handle image upload
-        if (isset($_FILES['category_image']) && $_FILES['category_image']['error'] == 0) {
-            if (!is_dir('images/teacher_category')) {
-                mkdir('images/teacher_category', 0777, true);
+        $image_url = '';
+
+        $base_url = 'https://admin.uquiz.xyz/'; // MUST match your domain
+        $uploadDir = 'images/teacher_category/';
+        $allowedExts = ['jpg', 'jpeg', 'png', 'gif'];
+
+        if (isset($_FILES['category_image']) && $_FILES['category_image']['error'] === 0) {
+
+            // Ensure directory exists
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
             }
 
-            $extension = pathinfo($_FILES["category_image"]["name"])['extension'];
-            if (!(in_array($extension, $allowedExts))) {
-                $response['error'] = "true";
-                $response['message'] = "Image type is invalid";
-                print_r(json_encode($response));
-                return false;
+            // Get file extension safely
+            $extension = strtolower(pathinfo($_FILES['category_image']['name'], PATHINFO_EXTENSION));
+
+            if (!in_array($extension, $allowedExts)) {
+                echo json_encode([
+                    'error' => true,
+                    'message' => 'Image type is invalid'
+                ]);
+                exit;
             }
-            $filename = microtime(true) . '.' . strtolower($extension);
-            $full_path = 'images/teacher_category/' . $filename;
-            if (!move_uploaded_file($_FILES["category_image"]["tmp_name"], $full_path)) {
-                $response['error'] = "true";
-                $response['message'] = "Image upload failed";
-                print_r(json_encode($response));
-                return false;
+
+            // Generate unique filename
+            $filename = uniqid('cat_', true) . '.' . $extension;
+
+            // Server file path
+            $server_path = $uploadDir . $filename;
+
+            // Public URL (THIS is what you store in MySQL)
+            $image_url = $base_url . $server_path;
+
+            if (!move_uploaded_file($_FILES['category_image']['tmp_name'], $server_path)) {
+                echo json_encode([
+                    'error' => true,
+                    'message' => 'Image upload failed'
+                ]);
+                exit;
             }
         }
+
         // Insert category
 
         $sql = "INSERT INTO teacher_category (name, subject, grade, visibility, image, teacher_id,language,quiz_type) 
@@ -506,34 +526,58 @@ if (isset($_POST['access_key']) && isset($_POST['update_category']) && $_POST['u
         // Handle the file upload
         if (isset($_FILES['image'])) {
             $fileTmpPath = $_FILES['image']['tmp_name'];
-            $fileName = $_FILES['image']['name'];
-            $fileSize = $_FILES['image']['size'];
-            $fileType = $_FILES['image']['type'];
-            $fileNameCmps = explode(".", $fileName);
-            $fileExtension = strtolower(end($fileNameCmps));
+            $fileName    = $_FILES['image']['name'];
 
-            // Specify the directory where you want to save the uploaded file
-            $base_url = 'https://admin.uquiz.xyz/';
-            $uploadFileDir = 'images/teacher_category/';
+            // Extract extension safely
+            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+            // Config
+            $base_url        = 'https://admin.uquiz.xyz/';
+            $uploadFileDir   = 'images/teacher_category/';
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
 
+            // Ensure directory exists
+            if (!is_dir($uploadFileDir)) {
+                mkdir($uploadFileDir, 0777, true);
+            }
+
+            // Validate extension
             if (!in_array($fileExtension, $allowedExtensions)) {
-                $response['error'] = "true";
-                $response['message'] = "file type not accepted";
+                $response['error'] = true;
+                $response['message'] = 'File type not accepted';
+                echo json_encode($response);
                 exit;
             }
 
-            $dest_path = $uploadFileDir . $fileName;
+            // Generate unique filename
+            $newFileName = uniqid('cat_', true) . '.' . $fileExtension;
+
+            // Full server path
+            $dest_path = $uploadFileDir . $newFileName;
+
+            // Public image URL (stored in DB)
             $image_url = $base_url . $dest_path;
-            // Move the file to the specified directory
+
+            // Move file
             if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                $sql = "UPDATE teacher_category 
-            SET name = '$name', grade = '$grade', subject = '$subject', 
-                visibility = '$visibility', language = '$language', image='$image_url' 
-            WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
+
+                $sql = "
+            UPDATE teacher_category 
+            SET 
+                name = '$name',
+                grade = '$grade',
+                subject = '$subject',
+                visibility = '$visibility',
+                language = '$language',
+                image = '$image_url'
+            WHERE uid = '$category_uid'
+              AND teacher_id = '$teacher_id'
+        ";
             } else {
-                $response['error'] = "true";
-                $response['message'] = "upload error";
+                $response['error'] = true;
+                $response['message'] = 'Upload error';
+                echo json_encode($response);
+                exit;
             }
         } else {
             $sql = "UPDATE teacher_category 
@@ -1907,43 +1951,43 @@ if (isset($_POST['access_key']) && isset($_POST['fetch_students_class_details'])
     $teacher_id =  $db->escapeString($_POST['teacher_id']);
     $class_id =  $db->escapeString($_POST['class_id']);
 
+    error_log($teacher_id);
+
     $sql = "SELECT 
-    tcs.*,
-    tc.name AS class_name,
-    AVG(student_avg.avg_score) AS average_score,
-    SUM(student_avg.attempts) AS total_attempts
-FROM teacher_classes tc
-LEFT JOIN teacher_class_students tcs 
-    ON tc.id = tcs.class_id
+    tcs.*, 
+    tc.name AS class_name, 
+    AVG(student_avg.avg_score) AS average_score, 
+    SUM(student_avg.attempts) AS total_attempts 
+FROM teacher_classes tc 
+LEFT JOIN teacher_class_students tcs ON tc.id = tcs.class_id 
 LEFT JOIN (
     SELECT 
-        tss.student_id,
-        tss.assign_id,
-        AVG(tss.score) AS avg_score,
-        COUNT(tss.id) AS attempts
-    FROM teacher_student_score tss
+        tss.student_id, 
+        tss.assign_id, 
+        AVG(tss.score) AS avg_score, 
+        COUNT(tss.id) AS attempts 
+    FROM teacher_student_score tss 
     GROUP BY tss.student_id, tss.assign_id
-) AS student_avg
-    ON tcs.user_id = student_avg.student_id
-LEFT JOIN teacher_assigned_students tas
+) AS student_avg ON tcs.user_id = student_avg.student_id 
+LEFT JOIN teacher_assigned_students tas 
     ON tcs.user_id = tas.student_id 
-    AND tas.assign_id = student_avg.assign_id
-WHERE 
-    tc.id = '$class_id'
-    AND tc.teacher_id = '$teacher_id'
-GROUP BY 
-    tcs.user_id, tcs.class_id, tc.name;
+    AND tas.assign_id = student_avg.assign_id 
+WHERE tc.id = '$class_id' 
+    AND tc.teacher_id = '$teacher_id' 
+GROUP BY tcs.id, tcs.user_id, tcs.class_id, tc.name;
+";
+    $db->sql($sql);
+    $result = $db->getResult();
 
-
-            ";
-    if ($db->sql($sql)) {
+    if (!empty($result)) {
         $response['error'] = "false";
         $response['message'] = "Students fetched successfully";
-        $response['data'] = $db->getResult();
+        $response['data'] = $result;
     } else {
         $response['error'] = "true";
-        $response['message'] = "Failed to fetch students";
+        $response['message'] = "No students found for this class";
     }
+
     print_r(json_encode($response));
     return false;
 }
