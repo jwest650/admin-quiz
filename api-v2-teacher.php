@@ -898,31 +898,32 @@ if (isset($_POST['access_key']) && isset($_POST['trends']) && $_POST['trends'] =
 
 
 
-    $type = isset($_POST['type']) && $_POST['type'] != 'for-you' ? $_POST['type'] : "";
+    $type = $_POST['type'] ?? '';
+    $type = ($type === 'for-you') ? '' : trim($type);
 
-    if ($type === '' || $type === "''") {
-        // Fetch all quiz types
-        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
+    $sql = "
+SELECT tc.*, COUNT(tq.category_uid) AS question_count
 FROM teacher_category tc
-LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
-WHERE tc.publish='true' AND tc.visibility='public'
-GROUP BY tc.uid
-ORDER BY tc.likes DESC, tc.views DESC";
-    } else {
-        // Fetch specific quiz type
-        $sql = "SELECT tc.*, COUNT(tq.category_uid) AS question_count
-FROM teacher_category tc
-LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid AND tc.teacher_id = tq.teacher_id
-WHERE tc.publish='true' AND tc.visibility='public' AND tc.quiz_type = '$type'
-GROUP BY tc.uid
-ORDER BY tc.likes DESC, tc.views DESC";
+LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid
+WHERE tc.publish = 'true'
+  AND tc.visibility = 'public'
+";
+
+    if ($type !== '') {
+        // Escape value to prevent SQL injection
+        $type = $db->escapeString($type);
+        $sql .= " AND tc.quiz_type = '$type'";
     }
 
+    $sql .= "
+GROUP BY tc.uid
+ORDER BY tc.likes DESC, tc.views DESC
+";
+
     if ($db->sql($sql)) {
-        $result = $db->getResult();
         $response['error'] = "false";
-        $response['message'] = "fetched successfully";
-        $response['data'] =  $result;
+        $response['message'] = "Fetched successfully";
+        $response['data'] = $db->getResult();
     } else {
         $response['error'] = "true";
         $response['message'] = "Failed to fetch trends";
