@@ -493,7 +493,17 @@ if (isset($_POST['access_key']) && isset($_POST['get_questions_by_subcategory'])
 
     if (isset($_POST['subcategory'])) {
         $id = $db->escapeString($_POST['subcategory']);
-        $sql = "SELECT * FROM `question` where subcategory=" . $id . " ORDER by RAND()";
+        $type = $db->escapeString($_POST['type']);
+
+        if ($type == 1 || $type == '1') {
+            $sql = "SELECT * FROM `question` where subcategory=" . $id . " ORDER by RAND()";
+        } else if ($type == 2 || $type == '2') {
+            $sql = "SELECT * FROM `tbl_learning` where subcategory=" . $id . " ORDER by RAND()";
+        } else if ($type == 3 || $type == '3') {
+            $sql = "SELECT * FROM `tbl_maths_question` where subcategory=" . $id . " ORDER by RAND()";
+        }
+
+
         $db->sql($sql);
         $result = $db->getResult();
 

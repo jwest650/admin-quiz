@@ -1,3 +1,21 @@
 RewriteEngine On
+
+# Preserve Authorization header (important for Bearer token)
 RewriteCond %{HTTP:Authorization} ^(.*)
-RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+RewriteRule ^(.*)$ - [E=HTTP_AUTHORIZATION:%1]
+
+<IfModule mod_headers.c>
+   Header always set Access-Control-Allow-Origin "https://uquiz.xyz"
+Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+</IfModule>
+
+# Handle preflight OPTIONS without redirect
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ - [R=200,L]
+
+# Your normal routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

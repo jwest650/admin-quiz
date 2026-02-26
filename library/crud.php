@@ -46,9 +46,9 @@ class Database
             $this->db_name = 'admin_quiz';
         } else {
             $this->db_host = 'localhost';
-            $this->db_user = 'forcopix_uquizadmin';
-            $this->db_pass = 'Jgqk_NROs25_98';
-            $this->db_name = 'forcopix_uquizadmin';
+            $this->db_user = 'uquiz_admin';
+            $this->db_pass = '1nZyj61@4';
+            $this->db_name = 'uquiz_admin';
         }
     }
 
