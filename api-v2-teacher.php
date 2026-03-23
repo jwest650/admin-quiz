@@ -902,9 +902,10 @@ if (isset($_POST['access_key']) && isset($_POST['trends']) && $_POST['trends'] =
     $type = ($type === 'for-you') ? '' : trim($type);
 
     $sql = "
-SELECT tc.*, COUNT(tq.category_uid) AS question_count
+SELECT tc.*, COUNT(tq.category_uid) AS question_count, COUNT(DISTINCT tca.id) AS activity_count
 FROM teacher_category tc
 LEFT JOIN teacher_questions tq ON tq.category_uid = tc.uid
+LEFT JOIN teacher_category_activity tca ON tca.category_uid = tc.uid
 WHERE tc.publish = 'true'
   AND tc.visibility = 'public'
 ";
@@ -3493,6 +3494,58 @@ if (isset($_POST['access_key']) && isset($_POST['edit_student_guardian_email']) 
         return false;
     }
     error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+};
+
+
+if (isset($_POST['access_key']) && isset($_POST['add_activity']) && $_POST['add_activity'] == 1) {
+    error_log("Add activity called");
+
+    if (!verify_token()) {
+
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['category_uid'], $_POST['user_id'])) {
+        $response['error'] = "true";
+        $response['message'] = "missing field";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $category_uid = isset($_POST['category_uid']) ? $db->escapeString($_POST['category_uid']) : '';
+    $user_id = isset($_POST['user_id']) ? $db->escapeString($_POST['user_id']) : '';
+
+
+
+    $sql = "INSERT INTO teacher_category_activity (category_uid, user_id) 
+        VALUES ('$category_uid', '$user_id') 
+        ON DUPLICATE KEY UPDATE id = id";
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Activity added successfully";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to add activity";
+    }
+
+
+
+
+
+
+
+
+
+    error_log(json_encode($db->getResult()));
     print_r(json_encode($response));
     return false;
 };
