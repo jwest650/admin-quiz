@@ -3549,3 +3549,280 @@ if (isset($_POST['access_key']) && isset($_POST['add_activity']) && $_POST['add_
     print_r(json_encode($response));
     return false;
 };
+
+if (isset($_POST['access_key']) && isset($_POST['set_meeting_data']) && $_POST['set_meeting_data'] == 1) {
+
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id']) && isset($_POST['title']) && isset($_POST['password']) && isset($_POST['date']) && isset($_POST['time']) && isset($_POST['timezone']) && isset($_POST['teacher_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        $title = $db->escapeString($_POST['title']);
+        $password = $db->escapeString($_POST['password']);
+        $date = $db->escapeString($_POST['date']);
+        $time = $db->escapeString($_POST['time']);
+        $timezone = $db->escapeString($_POST['timezone']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+
+        $sql = "INSERT INTO meetings (meeting_id, title, password, date, time, timezone, teacher_id) VALUES ('$meeting_id', '$title', '$password', '$date', '$time', '$timezone', '$teacher_id')";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting data saved successfully";
+
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to save meeting data";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide all missing fields.";
+    }
+    
+
+    print_r(json_encode($response));
+    return false;
+}
+
+if(isset($_POST['access_key']) && isset($_POST['get_meeting_data']) && $_POST['get_meeting_data'] == 1) {
+
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['teacher_id'])) {
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+        $sql = "SELECT * FROM meetings WHERE teacher_id = '$teacher_id' ORDER BY id DESC";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['error'] = "false";
+            $response['message'] = "Meetings fetched successfully";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to fetch meetings";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id.";
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+if(isset($_POST['access_key']) && isset($_POST['get_meeting']) && $_POST['get_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $_POST['meeting_id'];
+        $sql = "SELECT * FROM meetings WHERE meeting_id = '$meeting_id'";
+
+        if ($db->sql($sql)) {
+            $result = $db->getResult();
+            $response['error'] = "false";
+            $response['message'] = "Meeting fetched successfully";
+            $response['data'] = $result;
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to fetch meeting";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+}
+
+if(isset($_POST['access_key']) && isset($_POST['edit_meeting']) && $_POST['edit_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        
+        $update_fields = [];
+        if (isset($_POST['title'])) {
+            $update_fields[] = "title = '" . $db->escapeString($_POST['title']) . "'";
+        }
+        if (isset($_POST['password'])) {
+            $update_fields[] = "password = '" . $db->escapeString($_POST['password']) . "'";
+        }
+        if (isset($_POST['date'])) {
+            $update_fields[] = "date = '" . $db->escapeString($_POST['date']) . "'";
+        }
+        if (isset($_POST['time'])) {
+            $update_fields[] = "time = '" . $db->escapeString($_POST['time']) . "'";
+        }
+        if (isset($_POST['timezone'])) {
+            $update_fields[] = "timezone = '" . $db->escapeString($_POST['timezone']) . "'";
+        }
+        if (isset($_POST['teacher_id'])) {
+            $update_fields[] = "teacher_id = '" . $db->escapeString($_POST['teacher_id']) . "'";
+        }
+
+        if (!empty($update_fields)) {
+            $sql = "UPDATE meetings SET " . implode(", ", $update_fields) . " WHERE meeting_id = '$meeting_id'";
+            if ($db->sql($sql)) {
+                $response['error'] = "false";
+                $response['message'] = "Meeting updated successfully";
+            } else {
+                $response['error'] = "true";
+                $response['message'] = "Failed to update meeting";
+            }
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "No fields to update.";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+}
+
+if(isset($_POST['access_key']) && isset($_POST['delete_meeting']) && $_POST['delete_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        $sql = "DELETE FROM meetings WHERE meeting_id = '$meeting_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting deleted successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to delete meeting";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if(isset($_POST['access_key']) && isset($_POST['start_meeting']) && $_POST['start_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        $sql = "UPDATE meetings SET status = 1 WHERE meeting_id = '$meeting_id'";
+
+        if($_POST['time']){
+            $sql = "UPDATE meetings SET time = NOW(), status = 1 WHERE meeting_id = '$meeting_id'";
+        }
+
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting started successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to start meeting";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+}
+
+if (isset($_POST['access_key']) && isset($_POST['end_meeting']) && $_POST['end_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        $sql = "UPDATE meetings SET end_time = NOW() WHERE meeting_id = '$meeting_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting ended successfully";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to end meeting";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+
+
+}
