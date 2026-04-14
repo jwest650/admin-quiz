@@ -3767,11 +3767,8 @@ if(isset($_POST['access_key']) && isset($_POST['start_meeting']) && $_POST['star
 
     if (isset($_POST['meeting_id'])) {
         $meeting_id = $db->escapeString($_POST['meeting_id']);
-        $sql = "UPDATE meetings SET status = 1 WHERE meeting_id = '$meeting_id'";
 
-        if($_POST['time']){
-            $sql = "UPDATE meetings SET time = NOW(), status = 1 WHERE meeting_id = '$meeting_id'";
-        }
+            $sql = "UPDATE meetings SET time = NOW(), date = NOW(), status = 1,end_time = NULL WHERE meeting_id = '$meeting_id'";
 
 
         if ($db->sql($sql)) {
@@ -3825,4 +3822,38 @@ if (isset($_POST['access_key']) && isset($_POST['end_meeting']) && $_POST['end_m
     return false;
 
 
+}
+
+if(isset($_POST['access_key']) && isset($_POST['join_meeting']) && $_POST['join_meeting'] == 1) {
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['meeting_id'])) {
+        $meeting_id = $db->escapeString($_POST['meeting_id']);
+        $sql = "SELECT * FROM meetings WHERE meeting_id = '$meeting_id'";
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting joined successfully";
+            $response['data'] = $db->getResult();
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to join meeting";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please provide meeting_id.";
+    }
+
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
 }
