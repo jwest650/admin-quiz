@@ -3783,7 +3783,6 @@ if(isset($_POST['access_key']) && isset($_POST['start_meeting']) && $_POST['star
         $response['message'] = "Please provide meeting_id.";
     }
 
-    error_log(json_encode($response));
     print_r(json_encode($response));
     return false;
 }
@@ -3817,7 +3816,6 @@ if (isset($_POST['access_key']) && isset($_POST['end_meeting']) && $_POST['end_m
         $response['message'] = "Please provide meeting_id.";
     }
 
-    error_log(json_encode($response));
     print_r(json_encode($response));
     return false;
 
@@ -3838,22 +3836,41 @@ if(isset($_POST['access_key']) && isset($_POST['join_meeting']) && $_POST['join_
 
     if (isset($_POST['meeting_id'])) {
         $meeting_id = $db->escapeString($_POST['meeting_id']);
-        $sql = "SELECT * FROM meetings WHERE meeting_id = '$meeting_id'";
+        // 1. Check if meeting exists
+    $checkSql = "SELECT * FROM meetings WHERE meeting_id = '$meeting_id'";
+    $db->sql($checkSql);
+    $meeting = $db->getResult();
 
-        if ($db->sql($sql)) {
+    if (empty($meeting)) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid meeting ID";
+    } else {
+        $meeting = $meeting[0];
+
+        // 2. Check if meeting has ended
+        if (!is_null($meeting['end_time'])) {
+            $response['error'] = "true";
+            $response['message'] = "Meeting has ended";
+        }
+        // 3. Check if meeting has not started
+        else if ($meeting['status'] == 0) {
+            $response['error'] = "false";
+            $response['message'] = "Meeting has not started yet";
+        }
+        // 4. Meeting is active
+        else {
             $response['error'] = "false";
             $response['message'] = "Meeting joined successfully";
-            $response['data'] = $db->getResult();
-        } else {
-            $response['error'] = "true";
-            $response['message'] = "Failed to join meeting";
+            $response['data'] = [$meeting];
         }
-    } else {
+    
+    }
+}else {
         $response['error'] = "true";
         $response['message'] = "Please provide meeting_id.";
     }
+error_log(json_encode($response));
 
-    error_log(json_encode($response));
     print_r(json_encode($response));
     return false;
 }

@@ -1,14 +1,8 @@
-[14-Apr-2026 17:59:47 UTC] PHP Warning:  Undefined array key "time" in /Users/jerry/Desktop/projects/admin-quiz/api-v2-teacher.php on line 3772
-[14-Apr-2026 17:59:47 UTC] {"error":"false","message":"Meeting started successfully"}
-[14-Apr-2026 17:59:53 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 17:59:53 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:01:37 UTC] {"error":"false","message":"Meeting started successfully"}
-[14-Apr-2026 18:01:41 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:01:41 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:02:55 UTC] {"error":"false","message":"Meeting started successfully"}
-[14-Apr-2026 18:07:15 UTC] {"error":"false","message":"Meeting started successfully"}
-[14-Apr-2026 18:07:19 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:07:24 UTC] {"error":"false","message":"Meeting started successfully"}
-[14-Apr-2026 18:07:29 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:10:15 UTC] {"error":"false","message":"Meeting ended successfully"}
-[14-Apr-2026 18:10:18 UTC] {"error":"false","message":"Meeting ended successfully"}
+[24-Apr-2026 15:24:57 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:25:05 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:26:32 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:26:33 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:27:17 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:29:07 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:29:10 UTC] {"error":"true","message":"Meeting has ended"}
+[24-Apr-2026 15:29:28 UTC] {"error":"false","message":"Meeting joined successfully","data":[{"id":"10","meeting_id":"2676815690","title":"oo","status":"1","date":"2026-04-17","time":"16:47:35","timezone":"Europe\/London","teacher_id":"656","created_at":"2026-04-16 19:03:26","password":"1234","end_time":null}]}
