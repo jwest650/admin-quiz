@@ -140,12 +140,23 @@ WHERE
             return false;
         }
 
+        // Fetch passage if category is a passage type
+        $passageData = [];
+        $quiz_type = $categoryData[0]['quiz_type'] ?? '';
+        if (strtolower($quiz_type) === 'passage') {
+            $passageQuery = "SELECT title,body FROM teacher_passages WHERE category_uid = '$category_uid'";
+            if ($db->sql($passageQuery)) {
+                $passageData = $db->getResult();
+            }
+        }
+
         // Combine results
         $response = [
             'error' => "false",
             'message' => "Data fetched successfully",
             'category' => $categoryData,
             'questions' => $questionsData,
+            'passage' => $passageData,
         ];
     } else {
         $response = [
@@ -3874,3 +3885,228 @@ error_log(json_encode($response));
     print_r(json_encode($response));
     return false;
 }
+
+
+
+// Handling the "End Presentation" / Store Class Score action
+if (isset($_POST['access_key']) && isset($_POST['class_score']) && $_POST['class_score'] == 1) {
+    // 1. Verify the JWT Token
+    if (!verify_token()) {
+        return false;
+    }
+
+    // 2. Verify the static Access Key
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    // 3. Ensure required identifiers are present
+    if (isset($_POST['quiz_id']) && isset($_POST['teacher_id'])) {
+        $quiz_id = $db->escapeString($_POST['quiz_id']);
+        $teacher_id = $db->escapeString($_POST['teacher_id']);
+        $end_time = date('Y-m-d H:i:s'); // Capture the end time of the presentation
+        
+        // Optional: Capture extra data if sent (e.g. average accuracy)
+        $accuracy = isset($_POST['accuracy']) ? intval($_POST['accuracy']) : 0;
+        $total_participants = isset($_POST['total_participants']) ? intval($_POST['total_participants']) : 0;
+
+        /* 
+           4. Logic: Update the lesson status. 
+           We assume you have a 'live_lessons' or 'lesson_results' table 
+           to track the state of these sessions.
+        */
+        $sql = "INSERT INTO lesson_results (quiz_id, teacher_id, accuracy, total_participants, end_time)
+                VALUES ('$quiz_id', '$teacher_id', $accuracy, $total_participants, '$end_time') ";
+                error_log("SQL for storing class score: " . $sql);
+
+        if ($db->sql($sql)) {
+            $response['error'] = "false";
+            $response['message'] = "Presentation ended and results archived successfully.";
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "Failed to store class results. Database error.";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Incomplete request. Please provide quiz_id and teacher_id.";
+    }
+
+    // 5. Output JSON response
+    error_log(json_encode($response));
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['create_passage']) && $_POST['create_passage'] == 1) {
+
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'], $_POST['title'], $_POST['body'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id, category_uid, title, and body.";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $teacher_id = (int) $db->escapeString($_POST['teacher_id']);
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $title = $db->escapeString($_POST['title']);
+    $body = $db->escapeString($_POST['body']);
+
+    $sql = "INSERT INTO teacher_passages (teacher_id, category_uid, title, body)
+            VALUES ('$teacher_id', '$category_uid', '$title', '$body')";
+
+    if ($db->sql($sql)) {
+        $update_category_sql = "UPDATE teacher_category SET publish = true
+                                WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
+        $db->sql($update_category_sql);
+
+        $response['error'] = "false";
+        $response['message'] = "Passage created successfully";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to create passage";
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key']) && isset($_POST['update_passage']) && $_POST['update_passage'] == 1) {
+
+    if (!verify_token()) {
+        return false;
+    }
+
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (!isset($_POST['teacher_id'], $_POST['category_uid'], $_POST['title'], $_POST['body'])) {
+        $response['error'] = "true";
+        $response['message'] = "Please provide teacher_id, category_uid, title, and body.";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    $teacher_id = (int) $db->escapeString($_POST['teacher_id']);
+    $category_uid = $db->escapeString($_POST['category_uid']);
+    $title = $db->escapeString($_POST['title']);
+    $body = $db->escapeString($_POST['body']);
+
+    $sql = "UPDATE teacher_passages
+            SET title = '$title', body = '$body'
+            WHERE category_uid = '$category_uid' AND teacher_id = '$teacher_id'";
+
+    if ($db->sql($sql)) {
+        $response['error'] = "false";
+        $response['message'] = "Passage updated successfully";
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Failed to update passage";
+    }
+
+    print_r(json_encode($response));
+    return false;
+}
+
+
+if (isset($_POST['access_key'], $_POST['get_passage']) && $_POST['get_passage'] == 1) {
+
+    if (!verify_token()) {
+        $response = [
+            'error' => "true",
+            'message' => "Invalid token",
+        ];
+        echo json_encode($response);
+        return false;
+    }
+
+    if ($access_key !== $_POST['access_key']) {
+        $response = [
+            'error' => "true",
+            'message' => "Invalid Access Key",
+        ];
+        echo json_encode($response);
+        return false;
+    }
+
+    if (!isset($_POST['category_uid'])) {
+        $response = [
+            'error' => "true",
+            'message' => "Please provide category_uid",
+        ];
+        echo json_encode($response);
+        return false;
+    }
+
+    $category_uid = $db->escapeString($_POST['category_uid']);
+
+    // Fetch category data
+    $categoryQuery = "SELECT
+    tc.*,
+    us.name AS user,
+    us.profile
+FROM
+    teacher_category tc
+JOIN
+    users us
+    ON us.id = tc.teacher_id
+WHERE
+    tc.uid = '$category_uid'";
+
+    $categoryData = [];
+    if ($db->sql($categoryQuery)) {
+        $categoryData = $db->getResult();
+    } else {
+        $response = [
+            'error' => "true",
+            'message' => "Failed to fetch category data",
+        ];
+        echo json_encode($response);
+        return false;
+    }
+
+    // Fetch passage data
+    $passageQuery = "SELECT * FROM teacher_passages WHERE category_uid = '$category_uid'";
+    $passageData = [];
+    if ($db->sql($passageQuery)) {
+        $passageData = $db->getResult();
+    } else {
+        $response = [
+            'error' => "true",
+            'message' => "Failed to fetch passage data",
+        ];
+        echo json_encode($response);
+        return false;
+    }
+
+    $response = [
+        'error' => "false",
+        'message' => "Data fetched successfully",
+        'category' => $categoryData,
+        'passage' => $passageData,
+    ];
+
+    echo json_encode($response);
+    return false;
+}
+
+
