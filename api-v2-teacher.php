@@ -3966,13 +3966,15 @@ if (isset($_POST['access_key']) && isset($_POST['create_passage']) && $_POST['cr
     $title = $db->escapeString($_POST['title']);
     $body = $db->escapeString($_POST['body']);
 
+   
+
     $sql = "INSERT INTO teacher_passages (teacher_id, category_uid, title, body)
-            VALUES ('$teacher_id', '$category_uid', '$title', '$body')";
+            VALUES ('$teacher_id', '$category_uid', '$title', '$body',)";
 
     if ($db->sql($sql)) {
-        $update_category_sql = "UPDATE teacher_category SET publish = true
-                                WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
-        $db->sql($update_category_sql);
+        // $update_category_sql = "UPDATE teacher_category SET publish =true
+        //                         WHERE uid = '$category_uid' AND teacher_id = '$teacher_id'";
+        // $db->sql($update_category_sql);
 
         $response['error'] = "false";
         $response['message'] = "Passage created successfully";

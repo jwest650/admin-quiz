@@ -255,3 +255,25 @@ Stack trace:
 [20-May-2026 22:34:06 UTC] []
 [20-May-2026 22:34:26 UTC] Add activity called
 [20-May-2026 22:34:26 UTC] []
+[22-May-2026 20:24:33 Africa/Accra] Firebase ID: normal
+[22-May-2026 20:52:52 UTC] Received request to create category with data: Array
+(
+    [create_category] => 1
+    [name] => untitled
+    [quiz_type] => passage
+    [teacher_id] => 656
+    [access_key] => 6808
+)
+
+[22-May-2026 20:52:52 UTC] Duplicate Check Result: Array
+(
+    [0] => Array
+        (
+            [uid] => 12ce303e-548c-11f1-8bc7-a3dc6564c6b3
+        )
+
+)
+
+[23-May-2026 12:16:02 Africa/Accra] Firebase ID: normal
+[23-May-2026 12:16:44 UTC] Add activity called
+[23-May-2026 12:16:44 UTC] []
