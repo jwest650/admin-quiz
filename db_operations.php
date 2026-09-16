@@ -8,12 +8,13 @@
   WRTeam Developers
  */
 session_start();
-if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
+if (!isset($_SESSION['username'])) {
     header("location:index.php");
     return false;
     exit();
 }
 include('library/crud.php');
+include('library/auth.php');
 include('library/functions.php');
 
 $db = new Database();
@@ -1750,15 +1751,18 @@ if (isset($_POST["add_admin"]) && !empty($_POST["add_admin"]) && $_POST['add_adm
     }
     $username = $db->escapeString($_POST['username']);
     $role = $db->escapeString($_POST['role']);
-    $password = $db->escapeString($_POST['password']);
-    $password = md5($password);
+    // Hash what was actually typed - do not escape/mangle it first, and use the
+    // same scheme login uses (see library/auth.php).
+    $password = admin_password_hash($db->getConnection(), (string) $_POST['password']);
     $sql = "SELECT auth_username FROM authenticate WHERE auth_username='" . $username . "'";
     $db->sql($sql);
     $res = $db->getResult();
     if ($res) {
         echo "<p class='alert alert-warning'>$username is already exists.</p>";
     } else {
-        $data = array('auth_username' => $username, 'auth_pass' => $password, 'role' => $role, 'app_passcode' => '0', 'android_key' => '0', 'status' => '0');
+        // status 1: login requires it, and there is no UI to enable an account
+        // afterwards, so a new admin created here must be usable immediately.
+        $data = array('auth_username' => $username, 'auth_pass' => $password, 'role' => $role, 'app_passcode' => '0', 'android_key' => '0', 'status' => '1');
         $db->insert('authenticate', $data);
         $res = $db->getResult();
         if ($res) {

@@ -6,7 +6,7 @@
   WRTeam Developers
  */
 session_start();
-if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
+if (!isset($_SESSION['username'])) {
     header("location:index.php");
     return false;
     exit();

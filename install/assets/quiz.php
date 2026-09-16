@@ -28,13 +28,14 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `authenticate` (
-  `auth_username` varchar(12) NOT NULL,
-  `auth_pass` varchar(50) NOT NULL,
+  `auth_username` varchar(64) NOT NULL,
+  `auth_pass` varchar(255) NOT NULL,
   `role` varchar(32) NOT NULL,
   `app_passcode` varchar(16) NOT NULL,
   `android_key` text NOT NULL,
-  `status` int(11) NOT NULL DEFAULT 0,
-  `created` timestamp NOT NULL DEFAULT current_timestamp()
+  `status` int(11) NOT NULL DEFAULT 1,
+  `created` timestamp NOT NULL DEFAULT current_timestamp(),
+  UNIQUE KEY `uniq_auth_username` (`auth_username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

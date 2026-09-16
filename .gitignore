@@ -1,0 +1,7 @@
+# Live credentials - never commit. See library/config.sample.php.
+/library/config.php
+
+# Runtime noise
+error.log
+.DS_Store
+**/.DS_Store

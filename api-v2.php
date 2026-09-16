@@ -16,6 +16,12 @@ header("Pragma: no-cache");
 //header("Content-Type: multipart/form-data");
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
@@ -895,6 +901,39 @@ if (isset($_POST['report_question']) && isset($_POST['access_key'])) {
     print_r(json_encode($response));
 }
 
+// 13a. get_user_by_firebase_id()
+if (isset($_POST['access_key']) && isset($_POST['get_user_by_firebase_id'])) {
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        $response['error'] = "true";
+        $response['message'] = "Invalid Access Key";
+        print_r(json_encode($response));
+        return false;
+    }
+
+    if (isset($_POST['firebase_id']) && $_POST['firebase_id'] !== '') {
+        $firebase_id = $db->escapeString($_POST['firebase_id']);
+        $sql = "SELECT * FROM users WHERE firebase_id='$firebase_id' LIMIT 1";
+        $db->sql($sql);
+        $result = $db->getResult();
+
+        if (!empty($result)) {
+            $response['error'] = "false";
+            $response['message'] = "User found";
+            $response['data'] = $result[0];
+        } else {
+            $response['error'] = "true";
+            $response['message'] = "User not found";
+        }
+    } else {
+        $response['error'] = "true";
+        $response['message'] = "Please pass firebase_id";
+    }
+    print_r(json_encode($response));
+}
+
 // 13. user_signup()
 if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
     /* 	Parameters to be passed
@@ -990,6 +1029,14 @@ if (isset($_POST['access_key']) && isset($_POST['user_signup'])) {
                 $tempRow['status'] = $row['status'];
                 $tempRow['date_registered'] = $row['date_registered'];
                 $tempRow['account_type'] = $row['account_type'];
+                // A school role outranks the stored account type, so the web app
+                // redirects portal users to their dashboard (same rule as session_info.php).
+                $member_id = $db->escapeString($row['id']);
+                $db->sql("SELECT role FROM school_members WHERE user_id = '$member_id' AND status = 1 AND role IN ('district_admin', 'school_admin', 'teacher') ORDER BY id ASC LIMIT 1");
+                $membership = $db->getResult();
+                if (!empty($membership)) {
+                    $tempRow['account_type'] = $membership[0]['role'];
+                }
                 $newresult[] = $tempRow;
             }
             $response['error'] = "false";

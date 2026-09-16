@@ -1,7 +1,11 @@
 <?php
 session_start();
-if (!isset($_SESSION['id']) && !isset($_SESSION['username']))
+if (!isset($_SESSION['username'])) {
+    // Without exit() the whole page was still rendered and sent to an
+    // unauthenticated client, redirect header or not.
     header("location:index.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

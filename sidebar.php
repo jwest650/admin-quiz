@@ -1,5 +1,5 @@
         <?php
-        include 'library/crud.php';
+        include_once 'library/crud.php';
         include 'library/functions.php';
         $fn = new Functions();
         $config = $fn->get_configurations();
@@ -49,7 +49,7 @@
         }
 
         if (!checkadmin($auth_username)) {
-            $pages = array('languages.php', 'users.php', 'monthly-leaderboard.php', 'send-notifications.php', 'user-accounts-rights.php', 'notification-settings.php', 'privacy-policy.php');
+            $pages = array('languages.php', 'users.php', 'monthly-leaderboard.php', 'send-notifications.php', 'user-accounts-rights.php', 'notification-settings.php', 'privacy-policy.php', 'school-provisioning.php');
             foreach ($pages as $page) {
                 if (basename($_SERVER['PHP_SELF']) == $page) {
                     exit("<center><h2 style='color:#fff;'><br><br><br><br><em style='color:#f7d701;' class='fas fa-exclamation-triangle fa-4x'></em><br><br>Access denied - You are not authorized to access this.</h2></center>");
@@ -193,6 +193,7 @@
                             <li><a href="import-questions.php"><em class="fas fa-upload"></em> Import Questions</a></li>
                             <?php if (checkadmin($auth_username)) { ?>
                                 <li><a href="user-accounts-rights.php"><em class="fas fa-user"></em> User Accounts and Rights</a></li>
+                                <li><a href="school-provisioning.php"><em class="fas fa-school"></em> School Portal Provisioning</a></li>
                                 <li>
                                     <a><em class="fas fa-cog"></em> Settings<span class="fas fa-caret-down"></span></a>
                                     <ul class="nav child_menu">

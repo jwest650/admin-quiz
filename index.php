@@ -4,9 +4,8 @@
 //     die();
 // }
 session_start();
-if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
+if (isset($_SESSION['username'])) {
     header("location:home.php");
-    return false;
     exit();
 }
 ?>
@@ -33,10 +32,10 @@ if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
       <form method="POST" id="login_form" action="check_login.php">
        <h1 class="text-center">LOGIN</h1>
        <div>
-        <input type="text" id="username" name='username' class="form-control" placeholder="Username" />
+        <input type="text" id="username" name="username" class="form-control" placeholder="Username" autocomplete="username" autocapitalize="none" spellcheck="false" required />
        </div>
        <div>
-        <input type="password" id="password" name='password' class="form-control" placeholder="Password" />
+        <input type="password" id="password" name="password" class="form-control" placeholder="Password" autocomplete="current-password" required />
        </div>
        <div class="row mt-20">
         <input type="submit" id="login_button" class="btn btn-default text-center" value="Log in">
@@ -75,24 +74,84 @@ if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
     },
    }
   });
+  var $button = $('#login_button');
+  var $result = $('#result');
+
+  // Escape before injecting, so a server message is never treated as markup.
+  function escapeHtml(text) {
+   return $('<div>').text(text).html();
+  }
+
+  function showAlert(message) {
+   $result.html("<p class='alert alert-danger' style='margin-bottom:0'>" + escapeHtml(message) + "</p>").show();
+  }
+
+  function startLoader() {
+   // <input type="submit"> has no inner HTML - its label is the value.
+   $button.prop('disabled', true).val('Please Wait...');
+   $result.hide().empty();
+  }
+
+  function stopLoader() {
+   $button.prop('disabled', false).val('Log in');
+  }
+
+  // Turns any failed request into a message that actually describes what happened.
+  function messageForFailure(jqXHR, textStatus) {
+   // The endpoint sends {"success":false,"message":"..."} even on 4xx/5xx,
+   // so prefer whatever it told us over a guess based on the status code.
+   var payload = jqXHR.responseJSON;
+   if (!payload && jqXHR.responseText) {
+    try {
+     payload = JSON.parse(jqXHR.responseText);
+    } catch (err) {
+     payload = null;
+    }
+   }
+   if (payload && payload.message) {
+    return payload.message;
+   }
+
+   if (textStatus === 'timeout') {
+    return 'The server took too long to respond. Please try again.';
+   }
+   if (jqXHR.status === 0) {
+    return 'No connection to the server. Check your internet and try again.';
+   }
+   if (textStatus === 'parsererror') {
+    return 'The server sent an unexpected response. Please try again, or contact an administrator.';
+   }
+   if (jqXHR.status >= 500) {
+    return 'The server had a problem handling the login. Please try again in a moment.';
+   }
+   return 'Login failed (error ' + jqXHR.status + '). Please try again.';
+  }
+
   $(document).on('submit', '#login_form', function(e) {
    e.preventDefault();
+   var $form = $(this);
+   if (!$form.valid() || $button.prop('disabled')) {
+    return;
+   }
    $.ajax({
-    url: $(this).attr('action'),
+    url: $form.attr('action'),
     type: "POST",
-    data: $(this).serialize(),
-    beforeSend: function() {
-     $('#login_button').html('Please Wait...');
-    },
-    // data: dataString,
-    success: function(result) {
-     if (result == 1) {
+    dataType: "json",
+    data: $form.serialize(),
+    timeout: 20000, // without this a hung request leaves the loader spinning forever
+    beforeSend: startLoader,
+    success: function(response) {
+     if (response && response.success) {
+      // Keep the loader running - we are navigating away.
       window.location.href = "home.php";
-     } else {
-      $('#result').html(result);
-      $('#result').show();
-      $('#login_button').html('Log in');
+      return;
      }
+     stopLoader();
+     showAlert((response && response.message) || 'Username or password is incorrect.');
+    },
+    error: function(jqXHR, textStatus) {
+     stopLoader();
+     showAlert(messageForFailure(jqXHR, textStatus));
     }
    });
   });

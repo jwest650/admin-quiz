@@ -5,8 +5,44 @@
  * @Version 1.0
  * @Package Database
  */
-define('DOMAIN_URL', 'https://admin.uquiz.xyz/');
-define('JWT_SECRET_KEY', 'Check@boys123');
+/*
+ * Configuration is loaded from the environment first, then from
+ * library/config.php (git ignored, see library/config.sample.php).
+ * Nothing secret belongs in this file - it is tracked in git.
+ */
+function quiz_config()
+{
+    static $config = null;
+    if ($config !== null) {
+        return $config;
+    }
+
+    $file = __DIR__ . '/config.php';
+    $config = is_file($file) ? require $file : array();
+
+    if (!is_array($config)) {
+        $config = array();
+    }
+    $config += array('local' => array(), 'production' => array(), 'domain_url' => '', 'jwt_secret' => '');
+
+    return $config;
+}
+
+function quiz_env($key, $default = '')
+{
+    $value = getenv($key);
+    if ($value === false || $value === '') {
+        return $default;
+    }
+    return $value;
+}
+
+if (!defined('DOMAIN_URL')) {
+    define('DOMAIN_URL', quiz_env('QUIZ_DOMAIN_URL', quiz_config()['domain_url']));
+}
+if (!defined('JWT_SECRET_KEY')) {
+    define('JWT_SECRET_KEY', quiz_env('QUIZ_JWT_SECRET', quiz_config()['jwt_secret']));
+}
 
 class Database
 {
@@ -39,18 +75,23 @@ class Database
             );
         }
 
-        if ($is_local) {
-            $this->db_host = 'localhost';
-            $this->db_user = 'root';
-            $this->db_pass = 'Jay@1997';
-            $this->db_name = 'admin_quiz';
-            
+        $config = quiz_config();
+        $creds = $is_local ? $config['local'] : $config['production'];
+        $creds += array('host' => '', 'user' => '', 'pass' => '', 'name' => '');
 
-        } else {
-            $this->db_host = 'localhost';
-            $this->db_user = 'uquiz_admin';
-            $this->db_pass = '1nZyj61@4';
-            $this->db_name = 'uquiz_admin';
+        // Environment variables win, so a server can be configured without
+        // writing credentials to disk at all.
+        $this->db_host = quiz_env('QUIZ_DB_HOST', $creds['host']);
+        $this->db_user = quiz_env('QUIZ_DB_USER', $creds['user']);
+        $this->db_pass = quiz_env('QUIZ_DB_PASS', $creds['pass']);
+        $this->db_name = quiz_env('QUIZ_DB_NAME', $creds['name']);
+
+        if ($this->db_host === '' || $this->db_user === '' || $this->db_name === '') {
+            error_log(
+                'Database is not configured. Create library/config.php from '
+                . 'library/config.sample.php, or set QUIZ_DB_HOST / QUIZ_DB_USER / '
+                . 'QUIZ_DB_PASS / QUIZ_DB_NAME.'
+            );
         }
     }
 
@@ -71,18 +112,29 @@ class Database
 
     public function connect()
     {
-        if (!$this->con) {
-            $this->myconn = new mysqli($this->db_host, $this->db_user, $this->db_pass, $this->db_name);  // mysql_connect() with variables defined at the start of Database class
-            if ($this->myconn->connect_errno > 0) {
-                array_push($this->result, $this->myconn->connect_error);
-                return false; // Problem selecting database return FALSE
-            } else {
-                $this->con = true;
-                return true; // Connection has been made return TRUE
-            }
-        } else {
-            return true; // Connection has already been made return TRUE 
+        if ($this->con) {
+            return true; // Connection has already been made return TRUE
         }
+
+        // Since PHP 8.1 mysqli reports errors by throwing, so the old
+        // connect_errno check never ran - a bad connection produced a fatal
+        // error and leaked a stack trace (including the DB user) to the client.
+        try {
+            $this->myconn = new mysqli($this->db_host, $this->db_user, $this->db_pass, $this->db_name);
+        } catch (Throwable $e) {
+            error_log('Database connect failed: ' . $e->getMessage());
+            array_push($this->result, 'Unable to connect to the database.');
+            return false; // Problem selecting database return FALSE
+        }
+
+        if ($this->myconn->connect_errno > 0) {
+            error_log('Database connect failed: ' . $this->myconn->connect_error);
+            array_push($this->result, 'Unable to connect to the database.');
+            return false;
+        }
+
+        $this->con = true;
+        return true; // Connection has been made return TRUE
     }
 
 
@@ -243,7 +295,7 @@ class Database
     }
 
     // Function to update row in database
-    public function update($table, $params = array(), $where)
+    public function update($table, $params, $where)
     {
         // Check to see if table exists
         if ($this->tableExists($table)) {
@@ -311,6 +363,15 @@ class Database
     public function escapeString($data)
     {
         return $this->myconn->real_escape_string($data);
+    }
+
+    /*
+     * Expose the underlying mysqli connection so callers can use prepared
+     * statements for untrusted input instead of string interpolation.
+     */
+    public function getConnection()
+    {
+        return $this->myconn;
     }
 
     //get last inser id

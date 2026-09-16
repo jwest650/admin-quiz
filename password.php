@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
+if (!isset($_SESSION['username'])) {
     header("location:index.php");
     return false;
     exit();
@@ -107,7 +107,7 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                     $.ajax({
                         type: 'POST',
                         url: 'change_password.php',
-                        data: 'old_password=' + old_password,
+                        data: {old_password: old_password},
                         beforeSend: function () {
                             $('#old_status').html('checking..');
                         },
@@ -130,7 +130,10 @@ if (!isset($_SESSION['id']) && !isset($_SESSION['username'])) {
                 e.preventDefault();
                 if ($("#password_form").validate().form()) {
                     if (allowsubmit) {
-                        var formData = 'new_password=' + $('#new_password').val() + '&old_password=' + $('#old_password').val();
+                        var formData = {
+                            new_password: $('#new_password').val(),
+                            old_password: $('#old_password').val()
+                        };
                         $.ajax({
                             type: 'POST',
                             url: $(this).attr('action'),

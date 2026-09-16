@@ -1832,7 +1832,8 @@ if (isset($_POST['access_key']) && isset($_POST['create_class']) && $_POST['crea
     $name = $db->escapeString($_POST['name']);
     $teacher_id =  $db->escapeString($_POST['teacher_id']);
 
-    $sql = "INSERT INTO teacher_classes (name, teacher_id) VALUES ('$name', '$teacher_id')";
+    // guardian has no default on databases without migration 008, so send an empty one.
+    $sql = "INSERT INTO teacher_classes (name, guardian, teacher_id) VALUES ('$name', '', '$teacher_id')";
     if ($db->sql($sql)) {
         $response['error'] = "false";
         $response['message'] = "Class created successfully";
@@ -1913,9 +1914,9 @@ if (isset($_POST['access_key']) && isset($_POST['add_student']) && $_POST['add_s
         return false;
     }
 
-    if (!isset($_POST['name'])  || !isset($_POST['teacher_id']) || !isset($_POST['class_id']) || !isset($_POST['guardian']) || !isset($_POST['user_id'])) {
+    if (!isset($_POST['name'])  || !isset($_POST['teacher_id']) || !isset($_POST['class_id']) || !isset($_POST['user_id'])) {
         $response['error'] = "true";
-        $response['message'] = "Please provide name, guardian, teacher_id, class_id, and user_id";
+        $response['message'] = "Please provide name, teacher_id, class_id, and user_id";
         print_r(json_encode($response));
         return false;
     }
@@ -1923,11 +1924,19 @@ if (isset($_POST['access_key']) && isset($_POST['add_student']) && $_POST['add_s
     $name = $db->escapeString($_POST['name']);
     $teacher_id =  $db->escapeString($_POST['teacher_id']);
     $class_id =  $db->escapeString($_POST['class_id']);
-    $guardian =  $db->escapeString($_POST['guardian']);
+    // Guardian details are optional.
+    $guardian =  $db->escapeString(isset($_POST['guardian']) ? $_POST['guardian'] : '');
     $user_id =  $db->escapeString($_POST['user_id']);
 
     $sql = "INSERT INTO teacher_class_students (name, teacher_id, class_id, guardian, user_id) VALUES ('$name', '$teacher_id', '$class_id', '$guardian', '$user_id')";
     if ($db->sql($sql)) {
+        // A class that belongs to a school makes its students members of that school.
+        $db->sql("SELECT school_id FROM teacher_classes WHERE id = '$class_id' AND school_id IS NOT NULL LIMIT 1");
+        $class_school = $db->getResult();
+        if (!empty($class_school) && (int) $user_id > 0) {
+            $class_school_id = (int) $class_school[0]['school_id'];
+            $db->sql("INSERT INTO school_members (school_id, user_id, role, status) VALUES ($class_school_id, " . (int) $user_id . ", 'student', 1) ON DUPLICATE KEY UPDATE status = 1");
+        }
         $response['error'] = "false";
         $response['message'] = "Student added successfully";
     } else {
