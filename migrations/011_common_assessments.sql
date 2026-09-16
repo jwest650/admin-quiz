@@ -12,10 +12,14 @@
 -- unsigned ids, while the older teacher_* tables have signed ones. A foreign key
 -- needs the exact same type, so these are not interchangeable.
 --
--- Run once against the application database:
+-- Safe to run more than once: existing tables and an existing grade column are
+-- left untouched.
+--
+-- Run against the application database:
 --   mysql -u <user> -p <database> < migrations/011_common_assessments.sql
+-- or paste the whole file into phpMyAdmin's SQL tab with the database selected.
 
-CREATE TABLE `common_assessments` (
+CREATE TABLE IF NOT EXISTS `common_assessments` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `district_id` INT UNSIGNED NOT NULL,
     `title` VARCHAR(160) NOT NULL,
@@ -37,7 +41,7 @@ CREATE TABLE `common_assessments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- The schools an assessment is given to.
-CREATE TABLE `common_assessment_schools` (
+CREATE TABLE IF NOT EXISTS `common_assessment_schools` (
     `assessment_id` INT UNSIGNED NOT NULL,
     `school_id` INT UNSIGNED NOT NULL,
     PRIMARY KEY (`assessment_id`, `school_id`),
@@ -48,7 +52,7 @@ CREATE TABLE `common_assessment_schools` (
 
 -- One row per finished attempt. The unique key on the attempt number is what stops
 -- a student going past the attempts the district allowed, even from two tabs at once.
-CREATE TABLE `common_assessment_attempts` (
+CREATE TABLE IF NOT EXISTS `common_assessment_attempts` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `assessment_id` INT UNSIGNED NOT NULL,
     `user_id` INT UNSIGNED NOT NULL,
@@ -73,7 +77,7 @@ CREATE TABLE `common_assessment_attempts` (
 -- One row per question in an attempt, so the reports can show which questions a
 -- cohort found hard and what they answered instead. There is no key to
 -- teacher_questions on purpose: deleting a question must not erase past results.
-CREATE TABLE `common_assessment_responses` (
+CREATE TABLE IF NOT EXISTS `common_assessment_responses` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `attempt_id` INT UNSIGNED NOT NULL,
     `assessment_id` INT UNSIGNED NOT NULL,
@@ -89,5 +93,17 @@ CREATE TABLE `common_assessment_responses` (
 -- A class grade, set in the school portal. Assessments limited to grades reach only
 -- the classes whose grade matches; classes without one take part in district-wide
 -- assessments only.
-ALTER TABLE `teacher_classes`
-    ADD COLUMN `grade` VARCHAR(16) NULL AFTER `name`;
+--
+-- MySQL has no "ADD COLUMN IF NOT EXISTS", so the column is added only when missing.
+SET @add_grade := (
+    SELECT COUNT(*) = 0 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teacher_classes' AND COLUMN_NAME = 'grade'
+);
+SET @add_grade_sql := IF(
+    @add_grade,
+    'ALTER TABLE `teacher_classes` ADD COLUMN `grade` VARCHAR(16) NULL AFTER `name`',
+    'SELECT ''teacher_classes.grade already exists - left as it is'' AS note'
+);
+PREPARE add_grade_stmt FROM @add_grade_sql;
+EXECUTE add_grade_stmt;
+DEALLOCATE PREPARE add_grade_stmt;
