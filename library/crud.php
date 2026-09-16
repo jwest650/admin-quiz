@@ -9,7 +9,11 @@
  * Configuration is loaded from the environment first, then from
  * library/config.php (git ignored, see library/config.sample.php).
  * Nothing secret belongs in this file - it is tracked in git.
+ *
+ * library/.env, when present, is read into the environment here (see env.php).
  */
+require_once __DIR__ . '/env.php';
+
 function quiz_config()
 {
     static $config = null;

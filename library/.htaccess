@@ -1,0 +1,15 @@
+# This folder holds credentials and server-side includes. Nothing in it should
+# ever be fetched over the web: PHP files are only ever included from elsewhere,
+# and .env would otherwise be served as plain text if PHP were disabled.
+
+<FilesMatch "^\.env|\.env\.|^config\.php$|^config\.sample\.php$|\.(csv|log|sql|bak|ini|yml|yaml)$">
+    # Apache 2.4
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    # Apache 2.2
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
