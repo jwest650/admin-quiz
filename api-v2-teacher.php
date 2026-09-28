@@ -23,6 +23,7 @@ header('X-Content-Type-Options: nosniff');
 
 include('library/crud.php');
 include('library/functions.php');
+include_once('library/csv-import.php');
 
 $db = new Database();
 $db->connect();
@@ -1445,13 +1446,14 @@ if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) &
         exit;
     }
 
-    $csvFile = $_FILES['questions']['tmp_name'];
+    $csv_rows = csv_import_rows($_FILES['questions']['tmp_name']);
 
-    // Open and read the CSV file
-    if (($handle = fopen($csvFile, "r")) !== FALSE) {
-        $header = fgetcsv($handle);
+    // Open and read the CSV file; the first row holds the column headings
+    if ($csv_rows !== false) {
+        array_shift($csv_rows);
         $questions = [];
-        while (($data = fgetcsv($handle)) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $data = array_pad($csv_row['cells'], 6, '');
             $questions[] = [
                 'question' => $data[0],
                 'option_a' => $data[1],
@@ -1461,7 +1463,14 @@ if (isset($_POST['access_key']) && isset($_POST['import_live_quiz_questions']) &
                 'answer' => $data[5]
             ];
         }
-        fclose($handle);
+        // Check before creating the category, so an empty file leaves no empty quiz behind.
+        if (!$questions) {
+            echo json_encode([
+                'error' => 'true',
+                'message' => 'The file has no questions. Put one question per row under the heading row.'
+            ]);
+            exit;
+        }
 
         $category = htmlspecialchars($_POST['category']);
         $subcategory = htmlspecialchars($_POST['subcategory']);

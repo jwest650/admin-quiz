@@ -16,6 +16,7 @@ if (!isset($_SESSION['username'])) {
 include('library/crud.php');
 include('library/auth.php');
 include('library/functions.php');
+include_once('library/csv-import.php');
 
 $db = new Database();
 $db->connect();
@@ -1454,10 +1455,13 @@ if (isset($_POST['import_questions']) && $_POST['import_questions'] == 1) {
     $count = $count1 = 0;
     $filename = $_FILES["questions_file"]["tmp_name"];
     $file_extension = pathinfo($_FILES["questions_file"]["name"], PATHINFO_EXTENSION);
-    if ($_FILES["questions_file"]["size"] > 0 && $file_extension == "csv") {
-        $file = fopen($filename, "r");
+    if ($_FILES["questions_file"]["size"] > 0 && strtolower($file_extension) == "csv") {
+        // Blank rows are skipped, and short rows padded, so a sheet saved from Excel imports as it looks.
+        $csv_rows = csv_import_rows($filename) ?: array();
+        $empty_value_found = false;
 
-        while (($emapData = fgetcsv($file, 10000, ",")) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $emapData = array_pad($csv_row['cells'], 13, '');
             if (count($emapData) > 2) {
                 $emapData[0] = $db->escapeString($emapData[0]); //category
                 $emapData[1] = (empty($db->escapeString($emapData[1]))) ? "0" : $db->escapeString($db->escapeString($emapData[1])); //subcategory
@@ -1479,7 +1483,7 @@ if (isset($_POST['import_questions']) && $_POST['import_questions'] == 1) {
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else if ($emapData[3] == '2') {
@@ -1487,20 +1491,20 @@ if (isset($_POST['import_questions']) && $_POST['import_questions'] == 1) {
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else {
                         $empty_value_found = false;
+                        echo '<p class="text-danger">Please check row ' . $csv_row['line'] . ': question type must be 1 or 2</p>';
                         break;
                     }
                 }
             }
         }
-        fclose($file);
         if ($empty_value_found == TRUE) {
-            $file = fopen($filename, "r");
-            while (($emapData1 = fgetcsv($file, 10000, ",")) !== FALSE) {
+            foreach ($csv_rows as $csv_row) {
+                $emapData1 = array_pad($csv_row['cells'], 13, '');
                 if (count($emapData1) > 2) {
                     $emapData1[0] = $db->escapeString($emapData1[0]);
                     $emapData1[1] = (empty($db->escapeString($emapData1[1]))) ? "0" : $db->escapeString($db->escapeString($emapData1[1]));
@@ -1525,7 +1529,6 @@ if (isset($_POST['import_questions']) && $_POST['import_questions'] == 1) {
                     }
                 }
             }
-            fclose($file);
             echo "<p class='alert alert-success'>CSV file is successfully imported!</p>";
         } else {
             echo "<p class='alert alert-danger'>Please fill all the data in CSV file!</p>";
@@ -1544,10 +1547,13 @@ if (isset($_POST['import_junior_questions']) && $_POST['import_junior_questions'
     $count = $count1 = 0;
     $filename = $_FILES["questions_file"]["tmp_name"];
     $file_extension = pathinfo($_FILES["questions_file"]["name"], PATHINFO_EXTENSION);
-    if ($_FILES["questions_file"]["size"] > 0 && $file_extension == "csv") {
-        $file = fopen($filename, "r");
+    if ($_FILES["questions_file"]["size"] > 0 && strtolower($file_extension) == "csv") {
+        // Blank rows are skipped, and short rows padded, so a sheet saved from Excel imports as it looks.
+        $csv_rows = csv_import_rows($filename) ?: array();
+        $empty_value_found = false;
 
-        while (($emapData = fgetcsv($file, 10000, ",")) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $emapData = array_pad($csv_row['cells'], 13, '');
             if (count($emapData) > 2) {
                 $emapData[0] = $db->escapeString($emapData[0]); //category
                 $emapData[1] = (empty($db->escapeString($emapData[1]))) ? "0" : $db->escapeString($db->escapeString($emapData[1])); //subcategory
@@ -1569,7 +1575,7 @@ if (isset($_POST['import_junior_questions']) && $_POST['import_junior_questions'
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else if ($emapData[3] == '2') {
@@ -1577,20 +1583,20 @@ if (isset($_POST['import_junior_questions']) && $_POST['import_junior_questions'
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else {
                         $empty_value_found = false;
+                        echo '<p class="text-danger">Please check row ' . $csv_row['line'] . ': question type must be 1 or 2</p>';
                         break;
                     }
                 }
             }
         }
-        fclose($file);
         if ($empty_value_found == TRUE) {
-            $file = fopen($filename, "r");
-            while (($emapData1 = fgetcsv($file, 10000, ",")) !== FALSE) {
+            foreach ($csv_rows as $csv_row) {
+                $emapData1 = array_pad($csv_row['cells'], 13, '');
                 if (count($emapData1) > 2) {
                     $emapData1[0] = $db->escapeString($emapData1[0]);
                     $emapData1[1] = (empty($db->escapeString($emapData1[1]))) ? "0" : $db->escapeString($db->escapeString($emapData1[1]));
@@ -1615,7 +1621,6 @@ if (isset($_POST['import_junior_questions']) && $_POST['import_junior_questions'
                     }
                 }
             }
-            fclose($file);
             echo "<p class='alert alert-success'>CSV file is successfully imported!</p>";
         } else {
             echo "<p class='alert alert-danger'>Please fill all the data in CSV file!</p>";
@@ -2369,10 +2374,13 @@ if (isset($_POST['import_contest_questions']) && $_POST['import_contest_question
     $count = $count1 = 0;
     $filename = $_FILES["questions_file"]["tmp_name"];
     $file_extension = pathinfo($_FILES["questions_file"]["name"], PATHINFO_EXTENSION);
-    if ($_FILES["questions_file"]["size"] > 0 && $file_extension == "csv") {
-        $file = fopen($filename, "r");
+    if ($_FILES["questions_file"]["size"] > 0 && strtolower($file_extension) == "csv") {
+        // Blank rows are skipped, and short rows padded, so a sheet saved from Excel imports as it looks.
+        $csv_rows = csv_import_rows($filename) ?: array();
+        $empty_value_found = false;
 
-        while (($emapData = fgetcsv($file, 10000, ",")) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $emapData = array_pad($csv_row['cells'], 10, '');
             if (count($emapData) > 2) {
                 $emapData[0] = $db->escapeString($emapData[0]); //contest_id
                 $emapData[1] = $db->escapeString(trim($emapData[1]));   //question_type
@@ -2391,7 +2399,7 @@ if (isset($_POST['import_contest_questions']) && $_POST['import_contest_question
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else if ($emapData[1] == '2') {
@@ -2399,20 +2407,20 @@ if (isset($_POST['import_contest_questions']) && $_POST['import_contest_question
                             $empty_value_found = true;
                         } else {
                             $empty_value_found = false;
-                            echo '<p class="text-danger">Please Check ' . $count . ' row</p>';
+                            echo '<p class="text-danger">Please check row ' . $csv_row['line'] . '</p>';
                             break;
                         }
                     } else {
                         $empty_value_found = false;
+                        echo '<p class="text-danger">Please check row ' . $csv_row['line'] . ': question type must be 1 or 2</p>';
                         break;
                     }
                 }
             }
         }
-        fclose($file);
         if ($empty_value_found == TRUE) {
-            $file = fopen($filename, "r");
-            while (($emapData1 = fgetcsv($file, 10000, ",")) !== FALSE) {
+            foreach ($csv_rows as $csv_row) {
+                $emapData1 = array_pad($csv_row['cells'], 10, '');
                 if (count($emapData1) > 2) {
                     $emapData1[0] = $db->escapeString($emapData1[0]); //contest_id
                     $emapData1[1] = $db->escapeString(trim($emapData1[1]));   //question_type
@@ -2434,7 +2442,6 @@ if (isset($_POST['import_contest_questions']) && $_POST['import_contest_question
                     }
                 }
             }
-            fclose($file);
             echo "<p class='alert alert-success'>CSV file is successfully imported!</p>";
         } else {
             echo "<p class='alert alert-danger'>Please fill all the data in CSV file!</p>";
@@ -3657,11 +3664,14 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
     }
 
     if ($_FILES['csv_file']['error'] == 0) {
-        $file = $_FILES['csv_file']['tmp_name'];
-        $handle = fopen($file, "r");
+        $csv_rows = csv_import_rows($_FILES['csv_file']['tmp_name']);
+        if (!$csv_rows) {
+            echo json_encode(['error' => true, 'message' => 'The file is empty or could not be read. Save it as CSV and try again.']);
+            exit();
+        }
 
-        // Skip header row
-        $header = fgetcsv($handle);
+        // The first row holds the column headings
+        $header = array_shift($csv_rows)['cells'];
 
         // Convert header to lowercase and trim for consistent comparison
         $header = array_map(function ($item) {
@@ -3690,9 +3700,9 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
 
         $success_count = 0;
         $error_count = 0;
-        $line = 2; // Start from line 2 (after header)
 
-        while (($data = fgetcsv($handle)) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $data = array_pad($csv_row['cells'], count($header), '');
             // Get values from correct columns
             $question = $db->escapeString($data[$columns['question']]);
             $optiona = $db->escapeString($data[$columns['optiona']]);
@@ -3726,10 +3736,7 @@ if (isset($_POST['import_exam_question']) && isset($_POST['exam_id'])) {
             } else {
                 $error_count++;
             }
-            $line++;
         }
-
-        fclose($handle);
 
         echo json_encode([
             'error' => false,
@@ -3775,13 +3782,14 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
         exit;
     }
 
-    $csvFile = $_FILES['questions']['tmp_name'];
+    $csv_rows = csv_import_rows($_FILES['questions']['tmp_name']);
 
-    // Open and read the CSV file
-    if (($handle = fopen($csvFile, "r")) !== FALSE) {
-        $header = fgetcsv($handle);
+    // Open and read the CSV file; the first row holds the column headings
+    if ($csv_rows !== false) {
+        array_shift($csv_rows);
         $questions = [];
-        while (($data = fgetcsv($handle)) !== FALSE) {
+        foreach ($csv_rows as $csv_row) {
+            $data = array_pad($csv_row['cells'], 10, '');
             $questions[] = [
                 'question' => $data[0],
                 'option_a' => $data[1],
@@ -3795,7 +3803,6 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
                 'language_id' => isset($data[9]) ? $data[9] : '', // Optional language field
             ];
         }
-        fclose($handle);
 
         $category = htmlspecialchars($_POST['category']);
         $subcategory = htmlspecialchars($_POST['subcategory']);
