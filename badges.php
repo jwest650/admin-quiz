@@ -1,5 +1,10 @@
 <?php
-session_start()
+session_start();
+if (!isset($_SESSION['username'])) {
+    header("location:index.php");
+    return false;
+    exit();
+}
 ?>
 
 
@@ -18,7 +23,13 @@ session_start()
             <?php include 'sidebar.php'; ?>
             <!-- page content -->
             <div class="right_col" role="main">
-<h1>Badges</h1>
+<div class="x_panel">
+<div class="x_title">
+    <h2>Badges <small>Rewards players earn in the app</small></h2>
+    <div class="clearfix"></div>
+</div>
+<div class="x_content">
+<div class="alert alert-warning"><strong>Not connected yet.</strong> This form doesn't save anything: its Submit button has no server handler. Changes made here are lost.</div>
 <form   class="badge-form">
 <input type="hidden"  name="update_badge" required value='1'/>
 
@@ -413,8 +424,10 @@ session_start()
   </section>
  
 
-  <button type="submit" >Submit</button>
+  <button type="submit" class="btn btn-warning" disabled title="Saving isn't connected yet">Submit</button>
 </form>
+</div>
+</div>
                
         </div>
     </div>

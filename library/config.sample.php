@@ -50,6 +50,7 @@ return array(
         'smtp_user' => '',
         'smtp_pass' => '',
         'smtp_tls' => true,       // STARTTLS
+        'smtp_verify' => true,    // check the server's certificate
         'from' => '',             // sender address; default no-reply@<your domain>
         'php_mail_fallback' => false, // true = use PHP mail() when no SMTP host is set
     ),

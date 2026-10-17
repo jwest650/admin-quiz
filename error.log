@@ -733,3 +733,24 @@ Stack trace:
 [03-Oct-2026 19:34:51 Africa/Accra] Firebase ID: normal
 [03-Oct-2026 19:40:11 Africa/Accra] Firebase ID: normal
 [03-Oct-2026 19:41:30 Africa/Accra] Firebase ID: normal
+[17-Oct-2026 10:44:02 Africa/Accra] PHP Warning:  Undefined array key "delete_exam_module" in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 3557
+[17-Oct-2026 10:44:02 Africa/Accra] PHP Warning:  Undefined array key "delete_exam_question" in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 3637
+[17-Oct-2026 10:49:37 Africa/Accra] Firebase ID: normal
+[17-Oct-2026 12:47:06 Africa/Accra] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php:288
+Stack trace:
+#0 {main}
+  thrown in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 288
+[17-Oct-2026 12:52:20 Africa/Accra] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php:288
+Stack trace:
+#0 {main}
+  thrown in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 288
+[17-Oct-2026 12:52:20 Africa/Accra] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php:288
+Stack trace:
+#0 {main}
+  thrown in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 288
+[17-Oct-2026 12:52:20 Africa/Accra] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php:288
+Stack trace:
+#0 {main}
+  thrown in /Users/jerry/Desktop/projects/andy/admin-quiz/db_operations.php on line 288
+[17-Oct-2026 12:52:52 Africa/Accra] get_selected_date_junior: Table 'admin_quiz.daily_junior_quiz' doesn't exist
+[17-Oct-2026 12:55:13 Africa/Accra] get_selected_date_junior: Table 'admin_quiz.daily_junior_quiz' doesn't exist

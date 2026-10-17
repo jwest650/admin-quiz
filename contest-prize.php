@@ -5,6 +5,12 @@ if (!isset($_SESSION['username'])) {
     return false;
     exit();
 }
+// Prizes belong to one contest, opened from Manage Contests with ?contest_id=.
+$contest_id = isset($_GET['contest_id']) ? (int) $_GET['contest_id'] : 0;
+if ($contest_id <= 0) {
+    header("location:contest.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,12 +43,12 @@ if (!isset($_SESSION['username'])) {
                                         <div class='col-md-12 col-sm-12'>
                                             <form id="contest_form" method="POST" action="db_operations.php" class="form-horizontal form-label-left" enctype="multipart/form-data">
                                                 <input type="hidden" id="add_contest_prize" name="add_contest_prize" required="" value="1" aria-required="true">
-                                                <input type="hidden" id="contest_id" name="contest_id" value="<?= $_GET['contest_id'] ?>"/>
+                                                <input type="hidden" id="contest_id" name="contest_id" value="<?= $contest_id ?>"/>
                                                 <div class="form-group row">
                                                     <div class="col-md-4 col-sm-12">
                                                         <?php
                                                         $db->sql("SET NAMES 'utf8'");
-                                                        $sql = "SELECT top_winner as total FROM contest_prize WHERE contest_id=" . $_GET['contest_id'] . " ORDER BY top_winner DESC LIMIT 1";
+                                                        $sql = "SELECT top_winner as total FROM contest_prize WHERE contest_id=" . $contest_id . " ORDER BY top_winner DESC LIMIT 1";
                                                         $db->sql($sql);
                                                         $res = $db->getResult();
                                                         $max = (!empty($res)) ? $res[0]['total'] + 1 : 1;

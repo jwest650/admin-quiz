@@ -21,6 +21,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/css/lightbox.min.css" integrity="sha256-tBxlolRHP9uMsEFKVk+hk//ekOlXOixLKvye5W2WR5c=" crossorigin="anonymous" />
 <!-- Custom Theme Style -->
 <link href="css/custom.min.css" rel="stylesheet">
+<!-- Admin font, the same family as the UQuiz site -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Sidebar and top bar look; must come after custom.min.css -->
+<link href="css/sidebar.css?v=<?= @filemtime(__DIR__ . '/css/sidebar.css') ?>" rel="stylesheet">
+<link href="css/header.css?v=<?= @filemtime(__DIR__ . '/css/header.css') ?>" rel="stylesheet">
+<link href="css/theme.css?v=<?= @filemtime(__DIR__ . '/css/theme.css') ?>" rel="stylesheet">
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
 

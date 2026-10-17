@@ -1,0 +1,206 @@
+/*
+ * Admin sidebar, layered over the Gentelella theme in custom.min.css.
+ * Loaded after it from include-css.php. Rules are scoped to .left_col so they
+ * only touch the sidebar; .nav-md is the expanded sidebar, .nav-sm the icon-only one.
+ */
+:root {
+    /* UQuiz brand purple (logo background #200030, site theme #3D014D) */
+    --sb-bg: #1C0F2E;
+    --sb-bg-raised: #28183F;
+    --sb-text: #E4DCF2;
+    --sb-muted: #A597C2;
+    --sb-heading: #8474A6;
+    --sb-hover: rgba(255, 255, 255, .07);
+    --sb-accent: #B794F6;
+    --sb-accent-soft: rgba(167, 139, 250, .18);
+    --sb-line: rgba(255, 255, 255, .08);
+}
+
+body,
+.left_col {
+    background: var(--sb-bg);
+}
+
+/* Logo strip and panel name */
+.left_col .nav_title {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--sb-line);
+}
+.left_col .profile {
+    padding: 14px 16px 6px;
+}
+.left_col .profile_info {
+    float: none;
+    width: auto;
+    padding: 0;
+}
+.left_col .profile_info h2 {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sb-muted);
+    background: var(--sb-bg-raised);
+    border: 1px solid var(--sb-line);
+    border-radius: 999px;
+    padding: 5px 12px;
+}
+
+/* Section headings */
+.left_col .menu_section {
+    margin-bottom: 6px;
+}
+.left_col .menu_section h3 {
+    color: var(--sb-heading);
+    text-shadow: none;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    padding: 14px 20px 6px;
+}
+
+/* Top-level items */
+.nav-md .left_col .nav.side-menu {
+    padding: 0 10px;
+}
+.left_col .nav.side-menu > li {
+    border-right: 0;
+}
+.left_col .nav.side-menu > li > a {
+    color: var(--sb-text);
+    font-size: 13px;
+    font-weight: 500;
+    text-shadow: none;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    transition: background-color .15s, color .15s;
+}
+.nav-md .left_col .nav.side-menu > li > a {
+    padding: 9px 12px;
+}
+.left_col .nav.side-menu > li > a:hover,
+.left_col .nav.side-menu > li > a:focus {
+    color: #FFFFFF;
+    background: var(--sb-hover);
+}
+.nav-md .left_col .nav.side-menu > li > a > em,
+.nav-md .left_col .nav.side-menu > li > a > i {
+    width: 22px;
+    margin-right: 8px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--sb-muted);
+    transition: color .15s;
+}
+.left_col .nav.side-menu > li > a:hover > em,
+.left_col .nav.side-menu > li > a:hover > i {
+    color: var(--sb-text);
+}
+.left_col .main_menu span.fas {
+    color: var(--sb-muted);
+    margin-top: 4px;
+}
+
+/* Open group, and the item for the page you're on */
+.left_col .nav.side-menu > li.active,
+.left_col .nav.side-menu > li.current-page {
+    border-right: 0;
+    background: transparent;
+}
+.left_col .nav.side-menu > li.active > a,
+.left_col .nav.side-menu > li.current-page > a {
+    color: #FFFFFF;
+    background: var(--sb-accent-soft);
+    box-shadow: inset 3px 0 0 var(--sb-accent);
+    text-shadow: none;
+}
+.left_col .nav.side-menu > li.active > a > em,
+.left_col .nav.side-menu > li.current-page > a > em {
+    color: var(--sb-accent);
+}
+
+/* Sub-menus */
+.left_col .nav.child_menu {
+    padding: 2px 0 6px;
+}
+.left_col .nav.child_menu li.active,
+.left_col .nav.child_menu li:hover,
+.left_col .nav li li.current-page {
+    background: transparent;
+}
+.left_col .nav.child_menu > li > a {
+    color: var(--sb-muted);
+    font-size: 12.5px;
+    border-radius: 6px;
+}
+.nav-md .left_col .nav.child_menu > li > a {
+    padding: 7px 10px 7px 42px;
+}
+.left_col .nav.child_menu > li > a:hover {
+    color: #FFFFFF;
+    background: var(--sb-hover);
+}
+.left_col .nav li li.current-page > a {
+    color: #FFFFFF;
+    font-weight: 600;
+}
+.nav-md .left_col ul.nav.child_menu li:after {
+    left: 25px;
+    border-left-color: var(--sb-line);
+}
+.nav-md .left_col ul.nav.child_menu li:before {
+    left: 22px;
+    margin-top: 13px;
+    width: 7px;
+    height: 7px;
+    background: #3D2A5C;
+}
+.nav-md .left_col ul.nav.child_menu li.current-page:before {
+    background: var(--sb-accent);
+    box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+
+/* Icon-only sidebar */
+.nav-sm .left_col .nav.side-menu > li > a {
+    border-radius: 0;
+    color: var(--sb-text);
+}
+.nav-sm .left_col .nav.side-menu li a em {
+    color: var(--sb-muted);
+}
+.nav-sm .left_col .nav.side-menu > li.active-sm > a,
+.nav-sm .left_col .nav.side-menu > li.current-page > a {
+    box-shadow: inset 3px 0 0 var(--sb-accent);
+}
+.nav-sm .left_col ul.nav.child_menu {
+    background: var(--sb-bg-raised);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .left_col .nav.side-menu > li > a,
+    .left_col .nav.side-menu > li > a > em {
+        transition: none;
+    }
+}
+
+/* Keep long labels lined up with the text when they wrap, caret on the right */
+.nav-md .left_col .nav.side-menu > li > a {
+    display: flex;
+    align-items: center;
+}
+.nav-md .left_col .nav.side-menu > li > a > em {
+    flex-shrink: 0;
+}
+.nav-md .left_col .main_menu .side-menu > li > a > span.fas {
+    float: none;
+    margin: 0 0 0 auto;
+    padding-left: 8px;
+}
+
+/* Icon-only sidebar: small labels that wrap inside the narrow column */
+.nav-sm .left_col .nav.side-menu > li > a {
+    font-size: 9.5px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}

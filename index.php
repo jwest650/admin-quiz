@@ -18,42 +18,51 @@ if (isset($_SESSION['username'])) {
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Login | Quiz</title>
+  <title>Admin Login | UQuiz</title>
   <?php include 'include-css.php'; ?>
  </head>
 
- <body class="login">
-  <div>
-   <a class="hiddenanchor" id="signup"></a>
-   <a class="hiddenanchor" id="signin"></a>
-   <div class="login_wrapper">
-    <div class="animate form login_form">
-     <section class="login_content">
-      <form method="POST" id="login_form" action="check_login.php">
-       <h1 class="text-center">LOGIN</h1>
-       <div>
-        <input type="text" id="username" name="username" class="form-control" placeholder="Username" autocomplete="username" autocapitalize="none" spellcheck="false" required />
-       </div>
-       <div>
-        <input type="password" id="password" name="password" class="form-control" placeholder="Password" autocomplete="current-password" required />
-       </div>
-       <div class="row mt-20">
-        <input type="submit" id="login_button" class="btn btn-default text-center" value="Log in">
-       </div>
-       <div class="clearfix"></div>
-       <div style="display:none;" id="result">
-       </div>
-       <div class="separator">
-        <div class="clearfix"></div>
-        <br>
-        <img src="images/logo-460x114.png" alt="QUIZ" width='300'>
-        <p class="text-center"><br>© <?= date('Y') ?> WRTeam</p>
-       </div>
-      </form>
-     </section>
+ <body class="login-page">
+  <main class="login-shell">
+   <section class="login-brand" aria-hidden="true">
+    <div class="login-brand__inner">
+     <p class="login-brand__eyebrow">UQuiz Admin</p>
+     <h2>Run every quiz from one place.</h2>
+     <ul>
+      <li><em class="fas fa-book"></em> Quiz zones, maths and exams</li>
+      <li><em class="fas fa-child"></em> Junior quizzes and Guess the Word</li>
+      <li><em class="fas fa-trophy"></em> Contests and leaderboards</li>
+     </ul>
     </div>
-   </div>
-  </div>
+   </section>
+   <section class="login-panel">
+    <div class="login-card">
+     <img class="login-card__logo" src="images/logo-460x114.png" alt="UQuiz">
+     <h1>Welcome back</h1>
+     <p class="login-card__lead">Sign in to the admin panel.</p>
+     <form method="POST" id="login_form" action="check_login.php" novalidate>
+      <div class="login-field">
+       <label for="username">Username</label>
+       <div class="login-input">
+        <em class="fas fa-user" aria-hidden="true"></em>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Your username" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+       </div>
+      </div>
+      <div class="login-field">
+       <label for="password">Password</label>
+       <div class="login-input">
+        <em class="fas fa-lock" aria-hidden="true"></em>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Your password" autocomplete="current-password" required />
+        <button type="button" class="login-reveal" id="password_reveal" aria-label="Show password" aria-pressed="false"><em class="fas fa-eye"></em></button>
+       </div>
+      </div>
+      <div style="display:none;" id="result" role="alert"></div>
+      <input type="submit" id="login_button" class="btn btn-primary login-submit" value="Log in">
+     </form>
+     <p class="login-card__foot">&copy; <?= date('Y') ?> UQuiz &middot; WRTeam</p>
+    </div>
+   </section>
+  </main>
   <!-- Including Jquery so All js Can run -->
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <!-- Validadtion js -->
@@ -154,6 +163,15 @@ if (isset($_SESSION['username'])) {
      showAlert(messageForFailure(jqXHR, textStatus));
     }
    });
+  });
+
+  // Show or hide the password.
+  $('#password_reveal').on('click', function() {
+   var $input = $('#password');
+   var show = $input.attr('type') === 'password';
+   $input.attr('type', show ? 'text' : 'password');
+   $(this).attr({ 'aria-pressed': show, 'aria-label': show ? 'Hide password' : 'Show password' })
+    .find('em').toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
   });
   </script>
  </body>

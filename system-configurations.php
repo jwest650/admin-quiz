@@ -641,7 +641,7 @@ if (!isset($_SESSION['username'])) {
                     in_array($zone['timezone_id'], $idents)
                 ) {
                     $z = new DateTimeZone($zone['timezone_id']);
-                    $c = new DateTime(null, $z);
+                    $c = new DateTime('now', $z);
                     $zone['time'] = $c->format('H:i a');
                     $offset[] = $zone['offset'] = $z->getOffset($c);
                     $data[] = $zone;

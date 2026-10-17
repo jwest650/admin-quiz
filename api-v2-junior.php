@@ -106,6 +106,8 @@ $toDateTime = date('Y-m-d H:i:s');
   51. delete_user_account()
   52. get_maths_questions()
   53. insert_payment_history()
+  54. get_guess_word_categories()
+  55. get_guess_words()
 
   functions
   ------------------------------------
@@ -3480,4 +3482,146 @@ if (isset($_POST['get_payment']) && isset($_POST['access_key'])) {
     $response['message'] = "Data fetched sucessfully";
     $response['error'] = "false";
     print_r(json_encode($response));
+}
+
+/*
+ * Guess the Word. Topics (tbl_junior_guess_word_category) hold levels
+ * (tbl_junior_guess_word_level), and levels hold the words
+ * (tbl_junior_guess_word). Only active rows reach the game. Both methods use
+ * prepared statements for everything the caller sends.
+ */
+function guess_word_reply($response)
+{
+    print_r(json_encode($response));
+}
+
+// 54. get_guess_word_categories()
+if (isset($_POST['access_key']) && isset($_POST['get_guess_word_categories'])) {
+    /* Parameters to be passed
+      access_key:6808
+      get_guess_word_categories:1
+      language_id:1   // optional, used when language mode is on
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        guess_word_reply(array('error' => "true", 'message' => "Invalid Access Key"));
+        return false;
+    }
+    // Active levels that have at least one active word, in topic and level order.
+    $sql = "SELECT c.id AS category_id, c.language_id, c.name AS category_name, c.image,
+                l.id AS level_id, l.name AS level_name, COUNT(w.id) AS no_of_words
+            FROM tbl_junior_guess_word_category c
+            JOIN tbl_junior_guess_word_level l ON l.category = c.id AND l.status = 1
+            JOIN tbl_junior_guess_word w ON w.level_id = l.id AND w.status = 1
+            WHERE c.status = 1";
+    $types = '';
+    $params = array();
+    if (!empty($_POST['language_id'])) {
+        $sql .= ' AND c.language_id = ?';
+        $types .= 'i';
+        $params[] = (int) $_POST['language_id'];
+    }
+    $sql .= ' GROUP BY l.id ORDER BY c.row_order, c.id, l.row_order, l.id';
+    $stmt = $db->getConnection()->prepare($sql);
+    if ($types !== '') {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    if (empty($rows)) {
+        guess_word_reply(array('error' => "true", 'message' => "No data found!"));
+        return false;
+    }
+
+    $topics = array();
+    foreach ($rows as $row) {
+        $id = (int) $row['category_id'];
+        if (!isset($topics[$id])) {
+            $topics[$id] = array(
+                'id' => $id,
+                'language_id' => (int) $row['language_id'],
+                'category_name' => $row['category_name'],
+                'image' => $row['image'] !== '' ? DOMAIN_URL . 'images/guess-word/topics/' . rawurlencode($row['image']) : '',
+                'no_of_words' => 0,
+                'levels' => array(),
+            );
+        }
+        $topics[$id]['no_of_words'] += (int) $row['no_of_words'];
+        $topics[$id]['levels'][] = array(
+            'id' => (int) $row['level_id'],
+            'name' => $row['level_name'],
+            'no_of_words' => (int) $row['no_of_words'],
+        );
+    }
+    guess_word_reply(array('error' => "false", 'data' => array_values($topics)));
+}
+
+// 55. get_guess_words()
+if (isset($_POST['access_key']) && isset($_POST['get_guess_words'])) {
+    /* Parameters to be passed
+      access_key:6808
+      get_guess_words:1
+      category:3   // topic id
+      level:7      // optional level id from get_guess_word_categories. Omit to mix every level.
+      limit:10     // optional, 1-20, default 10
+     */
+    if (!verify_token()) {
+        return false;
+    }
+    if ($access_key != $_POST['access_key']) {
+        guess_word_reply(array('error' => "true", 'message' => "Invalid Access Key"));
+        return false;
+    }
+    $category = isset($_POST['category']) ? (int) $_POST['category'] : 0;
+    $level = isset($_POST['level']) ? (int) $_POST['level'] : 0;
+    $limit = isset($_POST['limit']) ? min(20, max(1, (int) $_POST['limit'])) : 10;
+    if ($category <= 0 || $level < 0) {
+        guess_word_reply(array('error' => "true", 'message' => "Please pass all the fields"));
+        return false;
+    }
+
+    $sql = 'SELECT w.id, w.word, w.hint, w.image, w.level_id
+            FROM tbl_junior_guess_word w
+            JOIN tbl_junior_guess_word_level l ON l.id = w.level_id AND l.status = 1
+            JOIN tbl_junior_guess_word_category c ON c.id = l.category AND c.status = 1
+            WHERE c.id = ? AND w.status = 1';
+    $types = 'i';
+    $params = array($category);
+    if ($level > 0) {
+        $sql .= ' AND l.id = ?';
+        $types .= 'i';
+        $params[] = $level;
+    }
+    $sql .= ' ORDER BY RAND() LIMIT ?';
+    $types .= 'i';
+    $params[] = $limit;
+
+    $stmt = $db->getConnection()->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $words = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    if (empty($words)) {
+        guess_word_reply(array('error' => "true", 'message' => "No data found!"));
+        return false;
+    }
+
+    $data = array();
+    foreach ($words as $row) {
+        $data[] = array(
+            'id' => (int) $row['id'],
+            'word' => $row['word'],
+            'hint' => $row['hint'],
+            'image' => $row['image'] !== '' ? DOMAIN_URL . 'images/guess-word/' . rawurlencode($row['image']) : '',
+            'level_id' => (int) $row['level_id'],
+            // Letters the child has to place; spaces, hyphens and apostrophes are shown.
+            'letter_count' => (int) preg_match_all('/\p{L}/u', $row['word']),
+        );
+    }
+    guess_word_reply(array('error' => "false", 'data' => $data));
 }

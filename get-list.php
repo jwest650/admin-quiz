@@ -483,7 +483,7 @@ if (isset($_GET['table']) && $_GET['table'] == 'users') {
 
         $operate .= "<a class='btn btn-xs btn-warning' href='battle-statistics.php?user_id=" . $row['id'] . "' target='_blank' title='User Statistics'><i class='far fa-chart-bar'></i></a>";
         $operate .= "<a class='btn btn-xs btn-default add-coin' data-id='" . $row['id'] . "' data-toggle='modal' data-target='#editUserModal1' title='Coin'><i class='fas fa-coins' style='color: red'></i></a>";
-        $operate .= " <a class='btn btn-xs btn-default target='_blank' title='User Payments'  href='user-payments.php?user_id=" . $row['id'] . "'>
+        $operate .= " <a class='btn btn-xs btn-default' target='_blank' title='User Payments' href='user-payments.php?user_id=" . $row['id'] . "'>
         <i class='fas fa-receipt ' style='color: #74C0FC; font-size:16px;'></i>
         </a>";
 
@@ -2476,4 +2476,175 @@ if (isset($_GET['table']) && $_GET['table'] == 'exam-question-list') {
 
     $bulkData['rows'] = $rows;
     print_r(json_encode($bulkData));
+}
+
+/*
+ * Guess the Word lists for junior-guess-word.php (topics, levels) and
+ * junior-guess-word-questions.php (words). Filters: category (topic id) and
+ * level (level id), plus the table's search box. All prepared statements.
+ */
+function guess_word_list($conn, $select, $from, $filters, $sortable, $default_sort)
+{
+    $where = array();
+    $types = '';
+    $params = array();
+    foreach ($filters as $filter) {
+        $where[] = $filter[0];
+        $types .= $filter[1];
+        $params = array_merge($params, $filter[2]);
+    }
+    $from .= count($where) ? ' WHERE ' . implode(' AND ', $where) : '';
+
+    $sort = (isset($_GET['sort']) && isset($sortable[$_GET['sort']])) ? $sortable[$_GET['sort']] : $default_sort;
+    $order = (isset($_GET['order']) && strtolower($_GET['order']) === 'desc') ? 'DESC' : 'ASC';
+    $offset = isset($_GET['offset']) ? max(0, (int) $_GET['offset']) : 0;
+    $limit = isset($_GET['limit']) ? min(500, max(1, (int) $_GET['limit'])) : 10;
+
+    $stmt = $conn->prepare('SELECT COUNT(*) AS total' . $from);
+    if ($types !== '') {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $total = (int) $stmt->get_result()->fetch_assoc()['total'];
+    $stmt->close();
+
+    $stmt = $conn->prepare($select . $from . " ORDER BY $sort $order LIMIT ?, ?");
+    $page_params = array_merge($params, array($offset, $limit));
+    $stmt->bind_param($types . 'ii', ...$page_params);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return array($total, $rows);
+}
+
+function guess_word_search_filter($columns)
+{
+    if (!isset($_GET['search']) || $_GET['search'] === '') {
+        return array();
+    }
+    $like = '%' . addcslashes((string) $_GET['search'], '%_\\') . '%';
+    $parts = array();
+    foreach ($columns as $column) {
+        $parts[] = "$column LIKE ?";
+    }
+    return array(array('(' . implode(' OR ', $parts) . ')', str_repeat('s', count($columns)), array_fill(0, count($columns), $like)));
+}
+
+function guess_word_id_filter($key, $column)
+{
+    return !empty($_GET[$key]) ? array(array("$column = ?", 'i', array((int) $_GET[$key]))) : array();
+}
+
+function guess_word_status_cell($status)
+{
+    return $status ? "<label class='label label-success'>Active</label>" : "<label class='label label-danger'>Hidden</label>";
+}
+
+function guess_word_operate($kind, $id, $status, $modal)
+{
+    $id = (int) $id;
+    $toggle = $status ? 'Hide from the game' : 'Show in the game';
+    return "<a class='btn btn-xs btn-primary edit-$kind' data-id='$id' data-toggle='modal' data-target='#$modal' title='Edit'><i class='fas fa-edit'></i></a>"
+        . "<a class='btn btn-xs btn-danger delete-$kind' data-id='$id' title='Delete'><i class='fas fa-trash'></i></a>"
+        . "<a class='btn btn-xs btn-" . ($status ? 'warning' : 'success') . " toggle-status' data-kind='$kind' data-id='$id' data-status='" . ($status ? 0 : 1) . "' title='$toggle'><i class='fas fa-" . ($status ? 'eye-slash' : 'eye') . "'></i></a>";
+}
+
+if (isset($_GET['table']) && $_GET['table'] == 'junior_guess_word_topic') {
+    $filters = array_merge(
+        guess_word_id_filter('language', 'c.language_id'),
+        guess_word_search_filter(array('c.name'))
+    );
+    list($total, $res) = guess_word_list(
+        $db->getConnection(),
+        'SELECT c.*, la.language, (SELECT COUNT(*) FROM tbl_junior_guess_word_level l WHERE l.category = c.id) AS no_of_levels,
+            (SELECT COUNT(*) FROM tbl_junior_guess_word w JOIN tbl_junior_guess_word_level l ON l.id = w.level_id WHERE l.category = c.id) AS no_of_words',
+        ' FROM tbl_junior_guess_word_category c LEFT JOIN languages la ON la.id = c.language_id',
+        $filters,
+        array('id' => 'c.id', 'name' => 'c.name', 'row_order' => 'c.row_order'),
+        'c.row_order'
+    );
+    $rows = array();
+    foreach ($res as $row) {
+        $image = $row['image'] !== '' ? 'images/guess-word/topics/' . rawurlencode($row['image']) : '';
+        $rows[] = array(
+            'id' => (int) $row['id'],
+            'name' => htmlspecialchars($row['name']),
+            'name_text' => $row['name'],
+            'language_id' => (int) $row['language_id'],
+            'language' => htmlspecialchars((string) $row['language']),
+            'row_order' => (int) $row['row_order'],
+            'no_of_levels' => (int) $row['no_of_levels'],
+            'no_of_words' => (int) $row['no_of_words'],
+            'image' => $image !== '' ? '<a href="' . $image . '" data-lightbox="Guess Word Topics"><img src="' . $image . '" height=30></a>' : 'No image',
+            'status' => guess_word_status_cell($row['status']),
+            'operate' => guess_word_operate('topic', $row['id'], $row['status'], 'editTopicModal'),
+        );
+    }
+    print_r(json_encode(array('total' => $total, 'rows' => $rows)));
+}
+
+if (isset($_GET['table']) && $_GET['table'] == 'junior_guess_word_level') {
+    $filters = array_merge(
+        guess_word_id_filter('category', 'l.category'),
+        guess_word_search_filter(array('l.name', 'c.name'))
+    );
+    list($total, $res) = guess_word_list(
+        $db->getConnection(),
+        'SELECT l.*, c.name AS topic, (SELECT COUNT(*) FROM tbl_junior_guess_word w WHERE w.level_id = l.id) AS no_of_words',
+        ' FROM tbl_junior_guess_word_level l JOIN tbl_junior_guess_word_category c ON c.id = l.category',
+        $filters,
+        array('id' => 'l.id', 'name' => 'l.name', 'topic' => 'c.name', 'row_order' => 'l.row_order'),
+        'c.row_order, c.id, l.row_order'
+    );
+    $rows = array();
+    foreach ($res as $row) {
+        $rows[] = array(
+            'id' => (int) $row['id'],
+            'category' => (int) $row['category'],
+            'topic' => htmlspecialchars($row['topic']),
+            'name' => htmlspecialchars($row['name']),
+            'name_text' => $row['name'],
+            'row_order' => (int) $row['row_order'],
+            'no_of_words' => (int) $row['no_of_words'],
+            'status' => guess_word_status_cell($row['status']),
+            'operate' => guess_word_operate('level', $row['id'], $row['status'], 'editLevelModal'),
+        );
+    }
+    print_r(json_encode(array('total' => $total, 'rows' => $rows)));
+}
+
+if (isset($_GET['table']) && $_GET['table'] == 'junior_guess_word') {
+    $filters = array_merge(
+        guess_word_id_filter('category', 'l.category'),
+        guess_word_id_filter('level', 'w.level_id'),
+        guess_word_search_filter(array('w.word', 'w.hint', 'c.name', 'l.name'))
+    );
+    list($total, $res) = guess_word_list(
+        $db->getConnection(),
+        'SELECT w.*, l.category, l.name AS level_name, c.name AS topic',
+        ' FROM tbl_junior_guess_word w JOIN tbl_junior_guess_word_level l ON l.id = w.level_id JOIN tbl_junior_guess_word_category c ON c.id = l.category',
+        $filters,
+        array('id' => 'w.id', 'word' => 'w.word', 'topic' => 'c.name', 'level_name' => 'l.row_order'),
+        'w.id'
+    );
+    $rows = array();
+    foreach ($res as $row) {
+        $image = $row['image'] !== '' ? 'images/guess-word/' . rawurlencode($row['image']) : '';
+        $rows[] = array(
+            'id' => (int) $row['id'],
+            'category' => (int) $row['category'],
+            'level_id' => (int) $row['level_id'],
+            'topic' => htmlspecialchars($row['topic']),
+            'level_name' => htmlspecialchars($row['level_name']),
+            'word' => htmlspecialchars($row['word']),
+            'hint' => htmlspecialchars($row['hint']),
+            // Unescaped copies for filling the edit form with .val().
+            'word_text' => $row['word'],
+            'hint_text' => $row['hint'],
+            'image' => $image !== '' ? '<a href="' . $image . '" data-lightbox="Guess Word Images"><img src="' . $image . '" height=30></a>' : 'No image',
+            'status' => guess_word_status_cell($row['status']),
+            'operate' => guess_word_operate('word', $row['id'], $row['status'], 'editWordModal'),
+        );
+    }
+    print_r(json_encode(array('total' => $total, 'rows' => $rows)));
 }

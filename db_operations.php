@@ -1,5 +1,3 @@
-
-
 <?php
 
 /*
@@ -284,16 +282,29 @@ if (isset($_POST['get_selected_date_junior']) && !empty($_POST['get_selected_dat
     $db->sql($sql);
     $res = $db->getResult();
     $html = "";
+    // A failed query (e.g. the daily_junior_quiz table is missing) comes back as array('error' => ...).
+    if (isset($res['error'])) {
+        error_log('get_selected_date_junior: ' . $res['error']);
+        $res = array();
+    }
 
     if (!empty($res)) {
         foreach ($res as $row) {
             $language_id = $row['language_id'];
         }
         $questions = $response = array();
-        $questions = $res[0]['questions_id'];
-        $sql = "SELECT `id`, `junior_question` FROM `question` WHERE `id` IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")";
-        $db->sql($sql);
-        $res = $db->getResult();
+        // Stored as a comma separated id list; keep only the numbers.
+        $questions = implode(',', array_filter(array_map('intval', explode(',', (string) $res[0]['questions_id']))));
+        $res = array();
+        if ($questions !== '') {
+            $sql = "SELECT `id`, `question` FROM `junior_question` WHERE `id` IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")";
+            $db->sql($sql);
+            $res = $db->getResult();
+            if (isset($res['error'])) {
+                error_log('get_selected_date_junior: ' . $res['error']);
+                $res = array();
+            }
+        }
         foreach ($res as $question) {
             $html .= "<li id=" . $question['id'] . " class='ui-state-default ui-sortable-handle'>" . $question['id'] . ". " . $question['question'] . "<a class='btn btn-danger btn-xs remove-row pull-right'>x</a></li>";
         }
@@ -3851,3 +3862,555 @@ if (isset($_POST['import_junior_csv']) && $_POST['import_junior_csv'] == 1) {
         exit;
     }
 };
+
+/*
+ * Guess the Word (junior), managed on two admin pages:
+ *   junior-guess-word.php            topics and the levels inside each topic
+ *   junior-guess-word-questions.php  the words, each in one level
+ * Every query here uses prepared statements. Handlers print an HTML alert,
+ * except the delete ones, which print 1 on success and 0 otherwise.
+ */
+define('GUESS_WORD_IMAGE_DIR', 'images/guess-word/');
+define('GUESS_WORD_TOPIC_IMAGE_DIR', 'images/guess-word/topics/');
+
+function guess_word_alert($ok, $message)
+{
+    echo '<label class="alert alert-' . ($ok ? 'success' : 'danger') . '">' . htmlspecialchars($message) . '</label>';
+}
+
+function guess_word_admin_only($auth_username, $plain = false)
+{
+    if (checkadmin($auth_username)) {
+        return true;
+    }
+    if ($plain) {
+        echo 0;
+    } else {
+        guess_word_alert(false, 'Access denied - You are not authorized to access this page.');
+    }
+    return false;
+}
+
+function guess_word_text($key, $max)
+{
+    $value = trim(preg_replace('/\s+/u', ' ', isset($_POST[$key]) ? (string) $_POST[$key] : ''));
+    return mb_strlen($value) <= $max ? $value : false;
+}
+
+// Positive ids from a comma separated POST field.
+function guess_word_ids($key)
+{
+    $ids = array_map('intval', explode(',', isset($_POST[$key]) ? (string) $_POST[$key] : ''));
+    return array_values(array_filter($ids, function ($id) {
+        return $id > 0;
+    }));
+}
+
+function guess_word_exists($conn, $table, $id)
+{
+    $stmt = $conn->prepare("SELECT id FROM $table WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $found = $stmt->get_result()->num_rows === 1;
+    $stmt->close();
+    return $found;
+}
+
+function guess_word_fetch_all($conn, $sql, $types, $params)
+{
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $rows;
+}
+
+function guess_word_execute($conn, $sql, $types, $params)
+{
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $ok = $stmt->execute();
+    if (!$ok) {
+        error_log('guess word: ' . $stmt->error);
+    }
+    $stmt->close();
+    return $ok;
+}
+
+/*
+ * Saves an uploaded picture into $dir. Returns the new file name, '' when
+ * nothing was uploaded, or false when the upload isn't a usable image.
+ */
+function guess_word_save_image($dir)
+{
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+    if ($_FILES['image']['error'] !== UPLOAD_ERR_OK || $_FILES['image']['size'] <= 0 || $_FILES['image']['size'] > 2 * 1024 * 1024) {
+        return false;
+    }
+    $types = array(IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_GIF => 'gif', IMAGETYPE_WEBP => 'webp');
+    $info = @getimagesize($_FILES['image']['tmp_name']);
+    if (!$info || !isset($types[$info[2]])) {
+        return false;
+    }
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    $filename = bin2hex(random_bytes(12)) . '.' . $types[$info[2]];
+    if (!move_uploaded_file($_FILES['image']['tmp_name'], $dir . $filename)) {
+        return false;
+    }
+    return $filename;
+}
+
+function guess_word_delete_image($dir, $filename)
+{
+    $filename = basename((string) $filename);
+    if ($filename !== '' && is_file($dir . $filename)) {
+        unlink($dir . $filename);
+    }
+}
+
+function guess_word_delete_word_images($rows)
+{
+    foreach ($rows as $row) {
+        guess_word_delete_image(GUESS_WORD_IMAGE_DIR, $row['image']);
+    }
+}
+
+const GUESS_WORD_BAD_IMAGE = 'The picture must be a JPG, PNG, GIF or WEBP image of 2 MB or less.';
+const GUESS_WORD_BAD_WORD = 'The word must be 2-30 letters. Spaces, hyphens and apostrophes are allowed between letters.';
+
+// 2-30 letters, with single spaces, hyphens or apostrophes between them.
+function guess_word_valid_word($word)
+{
+    $length = mb_strlen($word);
+    return $length >= 2 && $length <= 30 && preg_match("/^\p{L}+(?:[ '\-]\p{L}+)*$/u", $word) === 1;
+}
+
+/* ---------- Topics ---------- */
+
+// add_guess_word_topic / update_guess_word_topic (with topic_id)
+if (isset($_POST['add_guess_word_topic']) || isset($_POST['update_guess_word_topic'])) {
+    if (!guess_word_admin_only($auth_username)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $updating = isset($_POST['update_guess_word_topic']);
+    $id = isset($_POST['topic_id']) ? (int) $_POST['topic_id'] : 0;
+    $name = guess_word_text('name', 100);
+    $row_order = isset($_POST['row_order']) ? max(0, (int) $_POST['row_order']) : 0;
+    $language_id = $fn->is_language_mode_enabled() ? (int) (isset($_POST['language_id']) ? $_POST['language_id'] : 0) : 0;
+
+    if ($name === false || $name === '') {
+        guess_word_alert(false, 'Enter a topic name of 100 characters or fewer.');
+        return false;
+    }
+    if ($fn->is_language_mode_enabled() && $language_id <= 0) {
+        guess_word_alert(false, 'Choose a language.');
+        return false;
+    }
+    $current = null;
+    if ($updating) {
+        $rows = guess_word_fetch_all($conn, 'SELECT image FROM tbl_junior_guess_word_category WHERE id = ?', 'i', array($id));
+        if (!$rows) {
+            guess_word_alert(false, 'That topic no longer exists.');
+            return false;
+        }
+        $current = $rows[0];
+    }
+    $image = guess_word_save_image(GUESS_WORD_TOPIC_IMAGE_DIR);
+    if ($image === false) {
+        guess_word_alert(false, GUESS_WORD_BAD_IMAGE);
+        return false;
+    }
+
+    if ($updating) {
+        $new_image = $image === '' ? $current['image'] : $image;
+        $ok = guess_word_execute($conn, 'UPDATE tbl_junior_guess_word_category SET language_id = ?, name = ?, image = ?, row_order = ? WHERE id = ?', 'issii', array($language_id, $name, $new_image, $row_order, $id));
+        if ($ok && $image !== '') {
+            guess_word_delete_image(GUESS_WORD_TOPIC_IMAGE_DIR, $current['image']);
+        }
+    } else {
+        $ok = guess_word_execute($conn, 'INSERT INTO tbl_junior_guess_word_category (language_id, name, image, row_order, status) VALUES (?, ?, ?, ?, 1)', 'issi', array($language_id, $name, $image, $row_order));
+    }
+    if (!$ok) {
+        guess_word_delete_image(GUESS_WORD_TOPIC_IMAGE_DIR, $image);
+        guess_word_alert(false, 'The topic could not be saved. Try again.');
+        return false;
+    }
+    guess_word_alert(true, $updating ? 'Topic updated successfully!' : 'Topic added successfully!');
+}
+
+// delete_guess_word_topic: ids=<id>[,<id>...]. Its levels and words go with it.
+if (isset($_POST['delete_guess_word_topic'])) {
+    if (!guess_word_admin_only($auth_username, true)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $ids = guess_word_ids('ids');
+    if (!$ids) {
+        echo 0;
+        return false;
+    }
+    $marks = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
+    $topics = guess_word_fetch_all($conn, "SELECT image FROM tbl_junior_guess_word_category WHERE id IN ($marks)", $types, $ids);
+    $words = guess_word_fetch_all($conn, "SELECT w.image FROM tbl_junior_guess_word w JOIN tbl_junior_guess_word_level l ON l.id = w.level_id WHERE l.category IN ($marks)", $types, $ids);
+    $ok = guess_word_execute($conn, "DELETE FROM tbl_junior_guess_word_category WHERE id IN ($marks)", $types, $ids);
+    if ($ok) {
+        foreach ($topics as $row) {
+            guess_word_delete_image(GUESS_WORD_TOPIC_IMAGE_DIR, $row['image']);
+        }
+        guess_word_delete_word_images($words);
+    }
+    echo $ok ? 1 : 0;
+}
+
+/* ---------- Levels ---------- */
+
+// add_guess_word_level / update_guess_word_level (with level_id)
+if (isset($_POST['add_guess_word_level']) || isset($_POST['update_guess_word_level'])) {
+    if (!guess_word_admin_only($auth_username)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $updating = isset($_POST['update_guess_word_level']);
+    $id = isset($_POST['level_id']) ? (int) $_POST['level_id'] : 0;
+    $category = isset($_POST['category']) ? (int) $_POST['category'] : 0;
+    $name = guess_word_text('name', 60);
+
+    if ($category <= 0 || !guess_word_exists($conn, 'tbl_junior_guess_word_category', $category)) {
+        guess_word_alert(false, 'Choose a topic.');
+        return false;
+    }
+    if ($name === false || $name === '') {
+        guess_word_alert(false, 'Enter a level name of 60 characters or fewer.');
+        return false;
+    }
+    if ($updating && !guess_word_exists($conn, 'tbl_junior_guess_word_level', $id)) {
+        guess_word_alert(false, 'That level no longer exists.');
+        return false;
+    }
+    // A blank order puts a new level after the topic's other levels.
+    if (isset($_POST['row_order']) && $_POST['row_order'] !== '') {
+        $row_order = max(0, (int) $_POST['row_order']);
+    } else {
+        $last = guess_word_fetch_all($conn, 'SELECT COALESCE(MAX(row_order), 0) AS last FROM tbl_junior_guess_word_level WHERE category = ?', 'i', array($category));
+        $row_order = (int) $last[0]['last'] + 1;
+    }
+
+    if ($updating) {
+        $ok = guess_word_execute($conn, 'UPDATE tbl_junior_guess_word_level SET category = ?, name = ?, row_order = ? WHERE id = ?', 'isii', array($category, $name, $row_order, $id));
+    } else {
+        $ok = guess_word_execute($conn, 'INSERT INTO tbl_junior_guess_word_level (category, name, row_order, status) VALUES (?, ?, ?, 1)', 'isi', array($category, $name, $row_order));
+    }
+    if (!$ok) {
+        guess_word_alert(false, 'The level could not be saved. Try again.');
+        return false;
+    }
+    guess_word_alert(true, $updating ? 'Level updated successfully!' : 'Level added successfully!');
+}
+
+// delete_guess_word_level: ids=<id>[,<id>...]. Its words go with it.
+if (isset($_POST['delete_guess_word_level'])) {
+    if (!guess_word_admin_only($auth_username, true)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $ids = guess_word_ids('ids');
+    if (!$ids) {
+        echo 0;
+        return false;
+    }
+    $marks = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
+    $words = guess_word_fetch_all($conn, "SELECT image FROM tbl_junior_guess_word WHERE level_id IN ($marks)", $types, $ids);
+    $ok = guess_word_execute($conn, "DELETE FROM tbl_junior_guess_word_level WHERE id IN ($marks)", $types, $ids);
+    if ($ok) {
+        guess_word_delete_word_images($words);
+    }
+    echo $ok ? 1 : 0;
+}
+
+/* ---------- Words (questions) ---------- */
+
+// add_junior_guess_word / update_junior_guess_word (with word_id)
+if (isset($_POST['add_junior_guess_word']) || isset($_POST['update_junior_guess_word'])) {
+    if (!guess_word_admin_only($auth_username)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $updating = isset($_POST['update_junior_guess_word']);
+    $id = isset($_POST['word_id']) ? (int) $_POST['word_id'] : 0;
+    $level_id = isset($_POST['level_id']) ? (int) $_POST['level_id'] : 0;
+    $word = guess_word_text('word', 30);
+    $hint = guess_word_text('hint', 255);
+
+    if ($level_id <= 0 || !guess_word_exists($conn, 'tbl_junior_guess_word_level', $level_id)) {
+        guess_word_alert(false, 'Choose a topic and a level.');
+        return false;
+    }
+    if ($word === false || !guess_word_valid_word($word)) {
+        guess_word_alert(false, GUESS_WORD_BAD_WORD);
+        return false;
+    }
+    if ($hint === false) {
+        guess_word_alert(false, 'The hint must be 255 characters or fewer.');
+        return false;
+    }
+    $current = null;
+    if ($updating) {
+        $rows = guess_word_fetch_all($conn, 'SELECT image FROM tbl_junior_guess_word WHERE id = ?', 'i', array($id));
+        if (!$rows) {
+            guess_word_alert(false, 'That word no longer exists.');
+            return false;
+        }
+        $current = $rows[0];
+    }
+    $image = guess_word_save_image(GUESS_WORD_IMAGE_DIR);
+    if ($image === false) {
+        guess_word_alert(false, GUESS_WORD_BAD_IMAGE);
+        return false;
+    }
+
+    if ($updating) {
+        $new_image = $image === '' ? $current['image'] : $image;
+        $ok = guess_word_execute($conn, 'UPDATE tbl_junior_guess_word SET level_id = ?, word = ?, hint = ?, image = ? WHERE id = ?', 'isssi', array($level_id, $word, $hint, $new_image, $id));
+        if ($ok && $image !== '') {
+            guess_word_delete_image(GUESS_WORD_IMAGE_DIR, $current['image']);
+        }
+    } else {
+        $ok = guess_word_execute($conn, 'INSERT INTO tbl_junior_guess_word (level_id, word, hint, image, status) VALUES (?, ?, ?, ?, 1)', 'isss', array($level_id, $word, $hint, $image));
+    }
+    if (!$ok) {
+        guess_word_delete_image(GUESS_WORD_IMAGE_DIR, $image);
+        guess_word_alert(false, 'The word could not be saved. Try again.');
+        return false;
+    }
+    guess_word_alert(true, $updating ? 'Word updated successfully!' : 'Word added successfully!');
+}
+
+// delete_junior_guess_word: ids=<id>[,<id>...]
+if (isset($_POST['delete_junior_guess_word'])) {
+    if (!guess_word_admin_only($auth_username, true)) {
+        return false;
+    }
+    $conn = $db->getConnection();
+    $ids = guess_word_ids('ids');
+    if (!$ids) {
+        echo 0;
+        return false;
+    }
+    $marks = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
+    $words = guess_word_fetch_all($conn, "SELECT image FROM tbl_junior_guess_word WHERE id IN ($marks)", $types, $ids);
+    $ok = guess_word_execute($conn, "DELETE FROM tbl_junior_guess_word WHERE id IN ($marks)", $types, $ids);
+    if ($ok) {
+        guess_word_delete_word_images($words);
+    }
+    echo $ok ? 1 : 0;
+}
+
+/* ---------- Show / hide ---------- */
+
+// set_guess_word_status: kind=topic|level|word, id, status=0|1
+if (isset($_POST['set_guess_word_status'])) {
+    if (!guess_word_admin_only($auth_username)) {
+        return false;
+    }
+    $tables = array(
+        'topic' => 'tbl_junior_guess_word_category',
+        'level' => 'tbl_junior_guess_word_level',
+        'word' => 'tbl_junior_guess_word',
+    );
+    $kind = isset($_POST['kind']) ? (string) $_POST['kind'] : '';
+    if (!isset($tables[$kind])) {
+        guess_word_alert(false, 'Unknown item.');
+        return false;
+    }
+    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+    $status = (isset($_POST['status']) && $_POST['status'] === '1') ? 1 : 0;
+    $ok = guess_word_execute($db->getConnection(), 'UPDATE ' . $tables[$kind] . ' SET status = ? WHERE id = ?', 'ii', array($status, $id));
+    guess_word_alert($ok, $ok ? ($status ? 'Shown in the game.' : 'Hidden from the game.') : 'The change could not be saved. Try again.');
+}
+
+/* ---------- CSV import ---------- */
+
+/*
+ * import_guess_word_csv: level_id plus a CSV file in `questions` with the
+ * columns word, hint (hint may be blank; a heading row is optional). Every
+ * valid row is added to that level; rows that fail, and words the level
+ * already has, are skipped and listed by spreadsheet line. Prints JSON:
+ * {error, message, added, skipped: [{line, word, reason}]}.
+ */
+if (isset($_POST['import_guess_word_csv'])) {
+    $reply = function ($error, $message, $added = 0, $skipped = array()) {
+        echo json_encode(array('error' => $error, 'message' => $message, 'added' => $added, 'skipped' => $skipped));
+    };
+    if (!checkadmin($auth_username)) {
+        $reply(true, 'Access denied - You are not authorized to access this page.');
+        return false;
+    }
+    $conn = $db->getConnection();
+    $level_id = isset($_POST['level_id']) ? (int) $_POST['level_id'] : 0;
+    if ($level_id <= 0 || !guess_word_exists($conn, 'tbl_junior_guess_word_level', $level_id)) {
+        $reply(true, 'Choose a topic and a level.');
+        return false;
+    }
+    $file = isset($_FILES['questions']) ? $_FILES['questions'] : null;
+    if (!$file || $file['error'] !== UPLOAD_ERR_OK || $file['size'] <= 0) {
+        $reply(true, 'Choose a CSV file to import.');
+        return false;
+    }
+    if (strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) !== 'csv' || $file['size'] > 2 * 1024 * 1024) {
+        $reply(true, 'The file must be a .csv file of 2 MB or less.');
+        return false;
+    }
+    $rows = csv_import_rows($file['tmp_name']);
+    if ($rows === false) {
+        $reply(true, 'The file could not be read. Save it as CSV and try again.');
+        return false;
+    }
+    if ($rows && in_array(mb_strtolower($rows[0]['cells'][0]), array('word', 'words', 'question', 'questions'), true)) {
+        array_shift($rows);
+    }
+    if (!$rows) {
+        $reply(true, 'The file has no words in it.');
+        return false;
+    }
+    if (count($rows) > 1000) {
+        $reply(true, 'Import up to 1000 words at a time. Split the file and try again.');
+        return false;
+    }
+
+    // Words this level already has, compared without regard to case.
+    $seen = array();
+    foreach (guess_word_fetch_all($conn, 'SELECT word FROM tbl_junior_guess_word WHERE level_id = ?', 'i', array($level_id)) as $row) {
+        $seen[mb_strtolower($row['word'])] = true;
+    }
+
+    $in_file = array(); // lower-cased word => line it was first imported from
+    $valid = array();
+    $skipped = array();
+    foreach ($rows as $row) {
+        $word = trim(preg_replace('/\s+/u', ' ', $row['cells'][0]));
+        $hint = trim(preg_replace('/\s+/u', ' ', isset($row['cells'][1]) ? $row['cells'][1] : ''));
+        $reason = '';
+        if (!guess_word_valid_word($word)) {
+            $reason = $word === '' ? 'The word is blank.' : GUESS_WORD_BAD_WORD;
+        } elseif (mb_strlen($hint) > 255) {
+            $reason = 'The hint is longer than 255 characters.';
+        } elseif (isset($in_file[mb_strtolower($word)])) {
+            $reason = 'This word is already on line ' . $in_file[mb_strtolower($word)] . '.';
+        } elseif (isset($seen[mb_strtolower($word)])) {
+            $reason = 'This level already has this word.';
+        }
+        if ($reason !== '') {
+            $skipped[] = array('line' => $row['line'], 'word' => $word, 'reason' => $reason);
+            continue;
+        }
+        $in_file[mb_strtolower($word)] = $row['line'];
+        $valid[] = array($word, $hint);
+    }
+
+    // All valid rows go in together, or none do.
+    $added = 0;
+    if ($valid) {
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare('INSERT INTO tbl_junior_guess_word (level_id, word, hint, image, status) VALUES (?, ?, ?, \'\', 1)');
+            foreach ($valid as $item) {
+                $stmt->bind_param('iss', $level_id, $item[0], $item[1]);
+                if (!$stmt->execute()) {
+                    throw new Exception($stmt->error);
+                }
+                $added++;
+            }
+            $stmt->close();
+            $conn->commit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log('import_guess_word_csv: ' . $e->getMessage());
+            $reply(true, 'Nothing was imported because the words could not be saved. Try again.');
+            return false;
+        }
+    }
+
+    $message = $added . ($added === 1 ? ' word' : ' words') . ' imported.';
+    if ($skipped) {
+        $message .= ' ' . count($skipped) . (count($skipped) === 1 ? ' row was' : ' rows were') . ' skipped.';
+    }
+    $reply($added === 0, $message, $added, $skipped);
+}
+
+/* ---------- Picture import ---------- */
+
+// Lower case, apostrophes dropped, and spaces, hyphens or underscores as one space,
+// so "Polar bear", "polar-bear" and "polar_bear" all match.
+function guess_word_match_key($text)
+{
+    $text = mb_strtolower(str_replace(array("'", '’'), '', (string) $text));
+    return trim(preg_replace('/[\s_\-]+/u', ' ', $text));
+}
+
+/*
+ * attach_guess_word_picture: level_id, one picture in `image`, and replace=1 to
+ * swap a picture the word already has. The file name without its extension
+ * names the word, e.g. polar-bear.png for "Polar bear". Prints JSON:
+ * {error, status, word, message}; status is attached, replaced, has_picture,
+ * no_match or bad_image.
+ */
+if (isset($_POST['attach_guess_word_picture'])) {
+    $reply = function ($error, $status, $message, $word = '') {
+        echo json_encode(array('error' => $error, 'status' => $status, 'word' => $word, 'message' => $message));
+    };
+    if (!checkadmin($auth_username)) {
+        $reply(true, 'denied', 'Access denied - You are not authorized to access this page.');
+        return false;
+    }
+    $conn = $db->getConnection();
+    $level_id = isset($_POST['level_id']) ? (int) $_POST['level_id'] : 0;
+    if ($level_id <= 0 || !guess_word_exists($conn, 'tbl_junior_guess_word_level', $level_id)) {
+        $reply(true, 'no_level', 'Choose a topic and a level.');
+        return false;
+    }
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+        $reply(true, 'bad_image', 'No picture was received.');
+        return false;
+    }
+
+    $key = guess_word_match_key(pathinfo($_FILES['image']['name'], PATHINFO_FILENAME));
+    $match = null;
+    foreach (guess_word_fetch_all($conn, 'SELECT id, word, image FROM tbl_junior_guess_word WHERE level_id = ? ORDER BY id', 'i', array($level_id)) as $row) {
+        if (guess_word_match_key($row['word']) === $key) {
+            $match = $row;
+            break;
+        }
+    }
+    if (!$match) {
+        $reply(true, 'no_match', 'No word in this level matches this file name.');
+        return false;
+    }
+    $replace = isset($_POST['replace']) && $_POST['replace'] === '1';
+    if ($match['image'] !== '' && !$replace) {
+        $reply(true, 'has_picture', 'This word already has a picture.', $match['word']);
+        return false;
+    }
+
+    $image = guess_word_save_image(GUESS_WORD_IMAGE_DIR);
+    if (!$image) {
+        $reply(true, 'bad_image', GUESS_WORD_BAD_IMAGE, $match['word']);
+        return false;
+    }
+    if (!guess_word_execute($conn, 'UPDATE tbl_junior_guess_word SET image = ? WHERE id = ?', 'si', array($image, (int) $match['id']))) {
+        guess_word_delete_image(GUESS_WORD_IMAGE_DIR, $image);
+        $reply(true, 'bad_image', 'The picture could not be saved. Try again.', $match['word']);
+        return false;
+    }
+    guess_word_delete_image(GUESS_WORD_IMAGE_DIR, $match['image']);
+    $replaced = $match['image'] !== '';
+    $reply(false, $replaced ? 'replaced' : 'attached', $replaced ? 'Picture replaced.' : 'Picture added.', $match['word']);
+}
