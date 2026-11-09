@@ -993,21 +993,26 @@ if (isset($_GET['table']) && $_GET['table'] == 'admin') {
     $limit = 10;
     $sort = 'auth_username';
     $order = 'DESC';
-    $where = " WHERE status = '0'";
+    // List every admin account. This used to filter on status = '0', but login
+    // (check_login.php) only accepts status = 1 and add_admin creates accounts
+    // with status = 1, so newly added users never appeared here.
+    $where = " WHERE 1";
     $table = $_GET['table'];
 
+    // Sanitize everything that ends up in the SQL string.
     if (isset($_GET['offset']))
-        $offset = $_GET['offset'];
+        $offset = max(0, (int) $_GET['offset']);
     if (isset($_GET['limit']))
-        $limit = $_GET['limit'];
+        $limit = max(1, min(200, (int) $_GET['limit']));
 
-    if (isset($_GET['sort']))
+    $allowed_sort = array('auth_username', 'role', 'created');
+    if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sort, true))
         $sort = $_GET['sort'];
     if (isset($_GET['order']))
-        $order = $_GET['order'];
+        $order = strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
 
-    if (isset($_GET['search'])) {
-        $search = $_GET['search'];
+    if (isset($_GET['search']) && $_GET['search'] !== '') {
+        $search = $db->escapeString($_GET['search']);
         $where .= " AND (`auth_username` like '%" . $search . "%' OR `role` like '%" . $search . "%')";
     }
 

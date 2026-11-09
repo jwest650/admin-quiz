@@ -291,7 +291,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of FROM `junior_category` c WHERE c.id = $id AND c.status='1'AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 3 || $type == '3') {
-            $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_junior_question where tbl_maths_junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of FROM `category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
+            $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_junior_question where tbl_maths_junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of FROM `junior_category` c WHERE c.id = $id AND c.status='1' AND c.type=" . $type . " ORDER BY CAST(c.row_order as unsigned) ASC";
         }
         $db->sql($sql);
         $result = $db->getResult();
@@ -324,7 +324,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_categories'])) {
             $sql = "SELECT *, (SELECT count(id) FROM tbl_junior_learning where tbl_junior_learning.category=c.id ) as no_of FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
         }
         if ($type == 3 || $type == '3') {
-            $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_junior_question where tbl_maths_junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of FROM `category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
+            $sql = "SELECT *, (SELECT count(id) FROM tbl_maths_junior_question where tbl_maths_junior_question.category=c.id ) as no_of_que, (SELECT @no_of_subcategories := count(`id`) from junior_subcategory s WHERE s.maincat_id = c.id and s.status = 1 ) as no_of FROM `junior_category` c WHERE c.type=" . $type . " AND c.status='1' ORDER BY CAST(c.row_order as unsigned) ASC";
         }
         $db->sql($sql);
         $result = $db->getResult();
@@ -395,7 +395,7 @@ if (isset($_POST['access_key']) && isset($_POST['get_subcategory_by_maincategory
         //     $no_of = ", (SELECT count(id) FROM tbl_learning WHERE tbl_learning.subcategory = subcategory.id ) as no_of";
         // }
         if ($type == 3 || $type == '3') {
-            $no_of = ", (SELECT count(id) FROM tbl_maths_junior_question WHERE tbl_maths_junior_question.subcategory = subcategory.id ) as no_of";
+            $no_of = ", (SELECT count(id) FROM tbl_maths_junior_question WHERE tbl_maths_junior_question.subcategory = junior_subcategory.id ) as no_of";
         }
 
         $sql =  "SELECT * " . $no_of . " FROM `junior_subcategory` WHERE `maincat_id`='$id' AND `status`=1 ORDER BY CAST(row_order as unsigned) ASC";

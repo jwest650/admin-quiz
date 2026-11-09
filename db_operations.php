@@ -1800,12 +1800,14 @@ if (isset($_POST['update_admin']) && !empty($_POST['update_admin']) && $_POST['u
     $update_username = $db->escapeString($_POST['update_username']);
     $update_role = $db->escapeString($_POST['update_role']);
     $sql = "UPDATE authenticate SET auth_username='" . $update_username . "',role='" . $update_role . "' WHERE auth_username='" . $update_admin_id . "'";
-    $db->sql($sql);
-    $res = $db->getResult();
-    if ($res) {
-        echo "<p class='alert alert-danger'>$update_username is not updated.</p>";
-    } else {
+    // Decide on the query's own success flag. getResult() is empty for a
+    // successful UPDATE but also empty when mysqli fails without throwing.
+    $ok = $db->sql($sql);
+    $db->getResult();
+    if ($ok) {
         echo "<p class='alert alert-success'>$update_username is successfully updated.</p>";
+    } else {
+        echo "<p class='alert alert-danger'>$update_username is not updated.</p>";
     }
 }
 
